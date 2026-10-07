@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de sesión sistema de planillas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+    <main class="login-page">
+        <div class="login-card">
+            <div class="text-center mb 2">
+                <img src="IMG/OIP.webp" alt="Logo" class="logo">
+                <h1>Banco Hipotecario</h1>
+                <p class="subtitle">Sistema de Gestión de Planillas</p>
+            </div>
+
+            <form>
+                <div class="mb-3">
+                    <label for="usuario" class="form-label">Usuario Corporativo</label>
+                    <input type="email"
+                        class="form-control"
+                        id="usuario"
+                        placeholder="usuario@bancohipotecario.com.sv">
+                    <div class="error-message"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <div class="password-container">
+                        <input type="password"
+                            class="form-control"
+                            id="password"
+                            placeholder="Contraseña">
+                    </div>
+
+                    <div class="error-message"></div>
+                </div>
+
+                <div class="security-message">
+                    <i class="bi bi-lock"></i>
+                    <span>Acceso restringido para personal autorizado del banco.</span>
+                </div>
+
+                <button type="submit" class="btn login-button w-100">
+                    Ingresar al Sistema
+                </button>
+
+                <p class="support-text">
+                    ¿Olvidó sus credenciales? Contacte a Soporte TI (Ext. 404)
+                </p>
+
+            </form>
+
+        </div>
+
+        <footer class="copyright">
+            © 2026 Banco Hipotecario de El Salvador, S.A.
+            Todos los derechos reservados.
+        </footer>
+
+    </main>
+    
+</body>
+</html>

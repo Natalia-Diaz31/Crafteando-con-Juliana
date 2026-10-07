@@ -1,0 +1,195 @@
+/*Tamaño de los elementos incluyendo padding y borde*/
+* {
+    box-sizing: border-box;
+}
+
+/*Configuracion general de la pagina*/
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-page {
+    min-height: 100vh;
+    background: linear-gradient(115deg, #10224e, #071027);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+    padding: 30px;
+}
+
+
+.login-card {
+    width: 360px;
+    background-color: white;
+
+    border-radius: 12px;
+
+    padding: 25px 16px 70px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+
+.logo {
+    width: 45px;
+    height: 45px;
+
+    object-fit: contain;
+
+    display: block;
+    margin: 0 auto 10px;
+}
+
+
+.login-card h1 {
+    font-size: 18px;
+    font-weight: 700;
+
+    color: #172033;
+
+    margin-bottom: 3px;
+}
+
+.subtitle {
+    font-size: 11px;
+    color: #596273;
+
+    margin-bottom: 25px;
+}
+
+
+.form-label {
+    font-size: 11px;
+    color: #334155;
+
+    margin-bottom: 6px;
+}
+
+.form-control {
+    height: 38px;
+
+    background-color: #f8fafc;
+
+    border: 1px solid #dce3ed;
+    border-radius: 6px;
+
+    font-size: 11px;
+
+    padding: 8px 12px;
+}
+
+.form-control:focus {
+    border-color: #2864dc;
+
+    box-shadow: 0 0 0 2px rgba(40, 100, 220, 0.12);
+}
+
+.error-message {
+    min-height: 0;
+
+    margin-top: 4px;
+
+    font-size: 10px;
+
+    color: #dc3545;
+}
+
+
+.security-message {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    background-color: #f4f7fb;
+
+    border-radius: 6px;
+
+    padding: 10px;
+
+    margin-top: 8px;
+    margin-bottom: 24px;
+
+    color: #536174;
+
+    font-size: 9px;
+}
+
+.security-message i {
+    color: #2864dc;
+
+    font-size: 13px;
+}
+
+
+.login-button {
+    height: 38px;
+
+    background-color: #2864dc;
+
+    border: none;
+    border-radius: 6px;
+
+    color: white;
+
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.login-button:hover {
+    background-color: #2055bd;
+}
+
+
+.support-text {
+    text-align: center;
+
+    color: #94a3b8;
+
+    font-size: 9px;
+
+    margin-top: 12px;
+    margin-bottom: 0;
+}
+
+.copyright {
+    position: absolute;
+
+    left: 15px;
+    bottom: 10px;
+
+    width: 160px;
+
+    color: #a8b1c0;
+
+    font-size: 8px;
+    line-height: 1.35;
+}
+
+
+@media (max-width: 576px) {
+
+    .login-page {
+        padding: 20px;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 360px;
+    }
+
+    .copyright {
+        position: static;
+
+        width: 100%;
+
+        text-align: center;
+
+        margin-top: 20px;
+    }
+}
