@@ -1,0 +1,324 @@
+/* Hace que el padding y el borde formen parte del tamaño de los elementos */
+* {
+    box-sizing: border-box;
+}
+
+/* Configuración general de la página */
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f7fb;
+    color: #172033;
+}
+
+
+/* Contenedor principal */
+.app {
+    min-height: 100vh;
+    display: flex;
+}
+
+
+/* Barra lateral */
+.sidebar {
+    width: 215px;
+    min-height: 100vh;
+    background-color: #08132f;
+    padding: 25px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Logo y nombre del banco */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding-bottom: 25px;
+}
+
+/* Tamaño del logo */
+.brand img {
+    width: 31px;
+    height: 31px;
+    object-fit: contain;
+}
+
+/* Nombre del banco */
+.brand strong {
+    display: block;
+    color: white;
+    font-size: 11px;
+}
+
+/* Texto corporativo */
+.brand span {
+    display: block;
+    color: #5b8df0;
+    font-size: 7px;
+    font-weight: bold;
+}
+
+
+/* Organiza las opciones del menú una debajo de otra */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Cada opción del menú */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: #8c98ae;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+/* Tamaño de los iconos */
+.menu-item i {
+    font-size: 14px;
+}
+
+/* Cambio cuando pasamos el mouse */
+.menu-item:hover {
+    color: white;
+}
+
+/* Opción seleccionada */
+.menu-item.active {
+    background-color: #2864dc;
+    color: white;
+}
+
+
+/* Contenido principal */
+.main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+
+/* Encabezado superior */
+.top-header {
+    min-height: 66px;
+    background-color: white;
+    border-bottom: 1px solid #dce3ed;
+    padding: 12px 25px;
+    display: flex;
+    align-items: center;
+}
+
+/* Título del encabezado */
+.top-header h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Texto debajo del título */
+.top-header p {
+    margin: 3px 0 0;
+    color: #657187;
+    font-size: 9px;
+}
+
+
+/* Espacio donde se encuentra el formulario */
+.content {
+    padding: 25px;
+}
+
+
+/* Tarjeta blanca que contiene el formulario */
+.form-card {
+    max-width: 850px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 3px 15px rgba(20, 40, 80, 0.06);
+}
+
+
+/* Encabezado del formulario */
+.form-header {
+    margin-bottom: 25px;
+}
+
+/* Texto pequeño superior */
+.form-header > span {
+    color: #2864dc;
+    font-size: 8px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* Nombre de la plantilla */
+.form-header h2 {
+    margin: 4px 0 0;
+    font-size: 18px;
+}
+
+/* Descripción */
+.form-header p {
+    margin: 5px 0 0;
+    color: #657187;
+    font-size: 10px;
+}
+
+/* Sección donde aparecerá el empleado seleccionado */
+.employee-section {
+    margin-top: 20px;
+    padding: 18px;
+    background-color: #f8fafc;
+    border: 1px solid #dce3ed;
+    border-radius: 8px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+/* Icono*/
+.section-title i {
+    color: #2864dc;
+    font-size: 15px;
+}
+
+/* Título empleado seleccionado */
+.section-title h3 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Organiza los datos del empleado en columnas */
+.employee-data {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.3fr 1.5fr;
+    gap: 12px;
+}
+
+/* Cada dato del empleado */
+.employee-field {
+    padding-right: 12px;
+    border-right: 1px solid #dce3ed;
+}
+
+/* Quitamos la línea del último dato */
+.employee-field:last-child {
+    border-right: none;
+}
+
+/* Nombre de cada dato */
+.employee-field span {
+    display: block;
+    margin-bottom: 5px;
+    color: #7b8798;
+    font-size: 8px;
+}
+
+/* Información del empleado */
+.employee-field strong {
+    display: block;
+    color: #26344d;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* Cada sección del formulario */
+.form-section {
+    padding-top: 18px;
+    margin-top: 18px;
+    border-top: 1px solid #e7ebf2;
+}
+
+/* Título de cada sección */
+.form-section h3 {
+    margin: 0 0 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Organiza mes y año en dos columnas */
+.period-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+}
+
+/* Etiquetas de los campos */
+.form-label {
+    color: #334155;
+    font-size: 10px;
+    margin-bottom: 6px;
+}
+
+/* Inputs y select */
+.form-control,
+.form-select {
+    min-height: 38px;
+    background-color: #f8fafc;
+    border: 1px solid #dce3ed;
+    border-radius: 6px;
+    color: #172033;
+    font-size: 11px;
+}
+
+/* Cambio visual cuando seleccionamos un campo */
+.form-control:focus,
+.form-select:focus {
+    border-color: #2864dc;
+    box-shadow: 0 0 0 2px rgba(40, 100, 220, 0.12);
+}
+
+/* Espacio entre los campos monetarios */
+.money-field {
+    margin-bottom: 16px;
+}
+
+/* Símbolo de dólar */
+.input-group-text {
+    background-color: #eef4ff;
+    border-color: #dce3ed;
+    color: #2864dc;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Texto que indica que los montos están en USD */
+.currency-text {
+    display: block;
+    margin-top: 4px;
+    color: #8a96a8;
+    font-size: 8px;
+}
+
+/* Para pantallas pequeñas */
+@media (max-width: 650px) {
+    /* Oculta la barra lateral */
+    .sidebar {
+        display: none;
+    }
+    /* Reduce el espacio exterior */
+    .content {
+        padding: 15px;
+    }
+    /* Mes y año pasan a estar uno debajo del otro */
+    .period-grid {
+        grid-template-columns: 1fr;
+    }
+    /* La tarjeta ocupa mejor el espacio disponible */
+    .form-card {
+        padding: 20px;
+    }
+}
