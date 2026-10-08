@@ -1,0 +1,323 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f7fb;
+    color: #172033;
+}
+
+/* Contenedor principal que contiene la barra lateral y el contenido de la página */
+.app {
+    min-height: 100vh;
+    display: flex;
+}
+/* Barra lateral de navegación */
+.sidebar {
+    width: 215px;
+    min-height: 100vh;
+    background-color: #08132f;
+    padding: 25px 16px;
+    display: flex;
+    flex-direction: column;
+}
+/* Logo y nombre del banco */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding-bottom: 25px;
+}
+/* Tamaño del logo */
+.brand img {
+    width: 31px;
+    height: 31px;
+    object-fit: contain;
+}
+/* Nombre del banco */
+.brand strong {
+    display: block;
+    color: white;
+    font-size: 11px;
+}
+/* Texto corporativo */
+.brand span {
+    display: block;
+    color: #5b8df0;
+    font-size: 7px;
+    font-weight: bold;
+}
+/* Organizamos las opciones una debajo de otra */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+/* Cada opción del menú */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: #8c98ae;
+    text-decoration: none;
+    font-size: 11px;
+}
+/* Tamaño de los iconos del menú */
+.menu-item i {
+    font-size: 14px;
+}
+/* Cambio visual cuando pasamos el mouse */
+.menu-item:hover {
+    color: white;
+}
+/* Opción actualmente seleccionada */
+.menu-item.active {
+    background-color: #2864dc;
+
+    color: white;
+}
+/* Hace que el contenido ocupe el espacio restante */
+.main-content {
+    flex: 1;
+    min-width: 0;
+}
+/* Encabezado superior de la página */
+.top-header {
+    min-height: 66px;
+    background-color: white;
+    border-bottom: 1px solid #dce3ed;
+    padding: 12px 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+/* Título principal */
+.top-header h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+/* Texto debajo del título */
+.top-header p {
+    margin: 3px 0 0;
+    color: #657187;
+    font-size: 9px;
+}
+/* Tarjeta que contiene la vista previa */
+.plantilla-card {
+    width: 100%;
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 3px 15px rgba(20, 40, 80, 0.06);
+}
+/* Encabezado de la vista previa */
+.plantilla-header {
+    margin-bottom: 20px;
+}
+/* Texto pequeño que identifica la sección */
+.plantilla-header > span {
+    color: #2864dc;
+    font-size: 8px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+/* Nombre de la plantilla */
+.plantilla-header h1 {
+    margin: 4px 0 0;
+    font-size: 17px;
+}
+/* Descripción de la plantilla */
+.plantilla-header p {
+    margin: 5px 0 0;
+    color: #657187;
+    font-size: 10px;
+}
+/* Permite desplazar horizontalmente la tabla cuando la pantalla es pequeña */
+.tabla-container {
+    width: 100%;
+    overflow-x: auto;
+}
+/* Tabla principal */
+.planilla {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    color: #172033;
+    font-size: 10px;
+}
+/* Damos diferentes anchos dependiendo de la cantidad de información de cada campo */
+/* Período */
+.planilla th:nth-child(1),
+.planilla td:nth-child(1) {
+    width: 9%;
+}
+/* Código del empleado */
+.planilla th:nth-child(2),
+.planilla td:nth-child(2) {
+    width: 12%;
+}
+/* Nombre completo */
+.planilla th:nth-child(3),
+.planilla td:nth-child(3) {
+    width: 16%;
+}
+/* DUI */
+.planilla th:nth-child(4),
+.planilla td:nth-child(4) {
+    width: 8%;
+}
+/* Cargo */
+.planilla th:nth-child(5),
+.planilla td:nth-child(5) {
+    width: 12%;
+}
+/* Salario base */
+.planilla th:nth-child(6),
+.planilla td:nth-child(6) {
+    width: 11%;
+}
+/* Ingresos adicionales */
+.planilla th:nth-child(7),
+.planilla td:nth-child(7) {
+    width: 12%;
+}
+/* Descuentos totales */
+.planilla th:nth-child(8),
+.planilla td:nth-child(8) {
+    width: 10%;
+}
+/* Total a pagar */
+.planilla th:nth-child(9),
+.planilla td:nth-child(9) {
+    width: 10%;
+}
+/* Estilo de los nombres de los campos */
+.planilla th {
+    padding: 12px 10px;
+    background-color: #f5f8fc;
+    color: #536174;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    border-top: 1px solid #dce3ed;
+    border-bottom: 1px solid #dce3ed;
+}
+/* Borde lateral izquierdo y esquina superior */
+.planilla th:first-child {
+    border-left: 1px solid #dce3ed;
+    border-radius: 8px 0 0 0;
+}
+/* Borde lateral derecho y esquina superior */
+.planilla th:last-child {
+    border-right: 1px solid #dce3ed;
+    border-radius: 0 8px 0 0;
+}
+/* Espacios donde posteriormente aparecerán los datos de la planilla */
+.planilla td {
+    height: 60px;
+    padding: 12px 10px;
+    background-color: white;
+    color: #536174;
+    border-bottom: 1px solid #e7ebf2;
+}
+/* Líneas verticales que separan las columnas */
+.planilla th,
+.planilla td {
+    border-right: 1px solid #e7ebf2;
+}
+
+/* La última columna conserva solamente su borde exterior */
+.planilla th:last-child,
+.planilla td:last-child {
+    border-right: 1px solid #e7ebf2;
+}
+/* Borde lateral izquierdo */
+.planilla td:first-child {
+    border-left: 1px solid #e7ebf2;
+}
+/* Borde lateral derecho */
+.planilla td:last-child {
+    border-right: 1px solid #e7ebf2;
+}
+/* Primera fila ligeramente destacada */
+.planilla tbody tr:first-child td {
+    background-color: #fbfcfe;
+}
+/* Cambio visual al pasar el mouse sobre la fila */
+.planilla tbody tr:hover td {
+    background-color: #f5f8ff;
+}
+/* Destacamos el campo que representa el resultado final de la planilla */
+.planilla th:last-child {
+    color: #2864dc;
+}
+/* Destacamos visualmente el valor total */
+.planilla td:last-child {
+    color: #2864dc;
+    font-weight: 600;
+}
+/* Sección inferior de la vista previa */
+.plantilla-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e7ebf2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+/* Mensaje informativo */
+.plantilla-footer span {
+    color: #68758a;
+    font-size: 9px;
+}
+/* Icono del mensaje informativo */
+.plantilla-footer span i {
+    color: #2864dc;
+    margin-right: 4px;
+}
+/* Botón para seleccionar la plantilla */
+.plantilla-footer button {
+    border: none;
+    background-color: #2864dc;
+    color: white;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+/* Cambio visual cuando pasamos el mouse */
+.plantilla-footer button:hover {
+    background-color: #2055bd;
+}
+/* Espacio entre el texto y el icono */
+.plantilla-footer button i {
+    margin-left: 5px;
+}
+/* Cuando la pantalla es más pequeña */
+@media (max-width: 650px) {
+    /* Ocultamos la barra lateral */
+    .sidebar {
+        display: none;
+    }
+    .plantilla-card {
+        border-radius: 0;
+    }
+    /* El contenido inferior pasa a organizarse verticalmente */
+    .plantilla-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    /* El botón ocupa todo el ancho */
+    .plantilla-footer button {
+        width: 100%;
+    }
+}
