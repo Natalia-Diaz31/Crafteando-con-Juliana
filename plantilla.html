@@ -58,7 +58,18 @@
                     <h1>Planilla básica mensual</h1>
                     <p> Plantilla para registrar un empleado por planilla.</p>
                 </div>
+                <div class="form-check mt-3">
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        name="plantilla"
+                        id="plantilla-basica"
+                        value="planilla-basica-mensual">
 
+                    <label class="form-check-label" for="plantilla-basica">
+                        Seleccionar Planilla básica mensual
+                    </label>
+                </div>
                 <div class="tabla-container">
                     <table class="planilla">
                         <thead>
@@ -96,11 +107,14 @@
                         Vista previa de la plantilla
                     </span>
 
-                    <button type="button">
+                    <button type="button" id="usar-plantilla">
                         Usar plantilla
                         <i class="bi bi-arrow-right"></i>
                     </button>
                 </div>
+                <p id="plantilla-error"
+                class="text-danger mt-3"
+                role="alert"></p>
             </section>
         </main>
     </div>

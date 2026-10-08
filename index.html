@@ -11,20 +11,23 @@
 <body>
     <main class="login-page">
         <div class="login-card">
-            <div class="text-center mb 2">
+            <div class="text-center mb-2">
                 <img src="IMG/OIP.webp" alt="Logo" class="logo">
                 <h1>Banco Hipotecario</h1>
                 <p class="subtitle">Sistema de Gestión de Planillas</p>
             </div>
 
-            <form>
+            <form id="form-login" novalidate>
                 <div class="mb-3">
-                    <label for="usuario" class="form-label">Usuario Corporativo</label>
+                   <label for="usuario" class="form-label">Correo electrónico</label>
                     <input type="email"
                         class="form-control"
                         id="usuario"
                         placeholder="usuario@bancohipotecario.com.sv">
-                    <div class="error-message"></div>
+                    <div id="usuario-error"
+                    class="error-message text-danger"
+                    role="alert"></div>
+                    
                 </div>
 
                 <div class="mb-3">
@@ -36,7 +39,9 @@
                             placeholder="Contraseña">
                     </div>
 
-                    <div class="error-message"></div>
+                    <div id="password-error"
+                    class="error-message text-danger"
+                    role="alert"></div>
                 </div>
 
                 <div class="security-message">
@@ -45,7 +50,7 @@
                 </div>
 
                 <button type="submit" class="btn login-button w-100">
-                    Ingresar al Sistema
+                    Iniciar sesión
                 </button>
 
                 <p class="support-text">
@@ -62,6 +67,6 @@
         </footer>
 
     </main>
-    
+    <script src="js/login-validacion.js"></script>
 </body>
 </html>
