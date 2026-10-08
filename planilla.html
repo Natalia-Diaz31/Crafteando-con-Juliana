@@ -98,7 +98,16 @@
     </button>
 
     <div id="acciones-confirmacion" class="mt-3">
-        <!-- Victor agregará la casilla y el botón de guardado. -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="confirmar-guardado">
+            <label class="form-check-label" for="confirmar-guardado">
+                He revisado el empleado, el período y los montos
+            </label>
+        </div>
+
+        <button type="button" id="btn-guardar-planilla" class="btn btn-success" disabled>
+            <i class="bi bi-save"></i> Guardar planilla
+        </button>
     </div>
 
     <p id="mensaje-guardado" class="mt-3" role="status"></p>
