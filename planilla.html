@@ -48,12 +48,111 @@
 
             <section class="content">
                 <div class="form-card">
+    
+
+    <h2 id="titulo-resumen">Revisar planilla</h2>
+
+    <h3 class="h5 mt-3">Datos de la planilla</h3>
+    <dl class="row">
+        <dt class="col-sm-4">Plantilla</dt>
+        <dd class="col-sm-8" id="resumen-plantilla"></dd>
+
+        <dt class="col-sm-4">Período</dt>
+        <dd class="col-sm-8" id="resumen-periodo"></dd>
+    </dl>
+
+    <h3 class="h5">Datos del empleado</h3>
+    <dl class="row">
+        <dt class="col-sm-4">Código</dt>
+        <dd class="col-sm-8" id="resumen-codigo"></dd>
+
+        <dt class="col-sm-4">Nombre completo</dt>
+        <dd class="col-sm-8" id="resumen-nombre"></dd>
+
+        <dt class="col-sm-4">DUI</dt>
+        <dd class="col-sm-8" id="resumen-dui"></dd>
+
+        <dt class="col-sm-4">Cargo</dt>
+        <dd class="col-sm-8" id="resumen-cargo"></dd>
+    </dl>
+
+    <h3 class="h5">Montos en dólares estadounidenses</h3>
+    <dl class="row">
+        <dt class="col-sm-4">Salario base</dt>
+        <dd class="col-sm-8" id="resumen-salario"></dd>
+
+        <dt class="col-sm-4">Ingresos adicionales</dt>
+        <dd class="col-sm-8" id="resumen-ingresos"></dd>
+
+        <dt class="col-sm-4">Descuentos totales</dt>
+        <dd class="col-sm-8" id="resumen-descuentos"></dd>
+
+        <dt class="col-sm-4">Total a pagar</dt>
+        <dd class="col-sm-8 fw-bold fs-5" id="resumen-total"></dd>
+    </dl>
+
+    <button type="button"
+            id="editar-datos"
+            class="btn btn-outline-primary">
+        Editar datos
+    </button>
+
+    <div id="acciones-confirmacion" class="mt-3">
+        <!-- Victor agregará la casilla y el botón de guardado. -->
+    </div>
+
+    <p id="mensaje-guardado" class="mt-3" role="status"></p>
+</section>
                     <div class="form-header">
                         <span>CREAR PLANILLA</span>
                         <h2>Planilla básica mensual</h2>
                         <p>Ingrese los datos correspondientes al período y los montos de la planilla.</p>
                     </div>
+<section class="mb-4" aria-labelledby="titulo-busqueda">
+    <h3 id="titulo-busqueda">Buscar empleado</h3>
 
+    <form id="form-busqueda-empleado" novalidate>
+        <label for="buscar-empleado" class="form-label">
+            Nombre, DUI o código del empleado
+        </label>
+
+        <div class="input-group">
+            <input
+                type="text"
+                id="buscar-empleado"
+                class="form-control"
+                placeholder="Ingrese nombre, DUI o código"
+                aria-describedby="busqueda-mensaje">
+
+            <button type="submit" class="btn btn-primary">
+                Buscar
+            </button>
+        </div>
+    </form>
+
+
+    <p id="busqueda-mensaje"
+       class="mt-2"
+       role="status"
+       aria-live="polite"></p>
+
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <caption>Resultados de búsqueda de empleados</caption>
+
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Nombre completo</th>
+                    <th scope="col">DUI</th>
+                    <th scope="col">Acción</th>
+                </tr>
+            </thead>
+
+            <tbody id="resultados-empleados"></tbody>
+        </table>
+    </div>
+</section>
                     <section class="employee-section">
                         <div class="section-title">
                             <i class="bi bi-person"></i>
@@ -88,7 +187,9 @@
                        role="status"></p>
                     
                     </section>
-                    <form>
+                    <form id="form-planilla" novalidate>
+                    <fieldset id="datos-pago" disabled>
+                    <legend class="visually-hidden">Datos de pago</legend>
                         <div class="form-section">
                             <h3>Período de planilla</h3>
                             <div class="period-grid">
@@ -109,6 +210,7 @@
                                         <option>Noviembre</option>
                                         <option>Diciembre</option>
                                     </select>
+                                    <div id="mes-error" class="invalid-feedback" role="alert"></div>
                                 </div>
 
                                 <div>
@@ -117,6 +219,7 @@
                                         id="anio"
                                         class="form-control"
                                         placeholder="2026">
+                                    <div id="anio-error" class="invalid-feedback" role="alert"></div>
                                 </div>
                             </div>
                         </div>
@@ -176,13 +279,24 @@
                                 </span>
                             </div>
                         </div>
+                                <button type="submit" class="btn btn-primary" id="revisar-planilla">
+                                 Revisar planilla
+                                </button>
+                                </fieldset>
 
                     </form>
+                    <section id="resumen-planilla"
+                    class="mt-4"
+                    aria-labelledby="titulo-resumen"
+                    hidden>
                 </div>
             </section>
         </main>
     </div>
 
 <script src="js/planilla.js"></script>
+<script src="js/busqueda-vista.js"></script>
+<script src="js/empleado-bloqueo.js"></script>
+<script src="js/planilla-obligatorios.js"></script>
 </body>
 </html>
