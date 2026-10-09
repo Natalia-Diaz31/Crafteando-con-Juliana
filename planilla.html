@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear planilla</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/planilla.css">
 </head>
@@ -48,260 +50,240 @@
 
             <section class="content">
                 <div class="form-card">
-    
-</section>
-                    <div class="form-header">
-                        <span>CREAR PLANILLA</span>
-                        <h2>Planilla básica mensual</h2>
-                        <p>Ingrese los datos correspondientes al período y los montos de la planilla.</p>
+
+            </section>
+            <div class="form-header">
+                <span>CREAR PLANILLA</span>
+                <h2>Planilla básica mensual</h2>
+                <p>Ingrese los datos correspondientes al período y los montos de la planilla.</p>
+            </div>
+            <section class="mb-4" aria-labelledby="titulo-busqueda">
+                <h3 id="titulo-busqueda">Buscar empleado</h3>
+
+                <form id="form-busqueda-empleado" novalidate>
+                    <label for="buscar-empleado" class="form-label">
+                        Nombre, DUI o código del empleado
+                    </label>
+
+                    <div class="input-group">
+                        <input type="text" id="buscar-empleado" class="form-control"
+                            placeholder="Ingrese nombre, DUI o código" aria-describedby="busqueda-mensaje">
+
+                        <button type="submit" class="btn btn-primary">
+                            Buscar
+                        </button>
                     </div>
-<section class="mb-4" aria-labelledby="titulo-busqueda">
-    <h3 id="titulo-busqueda">Buscar empleado</h3>
-
-    <form id="form-busqueda-empleado" novalidate>
-        <label for="buscar-empleado" class="form-label">
-            Nombre, DUI o código del empleado
-        </label>
-
-        <div class="input-group">
-            <input
-                type="text"
-                id="buscar-empleado"
-                class="form-control"
-                placeholder="Ingrese nombre, DUI o código"
-                aria-describedby="busqueda-mensaje">
-
-            <button type="submit" class="btn btn-primary">
-                Buscar
-            </button>
-        </div>
-    </form>
+                </form>
 
 
-    <p id="busqueda-mensaje"
-       class="mt-2"
-       role="status"
-       aria-live="polite"></p>
+                <p id="busqueda-mensaje" class="mt-2" role="status" aria-live="polite"></p>
 
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <caption>Resultados de búsqueda de empleados</caption>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <caption>Resultados de búsqueda de empleados</caption>
 
-            <thead>
-                <tr>
-                    <th scope="col">Código</th>
-                    <th scope="col">Nombre completo</th>
-                    <th scope="col">DUI</th>
-                    <th scope="col">Acción</th>
-                </tr>
-            </thead>
+                        <thead>
+                            <tr>
+                                <th scope="col">Código</th>
+                                <th scope="col">Nombre completo</th>
+                                <th scope="col">DUI</th>
+                                <th scope="col">Acción</th>
+                            </tr>
+                        </thead>
 
-            <tbody id="resultados-empleados"></tbody>
-        </table>
-    </div>
-</section>
-                    <section class="employee-section">
-                        <div class="section-title">
-                            <i class="bi bi-person"></i>
-                            <h3>Empleado seleccionado</h3>
-                        </div>
+                        <tbody id="resultados-empleados"></tbody>
+                    </table>
+                </div>
+            </section>
+            <section class="employee-section">
+                <div class="section-title">
+                    <i class="bi bi-person"></i>
+                    <h3>Empleado seleccionado</h3>
+                </div>
 
-                       
-                    <div class="employee-data">
-                        <div class="employee-field">
-                            <span>Código</span>
-                            <strong id="empleado-codigo">---</strong>
-                        </div>
-                    
-                        <div class="employee-field employee-name">
-                            <span>Nombre completo</span>
-                            <strong id="empleado-nombre">---</strong>
-                        </div>
-                    
-                        <div class="employee-field">
-                            <span>DUI</span>
-                            <strong id="empleado-dui">---</strong>
-                        </div>
-                    
-                        <div class="employee-field">
-                            <span>Cargo</span>
-                            <strong id="empleado-cargo">---</strong>
-                        </div>
+
+                <div class="employee-data">
+                    <div class="employee-field">
+                        <span>Código</span>
+                        <strong id="empleado-codigo">---</strong>
                     </div>
-                    
-                    <p id="mensaje-empleado"
-                       class="text-muted mt-3"
-                       role="status"></p>
-                    
-                    </section>
-                    <form id="form-planilla" novalidate>
-                    <fieldset id="datos-pago" disabled>
+
+                    <div class="employee-field employee-name">
+                        <span>Nombre completo</span>
+                        <strong id="empleado-nombre">---</strong>
+                    </div>
+
+                    <div class="employee-field">
+                        <span>DUI</span>
+                        <strong id="empleado-dui">---</strong>
+                    </div>
+
+                    <div class="employee-field">
+                        <span>Cargo</span>
+                        <strong id="empleado-cargo">---</strong>
+                    </div>
+                </div>
+
+                <p id="mensaje-empleado" class="text-muted mt-3" role="status"></p>
+
+            </section>
+            <form id="form-planilla" novalidate>
+                <fieldset id="datos-pago" disabled>
                     <legend class="visually-hidden">Datos de pago</legend>
-                        <div class="form-section">
-                            <h3>Período de planilla</h3>
-                            <div class="period-grid">
-                                <div>
-                                    <label for="mes" class="form-label">Mes</label>
-                                    <select id="mes" class="form-select">
-                                        <option value="" selected>Seleccione un mes</option>
-                                        <option>Enero</option>
-                                        <option>Febrero</option>
-                                        <option>Marzo</option>
-                                        <option>Abril</option>
-                                        <option>Mayo</option>
-                                        <option>Junio</option>
-                                        <option>Julio</option>
-                                        <option>Agosto</option>
-                                        <option>Septiembre</option>
-                                        <option>Octubre</option>
-                                        <option>Noviembre</option>
-                                        <option>Diciembre</option>
-                                    </select>
-                                    <div id="mes-error" class="invalid-feedback" role="alert"></div>
-                                </div>
+                    <div class="form-section">
+                        <h3>Período de planilla</h3>
+                        <div class="period-grid">
+                            <div>
+                                <label for="mes" class="form-label">Mes</label>
+                                <select id="mes" class="form-select">
+                                    <option value="" selected>Seleccione un mes</option>
+                                    <option>Enero</option>
+                                    <option>Febrero</option>
+                                    <option>Marzo</option>
+                                    <option>Abril</option>
+                                    <option>Mayo</option>
+                                    <option>Junio</option>
+                                    <option>Julio</option>
+                                    <option>Agosto</option>
+                                    <option>Septiembre</option>
+                                    <option>Octubre</option>
+                                    <option>Noviembre</option>
+                                    <option>Diciembre</option>
+                                </select>
+                                <div id="mes-error" class="invalid-feedback" role="alert"></div>
+                            </div>
 
-                                <div>
-                                    <label for="anio" class="form-label">Año</label>
-                                    <input type="number"
-                                        id="anio"
-                                        class="form-control"
-                                        placeholder="2026">
-                                    <div id="anio-error" class="invalid-feedback" role="alert"></div>
-                                </div>
+                            <div>
+                                <label for="anio" class="form-label">Año</label>
+                                <input type="number" id="anio" class="form-control" placeholder="2026">
+                                <div id="anio-error" class="invalid-feedback" role="alert"></div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="form-section">
-                            <h3>Montos</h3>
-                            <div class="money-field">
-                                <label for="salario" class="form-label">
-                                    Salario base
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="text"
-                                        id="salario"
-                                        class="form-control"
-                                        placeholder="0.00"
-                                        inputmode="decimal">
-                                </div>
-
-                                <span class="currency-text">
-                                    Dólares estadounidenses (USD)
-                                </span>
+                    <div class="form-section">
+                        <h3>Montos</h3>
+                        <div class="money-field">
+                            <label for="salario" class="form-label">
+                                Salario base
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" id="salario" class="form-control" placeholder="0.00"
+                                    inputmode="decimal">
                             </div>
 
-                            <div class="money-field">
-                                <label for="ingresos" class="form-label">
-                                    Ingresos adicionales
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="text"
-                                        id="ingresos"
-                                        class="form-control"
-                                        value="0.00"
-                                        inputmode="decimal">
-                                </div>
-                                <span class="currency-text">
-                                    Dólares estadounidenses (USD)
-                                </span>
-
-                            </div>
-
-                            <div class="money-field">
-                                <label for="descuentos" class="form-label">
-                                    Descuentos totales
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="text"
-                                        id="descuentos"
-                                        class="form-control"
-                                        value="0.00"
-                                        inputmode="decimal">
-                                </div>
-                                <span class="currency-text">
-                                    Dólares estadounidenses (USD)
-                                </span>
-                            </div>
+                            <span class="currency-text">
+                                Dólares estadounidenses (USD)
+                            </span>
                         </div>
-                               <button type="submit"
-                                class="btn btn-primary mt-3"
-                                 id="revisar-planilla"
-                                 aria-controls="resumen-planilla"
-                                aria-expanded="false">
-                                Revisión de planilla
-                                </button>
-                                </fieldset>
 
-                    </form>
-                    <section id="resumen-planilla"
-                    class="mt-4"
-                    aria-labelledby="titulo-resumen"
-                    hidden>
+                        <div class="money-field">
+                            <label for="ingresos" class="form-label">
+                                Ingresos adicionales
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" id="ingresos" class="form-control" value="0.00" inputmode="decimal">
+                            </div>
+                            <span class="currency-text">
+                                Dólares estadounidenses (USD)
+                            </span>
 
-                    <h2 id="titulo-resumen">Revisar planilla</h2>
+                        </div>
 
-    <h3 class="h5 mt-3">Datos de la planilla</h3>
-    <dl class="row">
-        <dt class="col-sm-4">Plantilla</dt>
-        <dd class="col-sm-8" id="resumen-plantilla"></dd>
+                        <div class="money-field">
+                            <label for="descuentos" class="form-label">
+                                Descuentos totales
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" id="descuentos" class="form-control" value="0.00"
+                                    inputmode="decimal">
+                            </div>
+                            <span class="currency-text">
+                                Dólares estadounidenses (USD)
+                            </span>
+                        </div>
+                    </div>
 
-        <dt class="col-sm-4">Período</dt>
-        <dd class="col-sm-8" id="resumen-periodo"></dd>
-    </dl>
+                    <div class="mt-3 p-3 border rounded">
+                        <span class="d-block text-muted">Total a pagar (USD)</span>
+                        <strong class="fs-4">
+                            $<span id="total-calculado">—</span>
+                        </strong>
+                    </div>
 
-    <h3 class="h5">Datos del empleado</h3>
-    <dl class="row">
-        <dt class="col-sm-4">Código</dt>
-        <dd class="col-sm-8" id="resumen-codigo"></dd>
+                    <button type="submit" class="btn btn-primary mt-3" id="revisar-planilla"
+                        aria-controls="resumen-planilla" aria-expanded="false">
+                        Revisión de planilla
+                    </button>
+                </fieldset>
 
-        <dt class="col-sm-4">Nombre completo</dt>
-        <dd class="col-sm-8" id="resumen-nombre"></dd>
+            </form>
+            <section id="resumen-planilla" class="mt-4" aria-labelledby="titulo-resumen" hidden>
 
-        <dt class="col-sm-4">DUI</dt>
-        <dd class="col-sm-8" id="resumen-dui"></dd>
+                <h2 id="titulo-resumen">Revisar planilla</h2>
 
-        <dt class="col-sm-4">Cargo</dt>
-        <dd class="col-sm-8" id="resumen-cargo"></dd>
-    </dl>
+                <h3 class="h5 mt-3">Datos de la planilla</h3>
+                <dl class="row">
+                    <dt class="col-sm-4">Plantilla</dt>
+                    <dd class="col-sm-8" id="resumen-plantilla"></dd>
 
-    <h3 class="h5">Montos en dólares estadounidenses</h3>
-    <dl class="row">
-        <dt class="col-sm-4">Salario base</dt>
-        <dd class="col-sm-8" id="resumen-salario"></dd>
+                    <dt class="col-sm-4">Período</dt>
+                    <dd class="col-sm-8" id="resumen-periodo"></dd>
+                </dl>
 
-        <dt class="col-sm-4">Ingresos adicionales</dt>
-        <dd class="col-sm-8" id="resumen-ingresos"></dd>
+                <h3 class="h5">Datos del empleado</h3>
+                <dl class="row">
+                    <dt class="col-sm-4">Código</dt>
+                    <dd class="col-sm-8" id="resumen-codigo"></dd>
 
-        <dt class="col-sm-4">Descuentos totales</dt>
-        <dd class="col-sm-8" id="resumen-descuentos"></dd>
+                    <dt class="col-sm-4">Nombre completo</dt>
+                    <dd class="col-sm-8" id="resumen-nombre"></dd>
 
-        <dt class="col-sm-4">Total a pagar</dt>
-        <dd class="col-sm-8 fw-bold fs-5" id="resumen-total"></dd>
-    </dl>
+                    <dt class="col-sm-4">DUI</dt>
+                    <dd class="col-sm-8" id="resumen-dui"></dd>
 
-    <button type="button"
-            id="editar-datos"
-            class="btn btn-outline-primary">
-        Editar datos
-    </button>
+                    <dt class="col-sm-4">Cargo</dt>
+                    <dd class="col-sm-8" id="resumen-cargo"></dd>
+                </dl>
 
-    <div id="acciones-confirmacion" class="mt-3">
-        <!-- Victor agregará la casilla y el botón de guardado. -->
-    </div>
+                <h3 class="h5">Montos en dólares estadounidenses</h3>
+                <dl class="row">
+                    <dt class="col-sm-4">Salario base</dt>
+                    <dd class="col-sm-8" id="resumen-salario"></dd>
 
-    <p id="mensaje-guardado" class="mt-3" role="status"></p>
+                    <dt class="col-sm-4">Ingresos adicionales</dt>
+                    <dd class="col-sm-8" id="resumen-ingresos"></dd>
+
+                    <dt class="col-sm-4">Descuentos totales</dt>
+                    <dd class="col-sm-8" id="resumen-descuentos"></dd>
+
+                    <dt class="col-sm-4">Total a pagar</dt>
+                    <dd class="col-sm-8 fw-bold fs-5" id="resumen-total"></dd>
+                </dl>
+
+                <button type="button" id="editar-datos" class="btn btn-outline-primary">
+                    Editar datos
+                </button>
+
+                <div id="acciones-confirmacion" class="mt-3">
+                    <!-- Victor agregará la casilla y el botón de guardado. -->
+                </div>
+
+                <p id="mensaje-guardado" class="mt-3" role="status"></p>
             </section>
         </main>
     </div>
 
-<script src="js/planilla.js"></script>
-<script src="js/busqueda-validacion.js"></script>
-<script src="js/busqueda-vista.js"></script>
-<script src="js/empleado-bloqueo.js"></script>
-<script src="js/planilla-obligatorios.js"></script>
-<script src="js/revision-planilla.js"></script>
+    <script src="js/planilla.js"></script>
+    <script src="js/busqueda-validacion.js"></script>
+    <script src="js/busqueda-vista.js"></script>
+    <script src="js/empleado-bloqueo.js"></script>
+    <script src="js/planilla-obligatorios.js"></script>
+    <script src="js/planilla-total.js"></script>
+    <script src="js/revision-planilla.js"></script>
 </body>
+
 </html>
