@@ -1,0 +1,117 @@
+
+/* HU-08: Consulta de planillas */
+
+.consulta-card {
+    max-width: 1050px;
+}
+
+.consulta-card .table {
+    font-size: 12px;
+}
+
+.consulta-card .table th {
+    color: #657187;
+    font-weight: 600;
+    background-color: #f8fafc;
+    padding: 14px;
+    white-space: nowrap;
+}
+
+.consulta-card .table td {
+    padding: 14px;
+    vertical-align: middle;
+}
+
+.consulta-card .btn {
+    font-size: 11px;
+}
+
+#consulta-mensaje,
+#detalle-mensaje {
+    color: #657187;
+    font-size: 12px;
+}
+
+.consulta-seccion {
+    margin: 25px 0 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e7ebf2;
+    color: #172033;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0;
+}
+
+.detalle-grid > div {
+    padding: 15px;
+    background-color: #f8fafc;
+    border: 1px solid #e7ebf2;
+    border-radius: 7px;
+    min-width: 0;
+}
+
+.detalle-grid dt {
+    margin-bottom: 6px;
+    color: #7b8798;
+    font-size: 10px;
+    font-weight: 400;
+}
+
+.detalle-grid dd {
+    margin: 0;
+    color: #26344d;
+    font-size: 13px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.detalle-grid .detalle-total {
+    background-color: #eef4ff;
+    border-color: #c9dcff;
+}
+
+.detalle-total dd {
+    color: #2864dc;
+    font-size: 19px;
+}
+
+@media (max-width: 650px) {
+    .detalle-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Ajustar la tabla al ancho disponible */
+.consulta-card .table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Permitir que el contenido se acomode en varias líneas */
+.consulta-card .table th,
+.consulta-card .table td {
+    padding: 10px 6px;
+    font-size: 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* Mantener visible el botón Ver detalle */
+.consulta-card .table .btn {
+    padding: 6px 8px;
+    font-size: 10px;
+    white-space: normal;
+}
+
+/* Evitar que la tabla se extienda innecesariamente */
+.consulta-card .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
