@@ -5,60 +5,63 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 1. Recuperar los datos del empleado seleccionado
-    const empleadoGuardado =
-        sessionStorage.getItem("empleadoSeleccionado");
+    const mensaje = document.getElementById("mensaje-empleado");
 
-    const mensaje =
-        document.getElementById("mensaje-empleado");
+    function mostrarEmpleadoEnPantalla(empleado) {
+        const codigo = document.getElementById("empleado-codigo");
+        const nombre = document.getElementById("empleado-nombre");
+        const dui = document.getElementById("empleado-dui");
+        const cargo = document.getElementById("empleado-cargo");
 
-    // 2. Verificar si se seleccionó un empleado
-    if (!empleadoGuardado) {
+        if (codigo) codigo.textContent = empleado?.codigo || "---";
+        if (nombre) nombre.textContent = empleado?.nombre_completo || "---";
+        if (dui) dui.textContent = empleado?.dui || "---";
+        if (cargo) cargo.textContent = empleado?.cargo || "---";
+
         if (mensaje) {
-            mensaje.textContent =
-                "No hay un empleado seleccionado.";
+            mensaje.textContent = empleado ? "" : "No hay un empleado seleccionado.";
         }
+    }
+
+    function guardarEmpleadoSeleccionado(empleado) {
+        if (!empleado ||
+            !empleado.codigo ||
+            !empleado.nombre_completo ||
+            !empleado.dui ||
+            !empleado.cargo) {
+            sessionStorage.removeItem("empleadoSeleccionado");
+            mostrarEmpleadoEnPantalla(null);
+            return false;
+        }
+
+        sessionStorage.setItem("empleadoSeleccionado", JSON.stringify(empleado));
+        mostrarEmpleadoEnPantalla(empleado);
+        document.dispatchEvent(new CustomEvent("empleado:actualizado"));
+        return true;
+    }
+
+    document.addEventListener("empleado:seleccionar", (evento) => {
+        guardarEmpleadoSeleccionado(evento.detail);
+    });
+
+    const empleadoGuardado = sessionStorage.getItem("empleadoSeleccionado");
+
+    if (!empleadoGuardado) {
+        mostrarEmpleadoEnPantalla(null);
         return;
     }
 
     try {
-        // 3. Convertir los datos guardados a un objeto
         const empleado = JSON.parse(empleadoGuardado);
 
-        // 4. Verificar que los datos estén completos
-        if (
-            !empleado.codigo ||
-            !empleado.nombre_completo ||
-            !empleado.dui ||
-            !empleado.cargo
-        ) {
+        if (!guardarEmpleadoSeleccionado(empleado)) {
             throw new Error("Datos del empleado incompletos");
         }
-
-        // 5. Mostrar los datos del empleado en la página
-        document.getElementById("empleado-codigo")
-            .textContent = empleado.codigo;
-
-        document.getElementById("empleado-nombre")
-            .textContent = empleado.nombre_completo;
-
-        document.getElementById("empleado-dui")
-            .textContent = empleado.dui;
-
-        document.getElementById("empleado-cargo")
-            .textContent = empleado.cargo;
-
-        // 6. Limpiar el mensaje de error
-        if (mensaje) {
-            mensaje.textContent = "";
-        }
-
     } catch (error) {
         console.error("Error al cargar empleado:", error);
 
         if (mensaje) {
-            mensaje.textContent =
-                "No se pudieron cargar los datos del empleado.";
+            mensaje.textContent = "No se pudieron cargar los datos del empleado.";
         }
     }
 });

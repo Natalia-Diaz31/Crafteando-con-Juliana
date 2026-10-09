@@ -3,7 +3,3 @@ Proyecto de desarrollo de un sistema web de gestión de planillas para Banco, en
 
 # Enlace de demostración
 Acceder al sistema de planillas (https://sistemadeplanillas.vercel.app/)
-
-# Claves de acceso (demostración)
-Correo: demo@planillas.com
-Contraseña: Planilla123!

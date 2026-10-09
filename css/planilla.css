@@ -1,16 +1,25 @@
+/* Hace que el padding y el borde formen parte del tamaño de los elementos */
 * {
     box-sizing: border-box;
 }
+
+/* Configuración general de la página */
 body {
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
     background-color: #f4f7fb;
     color: #172033;
 }
+
+
+/* Contenedor principal */
 .app {
     min-height: 100vh;
     display: flex;
 }
+
+
+/* Barra lateral */
 .sidebar {
     width: 215px;
     min-height: 100vh;
@@ -19,33 +28,47 @@ body {
     display: flex;
     flex-direction: column;
 }
+
+
+/* Logo y nombre del banco */
 .brand {
     display: flex;
     align-items: center;
     gap: 9px;
     padding-bottom: 25px;
 }
+
+/* Tamaño del logo */
 .brand img {
     width: 31px;
     height: 31px;
     object-fit: contain;
 }
+
+/* Nombre del banco */
 .brand strong {
     display: block;
     color: white;
     font-size: 11px;
 }
+
+/* Texto corporativo */
 .brand span {
     display: block;
     color: #5b8df0;
     font-size: 7px;
     font-weight: bold;
 }
+
+
+/* Organiza las opciones del menú una debajo de otra */
 .menu {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
+
+/* Cada opción del menú */
 .menu-item {
     display: flex;
     align-items: center;
@@ -56,20 +79,32 @@ body {
     text-decoration: none;
     font-size: 11px;
 }
+
+/* Tamaño de los iconos */
 .menu-item i {
     font-size: 14px;
 }
+
+/* Cambio cuando pasamos el mouse */
 .menu-item:hover {
     color: white;
 }
+
+/* Opción seleccionada */
 .menu-item.active {
     background-color: #2864dc;
     color: white;
 }
+
+
+/* Contenido principal */
 .main-content {
     flex: 1;
     min-width: 0;
 }
+
+
+/* Encabezado superior */
 .top-header {
     min-height: 66px;
     background-color: white;
@@ -78,21 +113,27 @@ body {
     display: flex;
     align-items: center;
 }
+
+/* Título del encabezado */
 .top-header h1 {
     margin: 0;
     font-size: 16px;
     font-weight: 700;
 }
+
+/* Texto debajo del título */
 .top-header p {
     margin: 3px 0 0;
     color: #657187;
     font-size: 9px;
 }
 
+
 /* Espacio donde se encuentra el formulario */
 .content {
     padding: 25px;
 }
+
 
 /* Tarjeta blanca que contiene el formulario */
 .form-card {
@@ -103,6 +144,7 @@ body {
     padding: 25px;
     box-shadow: 0 3px 15px rgba(20, 40, 80, 0.06);
 }
+
 
 /* Encabezado del formulario */
 .form-header {
@@ -279,4 +321,9 @@ body {
     .form-card {
         padding: 20px;
     }
+}
+
+/* Mantiene oculto el resumen hasta que JavaScript lo habilite. */
+#resumen-planilla[hidden] {
+    display: none !important;
 }
