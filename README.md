@@ -6,4 +6,4 @@ Acceder al sistema de planillas (https://sistemadeplanillas.vercel.app/)
 
 # Claves de acceso (demostración)
 Correo: demo@planillas.com
-Contraseña: Planillas123!
+Contraseña: Planilla123!
