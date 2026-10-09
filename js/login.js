@@ -9,22 +9,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const mensaje = document.getElementById("mensaje-login");
     const boton = formulario.querySelector('button[type="submit"]');
 
-    formulario.addEventListener("submit", async (event) => {
+    // Recibir los datos después de que pasan las validaciones del formulario
+    formulario.addEventListener("login:validado", async (event) => {
 
-        // Evitar que el formulario recargue la página
-        event.preventDefault();
-
-        // Obtener los datos ingresados
-        const correo = document.getElementById("usuario").value.trim();
-        const contrasena = document.getElementById("password").value;
+        const correo = event.detail.correo;
+        const contrasena = event.detail.password;
 
         mensaje.textContent = "";
-
-        // Validar campos obligatorios
-        if (!correo || !contrasena) {
-            mensaje.textContent = "Debe ingresar correo y contraseña";
-            return;
-        }
 
         boton.disabled = true;
         boton.textContent = "Verificando...";
@@ -49,9 +40,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const resultado = await respuesta.json();
 
             // Comprobar si el inicio de sesión fue exitoso
-            if (!respuesta.ok || !resultado.ok || !resultado.token) {
+            if (!respuesta.ok || (!resultado.ok && !resultado.success) || !resultado.token) {
+
                 mensaje.textContent =
-                    resultado.mensaje || "Credenciales incorrectas";
+                    respuesta.status === 400 || respuesta.status === 401
+                        ? "Correo o contraseña inválidos"
+                        : resultado.mensaje || resultado.message || "Error al iniciar sesión";
+
                 return;
             }
 

@@ -1,9 +1,11 @@
 
 require("dotenv").config();
 
+const jwt = require("jsonwebtoken");
 const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
+const { respuestaExitosa, respuestaError } = require("./utils/respuestas");
 
 const app = express();
 
@@ -26,10 +28,7 @@ const supabase = createClient(
 
 // Comprobar que funciona la API
 app.get("/health", (req, res) => {
-    res.json({
-        ok: true,
-        mensaje: "API funcionando"
-    });
+    return respuestaExitosa(res, "API funcionando");
 });
 
 //
@@ -297,10 +296,16 @@ app.get("/api/empleados/buscar", verificarToken, async (req, res) => {
     }
 });
 
+//
+// HU-01: RESPUESTA COMPARTIDA PARA RUTAS NO ENCONTRADAS
+//
+
+app.use((req, res) => {
+    return respuestaError(res, "Ruta no encontrada", 404);
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor funcionando en el puerto ${PORT}`);
 });
-
-const jwt = require("jsonwebtoken");
