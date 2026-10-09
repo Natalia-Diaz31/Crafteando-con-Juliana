@@ -88,7 +88,23 @@ document.addEventListener("DOMContentLoaded", () => {
         const empleado = window.obtenerEmpleadoSeleccionado();
         const total = salario + ingresos - descuentos;
 
-        mostrarDato("resumen-plantilla", "Planilla básica mensual");
+        // Obtener la plantilla elegida en la HU-03.
+        let plantilla = null;
+
+        try {
+            plantilla = JSON.parse(
+                sessionStorage.getItem("plantillaSeleccionada")
+            );
+        } catch {
+            plantilla = null;
+        }
+
+        if (!plantilla?.id || !plantilla?.nombre) {
+            alert("Seleccione una plantilla para continuar");
+            return;
+        }
+
+        mostrarDato("resumen-plantilla", plantilla.nombre);
         mostrarDato("resumen-periodo", `${mes} ${anio}`);
         mostrarDato("resumen-codigo", empleado.codigo);
         mostrarDato("resumen-nombre", empleado.nombre_completo);
