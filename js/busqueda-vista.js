@@ -3,6 +3,15 @@ window.mostrarResultadosEmpleados = function (empleados) {
     const cuerpo = document.getElementById("resultados-empleados");
     cuerpo.replaceChildren();
 
+    const mensaje = document.getElementById("busqueda-mensaje");
+
+    if (empleados.length === 0) {
+        mensaje.textContent = "No se encontraron empleados";
+        return;
+    }
+
+    mensaje.textContent = "";
+
     empleados.forEach((empleado) => {
         const fila = document.createElement("tr");
 
