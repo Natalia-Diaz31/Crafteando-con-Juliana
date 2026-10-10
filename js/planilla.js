@@ -6,6 +6,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     const mensaje = document.getElementById("mensaje-empleado");
+    const botonCambiarEmpleado = document.getElementById("cambiar-empleado");
 
     function mostrarEmpleadoEnPantalla(empleado) {
         const codigo = document.getElementById("empleado-codigo");
@@ -20,6 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (mensaje) {
             mensaje.textContent = empleado ? "" : "No hay un empleado seleccionado.";
+        }
+
+        if (botonCambiarEmpleado) {
+            botonCambiarEmpleado.hidden = !empleado;
         }
     }
 
@@ -44,6 +49,20 @@ document.addEventListener("DOMContentLoaded", () => {
         guardarEmpleadoSeleccionado(evento.detail);
     });
 
+    if (botonCambiarEmpleado) {
+        botonCambiarEmpleado.addEventListener("click", () => {
+            const buscador = document.getElementById("buscar-empleado");
+
+            if (buscador) {
+                buscador.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+                buscador.focus();
+            }
+        });
+    }
     const empleadoGuardado = sessionStorage.getItem("empleadoSeleccionado");
 
     if (!empleadoGuardado) {
