@@ -327,3 +327,35 @@ body {
 #resumen-planilla[hidden] {
     display: none !important;
 }
+/* Título de búsqueda con el mismo estilo
+   visual que las demás secciones */
+#titulo-busqueda {
+    margin: 0 0 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #172033;
+}
+
+/* Separa la búsqueda del encabezado */
+#titulo-busqueda + form {
+    margin-top: 0;
+}
+
+/* Encabezados de la tabla de resultados */
+.table thead th {
+    font-size: 10px;
+    font-weight: 600;
+    color: #334155;
+}
+
+/* Contenido de los resultados */
+.table tbody td {
+    font-size: 10px;
+    color: #536174;
+}
+
+/* Texto "Resultados de búsqueda de empleados" */
+.table caption {
+    font-size: 9px;
+    color: #7b8798;
+}
