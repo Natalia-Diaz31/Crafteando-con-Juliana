@@ -359,3 +359,179 @@ body {
     font-size: 9px;
     color: #7b8798;
 }
+
+/* =========================
+   REVISIÓN DE PLANILLA
+   ========================= */
+
+.revision-card {
+    margin-top: 28px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #dce3ed;
+    border-radius: 10px;
+}
+
+.revision-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e7ebf2;
+}
+
+.revision-etiqueta {
+    display: block;
+    margin-bottom: 5px;
+    color: #2864dc;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.revision-header h2 {
+    margin: 0;
+    color: #172033;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.revision-header p {
+    margin: 5px 0 0;
+    color: #657187;
+    font-size: 10px;
+}
+
+.revision-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background: #eef4ff;
+    color: #2864dc;
+    font-size: 18px;
+}
+
+.revision-section {
+    padding: 20px 0;
+    border-bottom: 1px solid #e7ebf2;
+}
+
+.revision-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 15px;
+    color: #172033;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.revision-section h3 i {
+    color: #2864dc;
+}
+
+.revision-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.revision-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.revision-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.revision-grid-4 {
+    grid-template-columns: 0.8fr 1.6fr 1fr 1fr;
+}
+
+.revision-dato {
+    min-width: 0;
+}
+
+.revision-dato span {
+    display: block;
+    margin-bottom: 5px;
+    color: #7b8798;
+    font-size: 8px;
+}
+
+.revision-dato strong {
+    display: block;
+    color: #26344d;
+    font-size: 10px;
+    font-weight: 600;
+    overflow-wrap: break-word;
+}
+
+.revision-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+    padding: 16px 18px;
+    background: #f8fafc;
+    border: 1px solid #dce3ed;
+    border-radius: 8px;
+}
+
+.revision-total span {
+    display: block;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.revision-total small {
+    display: block;
+    margin-top: 3px;
+    color: #8a96a8;
+    font-size: 8px;
+}
+
+.revision-total strong {
+    color: #172033;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.revision-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding-top: 20px;
+}
+
+@media (max-width: 750px) {
+    .revision-grid-4,
+    .revision-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 520px) {
+    .revision-grid-2,
+    .revision-grid-3,
+    .revision-grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .revision-total,
+    .revision-actions {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+body .revision-card {
+    display: block;
+}

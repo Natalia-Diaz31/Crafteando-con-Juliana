@@ -225,57 +225,119 @@
                     </fieldset>
 
                 </form>
-                <section id="resumen-planilla" class="mt-4" aria-labelledby="titulo-resumen" hidden>
+                <section id="resumen-planilla"
+                        class="revision-card"
+                        aria-labelledby="titulo-resumen"
+                        hidden>
 
-                    <h2 id="titulo-resumen">Revisar planilla</h2>
+                    <div class="revision-header">
+                        <div>
+                            <span class="revision-etiqueta">REVISIÓN DE PLANILLA</span>
+                            <h2 id="titulo-resumen">Verifique los datos</h2>
+                            <p>Revise la información antes de guardar la planilla.</p>
+                        </div>
 
-                    <h3 class="h5 mt-3">Datos de la planilla</h3>
-                    <dl class="row">
-                        <dt class="col-sm-4">Plantilla</dt>
-                        <dd class="col-sm-8" id="resumen-plantilla"></dd>
-
-                        <dt class="col-sm-4">Período</dt>
-                        <dd class="col-sm-8" id="resumen-periodo"></dd>
-                    </dl>
-
-                    <h3 class="h5">Datos del empleado</h3>
-                    <dl class="row">
-                        <dt class="col-sm-4">Código</dt>
-                        <dd class="col-sm-8" id="resumen-codigo"></dd>
-
-                        <dt class="col-sm-4">Nombre completo</dt>
-                        <dd class="col-sm-8" id="resumen-nombre"></dd>
-
-                        <dt class="col-sm-4">DUI</dt>
-                        <dd class="col-sm-8" id="resumen-dui"></dd>
-
-                        <dt class="col-sm-4">Cargo</dt>
-                        <dd class="col-sm-8" id="resumen-cargo"></dd>
-                    </dl>
-
-                    <h3 class="h5">Montos en dólares estadounidenses</h3>
-                    <dl class="row">
-                        <dt class="col-sm-4">Salario base</dt>
-                        <dd class="col-sm-8" id="resumen-salario"></dd>
-
-                        <dt class="col-sm-4">Ingresos adicionales</dt>
-                        <dd class="col-sm-8" id="resumen-ingresos"></dd>
-
-                        <dt class="col-sm-4">Descuentos totales</dt>
-                        <dd class="col-sm-8" id="resumen-descuentos"></dd>
-
-                        <dt class="col-sm-4">Total a pagar</dt>
-                        <dd class="col-sm-8 fw-bold fs-5" id="resumen-total"></dd>
-                    </dl>
-
-                    <button type="button" id="editar-datos" class="btn btn-outline-primary">
-                        Editar datos
-                    </button>
-
-                    <div id="acciones-confirmacion" class="mt-3">
-                        <!-- Victor agregará la casilla y el botón de guardado. -->
+                        <i class="bi bi-clipboard-check revision-icon"></i>
                     </div>
-                    <p id="mensaje-guardado" class="mt-3" role="status"></p>
+
+                    <div class="revision-section">
+                        <h3>
+                            <i class="bi bi-file-earmark-text"></i>
+                            Datos de la planilla
+                        </h3>
+
+                        <div class="revision-grid revision-grid-2">
+                            <div class="revision-dato">
+                                <span>Plantilla</span>
+                                <strong id="resumen-plantilla"></strong>
+                            </div>
+
+                            <div class="revision-dato">
+                                <span>Período</span>
+                                <strong id="resumen-periodo"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="revision-section">
+                        <h3>
+                            <i class="bi bi-person"></i>
+                            Datos del empleado
+                        </h3>
+
+                        <div class="revision-grid revision-grid-4">
+                            <div class="revision-dato">
+                                <span>Código</span>
+                                <strong id="resumen-codigo"></strong>
+                            </div>
+
+                            <div class="revision-dato">
+                                <span>Nombre completo</span>
+                                <strong id="resumen-nombre"></strong>
+                            </div>
+
+                            <div class="revision-dato">
+                                <span>DUI</span>
+                                <strong id="resumen-dui"></strong>
+                            </div>
+
+                            <div class="revision-dato">
+                                <span>Cargo</span>
+                                <strong id="resumen-cargo"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="revision-section">
+                        <h3>
+                            <i class="bi bi-cash-stack"></i>
+                            Resumen de montos
+                        </h3>
+
+                        <div class="revision-grid revision-grid-3">
+                            <div class="revision-dato">
+                                <span>Salario base</span>
+                                <strong id="resumen-salario"></strong>
+                            </div>
+
+                            <div class="revision-dato">
+                                <span>Ingresos adicionales</span>
+                                <strong id="resumen-ingresos"></strong>
+                            </div>
+
+                            <div class="revision-dato">
+                                <span>Descuentos totales</span>
+                                <strong id="resumen-descuentos"></strong>
+                            </div>
+                        </div>
+
+                        <div class="revision-total">
+                            <div>
+                                <span>Total a pagar</span>
+                                <small>Dólares estadounidenses (USD)</small>
+                            </div>
+
+                            <strong id="resumen-total"></strong>
+                        </div>
+                    </div>
+
+                    <div class="revision-actions">
+                        <button type="button"
+                                id="editar-datos"
+                                class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                            Editar datos
+                        </button>
+
+                        <div id="acciones-confirmacion">
+                            <!-- Victor agregará la casilla y el botón de guardado. -->
+                        </div>
+                    </div>
+
+                    <p id="mensaje-guardado"
+                    class="mt-3"
+                    role="status"></p>
+
                 </section>
                 </div>
             </section>
