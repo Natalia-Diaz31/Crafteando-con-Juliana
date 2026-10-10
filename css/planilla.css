@@ -531,7 +531,3 @@ body {
         flex-direction: column;
     }
 }
-
-body .revision-card {
-    display: block;
-}
