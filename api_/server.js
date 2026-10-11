@@ -362,6 +362,267 @@ app.get("/api/empleados/:id", verificarToken, async (req, res) => {
 });
 
 //
+// HU-08: VALIDAR DATOS ANTES DE GUARDAR UNA PLANILLA
+//
+
+function validarDatosPlanilla(req, res, next) {
+    const datos = req.body || {};
+    const errores = {};
+
+    const formatoUUID =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    // Identificadores del empleado y de la plantilla.
+    for (const campo of ["empleado_id", "plantilla_id"]) {
+        if (
+            typeof datos[campo] !== "string" ||
+            !formatoUUID.test(datos[campo])
+        ) {
+            errores[campo] =
+                "Debe seleccionar un registro con identificador válido";
+        }
+    }
+
+    // Aceptar únicamente texto o números; rechazar objetos y booleanos.
+    function obtenerTexto(valor) {
+        if (typeof valor === "string") {
+            return valor.trim();
+        }
+
+        if (typeof valor === "number" && Number.isFinite(valor)) {
+            return String(valor);
+        }
+
+        return "";
+    }
+
+    const mesTexto = obtenerTexto(datos.mes);
+    const anioTexto = obtenerTexto(datos.anio);
+
+    // El mes debe recibirse como número: 1 hasta 12.
+    if (
+        !/^\d{1,2}$/.test(mesTexto) ||
+        Number(mesTexto) < 1 ||
+        Number(mesTexto) > 12
+    ) {
+        errores.mes = "Seleccione un mes entre 1 y 12";
+    }
+
+    // Año de cuatro cifras, distinto de 0000.
+    if (
+        !/^\d{4}$/.test(anioTexto) ||
+        Number(anioTexto) === 0
+    ) {
+        errores.anio = "Ingrese un año válido de cuatro cifras";
+    }
+
+    // Convertir montos a centavos para realizar operaciones enteras.
+    function obtenerCentavos(campo) {
+        const texto = obtenerTexto(datos[campo]);
+
+        if (!texto) {
+            errores[campo] = "Este campo es obligatorio";
+            return null;
+        }
+
+        if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) {
+            errores[campo] =
+                "Ingrese un número mayor o igual a cero, con máximo dos decimales";
+            return null;
+        }
+
+        const [entero, decimal = ""] = texto.split(".");
+        const centavos =
+            Number(entero) * 100 +
+            Number(decimal.padEnd(2, "0"));
+
+            if (
+            !Number.isSafeInteger(centavos) ||
+            centavos > 999999999999
+        ) {
+            errores[campo] =
+                "El monto no puede superar 9999999999.99";
+            return null;
+        }
+
+        return centavos;
+    }
+
+    const salario = obtenerCentavos("salario_base");
+    const ingresos = obtenerCentavos("ingresos_adicionales");
+    const descuentos = obtenerCentavos("descuentos_totales");
+
+    let total = null;
+
+    if (
+        salario !== null &&
+        ingresos !== null &&
+        descuentos !== null
+    ) {
+        const sumaIngresos = salario + ingresos;
+
+        if (!Number.isSafeInteger(sumaIngresos)) {
+            errores.ingresos_adicionales =
+                "La suma de ingresos supera el valor que el sistema puede procesar";
+        } else if (descuentos > sumaIngresos) {
+            errores.descuentos_totales =
+                "Los descuentos no pueden superar los ingresos";
+        } else {
+            total = sumaIngresos - descuentos;
+
+            if (total > 999999999999) {
+                errores.total_pagar =
+                    "El total a pagar no puede superar 9999999999.99";
+            }
+        }
+    }
+
+    if (Object.keys(errores).length > 0) {
+        return res.status(400).json({
+            ok: false,
+            mensaje: "Corrija los datos de la planilla",
+            errores
+        });
+    }
+
+    // Convertir centavos a texto decimal sin redondear los datos.
+    function aDecimal(centavos) {
+        const entero = Math.floor(centavos / 100);
+        const decimal = String(centavos % 100).padStart(2, "0");
+
+        return `${entero}.${decimal}`;
+    }
+
+    // La ruta de guardado utilizará estos datos ya validados.
+    req.planillaValidada = {
+        empleado_id: datos.empleado_id,
+        plantilla_id: datos.plantilla_id,
+        mes: Number(mesTexto),
+        anio: Number(anioTexto),
+        salario_base: aDecimal(salario),
+        ingresos_adicionales: aDecimal(ingresos),
+        descuentos_totales: aDecimal(descuentos),
+        total_pagar: aDecimal(total)
+    };
+
+    return next();
+}
+
+//
+// HU-08: GUARDAR UNA PLANILLA
+//
+
+app.post(
+    "/api/planillas",
+    verificarToken,
+    validarDatosPlanilla,
+    async (req, res) => {
+        try {
+            const datos = req.planillaValidada;
+
+            // Consultar los datos reales del empleado.
+            const {
+                data: empleado,
+                error: errorEmpleado
+            } = await supabase
+                .from("empleados")
+                .select("id, codigo, nombre_completo, dui, cargo")
+                .eq("id", datos.empleado_id)
+                .maybeSingle();
+
+            if (errorEmpleado) throw errorEmpleado;
+
+            if (!empleado) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "El empleado seleccionado no existe"
+                });
+            }
+
+            // Consultar la plantilla seleccionada.
+            const {
+                data: plantilla,
+                error: errorPlantilla
+            } = await supabase
+                .from("plantillas")
+                .select("id, nombre")
+                .eq("id", datos.plantilla_id)
+                .maybeSingle();
+
+            if (errorPlantilla) throw errorPlantilla;
+
+            if (!plantilla) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "La plantilla seleccionada no existe"
+                });
+            }
+
+            if (plantilla.nombre !== "Planilla básica mensual") {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje:
+                        "Seleccione la plantilla Planilla básica mensual"
+                });
+            }
+
+            // Conservar los datos del empleado y de la plantilla
+            // junto con el período y los montos validados.
+            const registro = {
+                plantilla_id: plantilla.id,
+                empleado_id: empleado.id,
+                mes: datos.mes,
+                anio: datos.anio,
+                plantilla_nombre: plantilla.nombre,
+                empleado_codigo: empleado.codigo,
+                empleado_nombre: empleado.nombre_completo,
+                empleado_dui: empleado.dui,
+                empleado_cargo: empleado.cargo,
+                salario_base: datos.salario_base,
+                ingresos_adicionales: datos.ingresos_adicionales,
+                descuentos_totales: datos.descuentos_totales,
+                total_pagar: datos.total_pagar
+            };
+
+            // Supabase genera el ID y la fecha de guardado.
+            const {
+                data: planilla,
+                error: errorGuardado
+            } = await supabase
+                .from("planillas")
+                .insert(registro)
+                .select("id, fecha_guardado, total_pagar")
+                .single();
+
+            if (errorGuardado) throw errorGuardado;
+
+            if (!planilla?.id) {
+                throw new Error(
+                    "El guardado no devolvió un identificador"
+                );
+            }
+
+            // Confirmar únicamente después de guardar.
+            return res.status(201).json({
+                ok: true,
+                mensaje: "Planilla guardada",
+                id: planilla.id,
+                fecha_guardado: planilla.fecha_guardado,
+                total_pagar: planilla.total_pagar
+            });
+        } catch (error) {
+            console.error("Error al guardar planilla:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje:
+                    "No se pudo guardar la planilla. Intente nuevamente"
+            });
+        }
+    }
+);
+
+//
 // HU-01: RESPUESTA COMPARTIDA PARA RUTAS NO ENCONTRADAS
 //
 
