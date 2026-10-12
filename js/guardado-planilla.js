@@ -2,9 +2,6 @@
 // HU-08: Integración del guardado de planilla con API
 //
 
-
-
-
 async function guardarPlanilla() {
 
     // Obtener datos previamente seleccionados
@@ -57,6 +54,16 @@ async function guardarPlanilla() {
 
         const token =
             sessionStorage.getItem("token");
+
+
+        if (!token) {
+
+            mostrarMensajeGuardado(
+                "La sesión expiró. Inicie sesión nuevamente."
+            );
+
+            return;
+        }
 
 
         const respuesta = await fetch(
@@ -146,3 +153,22 @@ function mostrarMensajeGuardado(mensaje) {
     }
 
 }
+
+
+// Conectar botón de guardar con la función HU-08
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonGuardar =
+        document.getElementById("btn-guardar-planilla");
+
+
+    if (botonGuardar) {
+
+        botonGuardar.addEventListener(
+            "click",
+            guardarPlanilla
+        );
+
+    }
+
+});
