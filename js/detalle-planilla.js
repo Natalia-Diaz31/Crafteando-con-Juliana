@@ -60,3 +60,54 @@ window.mostrarDetallePlanilla = function (planilla) {
     mensaje.textContent = "";
     contenido.hidden = false;
 };
+
+
+// --- INICIO CÓDIGO DE VÍCTOR: CONEXIÓN CON LA API ---
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Validamos que haya sesión iniciada
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+        window.location.replace("index.html");
+        return;
+    }
+
+    const mensajeError = document.getElementById("detalle-mensaje"); 
+
+    // 2. Extraemos el ID de la URL (ej: detalle-planilla.html?id=3)
+    const parametros = new URLSearchParams(window.location.search);
+    const idPlanilla = parametros.get("id");
+
+    if (!idPlanilla) {
+        if (mensajeError) mensajeError.textContent = "ID de planilla no válido.";
+        window.mostrarDetallePlanilla(null); // Oculta la vista
+        return;
+    }
+
+    try {
+        // 3. Consultamos el endpoint de Sara para traer los detalles
+        const respuesta = await fetch(`${API_URL}/api/planillas/${idPlanilla}`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const resultado = await respuesta.json();
+
+        // 4. Se lo pasamos a la función de tu compañera
+        if (respuesta.ok && resultado.ok) {
+            window.mostrarDetallePlanilla(resultado.planilla);
+        } else {
+            window.mostrarDetallePlanilla(null);
+            if (mensajeError) mensajeError.textContent = resultado.mensaje || "Error al obtener el detalle de la planilla.";
+        }
+
+    } catch (error) {
+        console.error("Error al consultar el detalle:", error);
+        window.mostrarDetallePlanilla(null);
+        if (mensajeError) mensajeError.textContent = "Error de conexión con el servidor.";
+    }
+});
+
+// --- FIN CÓDIGO DE VÍCTOR ---
