@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const descripcion = document.querySelector(".plantilla-header p");
     const encabezados = document.querySelectorAll(".planilla thead th");
 
-    const API_URL = "https://sistema-planillas-api.vercel.app";
     const token = sessionStorage.getItem("token");
 
     let plantilla = null;
@@ -89,4 +88,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             })
         );
     });
+});
+
+// HU-03
+document.addEventListener("plantilla:seleccionada", () => {
+    // Redirigir a la pantalla de creación de planilla
+    window.location.href = "planilla.html";
 });

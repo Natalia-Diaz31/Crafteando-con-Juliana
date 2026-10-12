@@ -155,4 +155,28 @@ document.addEventListener("DOMContentLoaded", () => {
     formulario.addEventListener("input", ocultarResumen);
     formulario.addEventListener("change", ocultarResumen);
     document.addEventListener("empleado:actualizado", ocultarResumen);
+
+    // --- INICIO CÓDIGO DE VICTOR (HU-07) ---
+  
+  const checkboxConfirmacion = document.getElementById("confirmacion-revisado");
+  const botonGuardar = document.getElementById("btn-guardar-planilla");
+
+  // 1. Escuchar cuando marcan o desmarcan la casilla
+  if (checkboxConfirmacion && botonGuardar) {
+    checkboxConfirmacion.addEventListener("change", function() {
+      // Si está checkeado (true), disabled es false (se habilita).
+      botonGuardar.disabled = !this.checked; 
+    });
+  }
+
+  // 2. Opcional (pero seguro): Reforzar que al presionar "Editar datos", 
+  // el botón se bloquee inmediatamente por si acaso la lógica actual no lo hace a tiempo
+  editar.addEventListener("click", () => {
+    if (botonGuardar) {
+      botonGuardar.disabled = true;
+    }
+  });
+  
+  // --- FIN CÓDIGO DE VICTOR ---
+
 });

@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Enviar credenciales a nuestra API publicada
             const respuesta = await fetch(
-                "https://sistema-planillas-api.vercel.app/api/auth/login",
+                `${API_URL}/api/auth/login`,
                 {
                     method: "POST",
                     headers: {

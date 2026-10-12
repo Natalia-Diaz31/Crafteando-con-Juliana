@@ -2,7 +2,7 @@
 // HU-08: Integración del guardado de planilla con API
 //
 
-const API_URL = "https://sistema-planillas-api.vercel.app";
+
 
 
 async function guardarPlanilla() {
