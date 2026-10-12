@@ -1,0 +1,43 @@
+name: CI - API de planillas
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validar-api:
+    name: Validar API y ejecutar pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: api_
+
+    steps:
+      - name: Obtener repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: api_/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Validar sintaxis de la API y las pruebas
+        run: |
+          find . ../ci-tests -type f \( -name '*.js' -o -name '*.cjs' \) -not -path './node_modules/*' -print0 | xargs -0 -r -n1 node --check
+
+      - name: Ejecutar pruebas obligatorias
+        run: node --test --test-reporter=spec ../ci-tests/api.test.cjs
