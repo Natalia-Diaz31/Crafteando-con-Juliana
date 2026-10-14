@@ -45,60 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    // Consultar en la API los datos registrados del empleado elegido
-    async function consultarEmpleado(id) {
-        const token = sessionStorage.getItem("token");
-
-        const respuesta = await fetch(
-            `${API_URL}/api/empleados/${encodeURIComponent(id)}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-
-        const resultado = await respuesta.json();
-
-        if (!respuesta.ok || !resultado.ok || !resultado.empleado) {
-            throw new Error(
-                resultado.mensaje || "No se pudieron consultar los datos del empleado"
-            );
-        }
-
-        // La consulta no devuelve el id; se conserva el del empleado elegido
-        return { id, ...resultado.empleado };
-    }
-
-    // Evita que una respuesta lenta reemplace una selección más reciente
-    let ultimaConsulta = 0;
-
-    document.addEventListener("empleado:seleccionar", async (evento) => {
-        const consulta = ++ultimaConsulta;
-
-        if (mensaje) {
-            mensaje.textContent = "Consultando datos del empleado...";
-        }
-
-        try {
-            const empleado = await consultarEmpleado(evento.detail?.id);
-
-            if (consulta !== ultimaConsulta) return;
-
-            guardarEmpleadoSeleccionado(empleado);
-        } catch (error) {
-            if (consulta !== ultimaConsulta) return;
-
-            // Se conserva la selección anterior y se informa el error
-            console.error("Error al consultar empleado:", error);
-
-            if (mensaje) {
-                // fetch lanza TypeError cuando no hay conexión con la API
-                mensaje.textContent = error instanceof TypeError
-                    ? "No se pudo conectar con el servidor"
-                    : error.message;
-            }
-        }
+    document.addEventListener("empleado:seleccionar", (evento) => {
+        guardarEmpleadoSeleccionado(evento.detail);
     });
 
     if (botonCambiarEmpleado) {
