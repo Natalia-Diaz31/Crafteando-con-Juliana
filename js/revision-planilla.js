@@ -86,8 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const empleado = window.obtenerEmpleadoSeleccionado();
-        const totalIngresos = salario + ingresos;
-        const total = totalIngresos - descuentos;
+        const total = salario + ingresos - descuentos;
 
         // Obtener la plantilla elegida en la HU-03.
         let plantilla = null;
@@ -119,11 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
             formatoUSD.format(descuentos / 100)
         );
         mostrarDato("resumen-total", formatoUSD.format(total / 100));
-
-        mostrarDato(
-            "resumen-total-ingresos",
-            formatoUSD.format(totalIngresos / 100)
-        );
 
         // Si el equipo agrega una casilla de confirmación,
         // debe confirmarse nuevamente en cada revisión.
