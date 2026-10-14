@@ -547,3 +547,25 @@ body {
     font-size: 11px;
     font-weight: 600;
 }
+/* HU-12 - Detalle de descuentos */
+.descuentos-card {
+    margin: 20px 0;
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #dce3ed;
+    border-radius: 8px;
+}
+
+.descuentos-header {
+    margin-bottom: 16px;
+}
+
+.descuentos-header h3 {
+    margin-bottom: 4px;
+}
+
+.descuentos-header p {
+    margin: 0;
+    color: #8a96a8;
+    font-size: 10px;
+}
