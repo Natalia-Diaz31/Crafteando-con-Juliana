@@ -23,6 +23,13 @@ const DATOS = {
   empleado_id: EMPLEADO.id, plantilla_id: PLANTILLA.id, mes: 10, anio: 2026,
   salario_base: '500.00', ingresos_adicionales: '50.00', descuentos_totales: '25.00'
 };
+const PLANILLA_GUARDADA = {
+  id: '33333333-3333-4333-8333-333333333333', mes: 10, anio: 2026,
+  plantilla_nombre: PLANTILLA.nombre, empleado_codigo: EMPLEADO.codigo,
+  empleado_nombre: EMPLEADO.nombre_completo, empleado_dui: EMPLEADO.dui, empleado_cargo: EMPLEADO.cargo,
+  salario_base: 500, ingresos_adicionales: 50, descuentos_totales: 25, total_pagar: 525,
+  fecha_guardado: '2026-10-12T12:00:00Z'
+};
 const TOKEN = jwt.sign({ id: EMPLEADO.id, correo: 'demo@planillas.com' }, SECRET, { expiresIn: '1h' });
 
 function prepararAPI(opciones = {}) {
@@ -38,9 +45,12 @@ function prepararAPI(opciones = {}) {
       const consulta = {
         select() { return consulta; },
         eq(campo, valor) { filtro = { campo, valor }; return consulta; },
+        order() { return consulta; },
         insert(datos) { registro = datos; return consulta; },
         async maybeSingle() { return resolver(); },
-        async single() { return resolver(); }
+        async single() { return resolver(); },
+        // Los listados usan await directamente sobre la consulta.
+        then(ok, fallo) { return Promise.resolve().then(resolver).then(ok, fallo); }
       };
       function resolver() {
         if (tabla === 'empleados') {
@@ -48,6 +58,12 @@ function prepararAPI(opciones = {}) {
         }
         if (tabla === 'plantillas') {
           return { data: !opciones.sinPlantilla && filtro?.valor === PLANTILLA.id ? { ...PLANTILLA } : null, error: null };
+        }
+        if (tabla === 'planillas' && !registro) {
+          if (opciones.falloConsulta) return { data: null, error: { message: 'Fallo simulado de consulta' } };
+          const guardadas = [{ ...PLANILLA_GUARDADA }];
+          if (filtro) return { data: guardadas.find(p => p[filtro.campo] === filtro.valor) ?? null, error: null };
+          return { data: guardadas, error: null };
         }
         if (tabla === 'planillas' && registro) {
           if (opciones.falloGuardado) return { data: null, error: { message: 'Fallo simulado de inserción' } };
@@ -201,3 +217,51 @@ for (const [nombre, opcion] of [['fallo en Supabase', 'falloGuardado'], ['respue
     assert.equal(r.body.id, undefined); assert.equal(api.registros.length, 0);
   });
 }
+
+for (const ruta of ['/api/planillas', `/api/planillas/${PLANILLA_GUARDADA.id}`]) {
+  test(`Consultar ${ruta} rechaza sin sesión`, async t => {
+    const api = await conAPI(t);
+    const r = await api.pedir(ruta, undefined, null);
+    assert.equal(r.status, 401); assert.equal(r.body.ok, false);
+  });
+}
+
+test('El listado devuelve identificador, período, nombre y total', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/planillas');
+  assert.equal(r.status, 200); assert.equal(r.body.ok, true);
+  assert.deepEqual(r.body.planillas, [{
+    id: PLANILLA_GUARDADA.id, periodo: 'Octubre 2026', nombre_completo: EMPLEADO.nombre_completo,
+    total_pagar: 525, fecha_guardado: PLANILLA_GUARDADA.fecha_guardado
+  }]);
+});
+
+test('El detalle devuelve todos los datos guardados', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir(`/api/planillas/${PLANILLA_GUARDADA.id}`);
+  assert.equal(r.status, 200); assert.equal(r.body.ok, true);
+  assert.deepEqual(r.body.planilla, {
+    id: PLANILLA_GUARDADA.id, plantilla: PLANTILLA.nombre, periodo: 'Octubre 2026',
+    fecha_guardado: PLANILLA_GUARDADA.fecha_guardado, codigo: EMPLEADO.codigo,
+    nombre_completo: EMPLEADO.nombre_completo, dui: EMPLEADO.dui, cargo: EMPLEADO.cargo,
+    salario_base: 500, ingresos_adicionales: 50, descuentos_totales: 25, total_pagar: 525
+  });
+});
+
+test('El detalle rechaza un identificador inválido', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/planillas/123');
+  assert.equal(r.status, 400); assert.equal(r.body.ok, false);
+});
+
+test('El detalle de una planilla inexistente devuelve 404', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/planillas/44444444-4444-4444-8444-444444444444');
+  assert.equal(r.status, 404); assert.equal(r.body.mensaje, 'Planilla no encontrada');
+});
+
+test('La consulta no devuelve datos ante fallo en Supabase', async t => {
+  const api = await conAPI(t, { falloConsulta: true });
+  const r = await api.pedir('/api/planillas');
+  assert.equal(r.status, 500); assert.equal(r.body.ok, false); assert.equal(r.body.planillas, undefined);
+});
