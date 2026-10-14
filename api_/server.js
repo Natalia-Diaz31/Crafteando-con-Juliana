@@ -211,6 +211,55 @@ function verificarToken(req, res, next) {
     }
 }
 
+// HU-09: Verificar permisos del encargado de nómina
+async function verificarRolNomina(req, res, next) {
+    try {
+        // Obtener el ID de la cuenta autenticada
+        const idUsuario = req.usuario?.id;
+
+        if (!idUsuario) {
+            return res.status(401).json({
+                ok: false,
+                mensaje: "Debe iniciar sesión"
+            });
+        }
+
+        // Consultar el rol real en Supabase
+        const { data, error } = await supabase
+            .from("cuentas")
+            .select("rol")
+            .eq("id", idUsuario)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error al consultar el rol:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje: "Error al verificar los permisos"
+            });
+        }
+
+        // Comprobar que la cuenta tenga el rol requerido
+        if (!data || data.rol !== "Encargado de nómina") {
+            return res.status(403).json({
+                ok: false,
+                mensaje: "No tiene permisos para acceder a esta función"
+            });
+        }
+
+        // Permitir continuar con la operación
+        next();
+
+    } catch (error) {
+        console.error("Error de autorización:", error);
+
+        return res.status(500).json({
+            ok: false,
+            mensaje: "Error interno del servidor"
+        });
+    }
+}
 
 // Endpoint para buscar empleados
 app.get("/api/empleados/buscar", verificarToken, async (req, res) => {
@@ -517,6 +566,7 @@ function validarDatosPlanilla(req, res, next) {
 app.post(
     "/api/planillas",
     verificarToken,
+    verificarRolNomina, // HU-09: comprobar permisos
     validarDatosPlanilla,
     async (req, res) => {
         try {
@@ -639,7 +689,7 @@ function formatearPeriodo(mes, anio) {
 }
 
 // Listado: identificador, período, nombre del empleado y total
-app.get("/api/planillas", verificarToken, async (req, res) => {
+app.get("/api/planillas", verificarToken, verificarRolNomina, async (req, res) => {
     try {
         // 1. Consultar las planillas, de la más reciente a la más antigua
         const { data: planillas, error } = await supabase
@@ -672,7 +722,7 @@ app.get("/api/planillas", verificarToken, async (req, res) => {
 });
 
 // Detalle: todos los datos guardados de una planilla
-app.get("/api/planillas/:id", verificarToken, async (req, res) => {
+app.get("/api/planillas/:id", verificarToken, verificarRolNomina,  async (req, res) => {
     try {
         // 1. Comprobar que el identificador tenga formato UUID
         const id = String(req.params.id || "").trim();
