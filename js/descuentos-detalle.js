@@ -38,8 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     agregarBtn.addEventListener("click", () => {
-        const concepto = conceptoInput.value;
-        const importe = importeInput.value;
+        const concepto = conceptoInput.value.trim();
+        const importe = importeInput.value.trim();
+
+        if (!concepto && !importe) {
+            return;
+        }
 
         if (indiceEdicion === null) {
             descuentos.push({
@@ -92,3 +96,4 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
