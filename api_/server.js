@@ -82,11 +82,15 @@ app.post("/api/auth/login", async (req, res) => {
             });
         }
 
+        // HU-09: rol registrado en la cuenta (null si aún no tiene)
+        const rol = usuario.rol ?? null;
+
         // 6. Crear token de sesión
         const token = jwt.sign(
             {
                 id: usuario.id,
-                correo: usuario.correo
+                correo: usuario.correo,
+                rol: rol
             },
             process.env.JWT_SECRET,
             {
@@ -101,7 +105,8 @@ app.post("/api/auth/login", async (req, res) => {
             token: token,
             usuario: {
                 id: usuario.id,
-                correo: usuario.correo
+                correo: usuario.correo,
+                rol: rol
             }
         });
 
@@ -621,6 +626,118 @@ app.post(
         }
     }
 );
+
+//
+// HU-08: CONSULTAR PLANILLAS GUARDADAS
+//
+
+const MESES = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+// Mostrar el período igual que en el resumen: "Octubre 2026"
+function formatearPeriodo(mes, anio) {
+    return `${MESES[mes - 1] || mes} ${anio}`;
+}
+
+// Listado: identificador, período, nombre del empleado y total
+app.get("/api/planillas", verificarToken, async (req, res) => {
+    try {
+        // 1. Consultar las planillas, de la más reciente a la más antigua
+        const { data: planillas, error } = await supabase
+            .from("planillas")
+            .select("id, mes, anio, empleado_nombre, total_pagar, fecha_guardado")
+            .order("fecha_guardado", { ascending: false });
+
+        if (error) throw error;
+
+        // 2. Devolver los datos con los nombres que usa la pantalla
+        return res.status(200).json({
+            ok: true,
+            planillas: (planillas || []).map((planilla) => ({
+                id: planilla.id,
+                periodo: formatearPeriodo(planilla.mes, planilla.anio),
+                nombre_completo: planilla.empleado_nombre,
+                total_pagar: planilla.total_pagar,
+                fecha_guardado: planilla.fecha_guardado
+            }))
+        });
+
+    } catch (error) {
+        console.error("Error al consultar planillas:", error);
+
+        return res.status(500).json({
+            ok: false,
+            mensaje: "No se pudieron consultar las planillas"
+        });
+    }
+});
+
+// Detalle: todos los datos guardados de una planilla
+app.get("/api/planillas/:id", verificarToken, async (req, res) => {
+    try {
+        // 1. Comprobar que el identificador tenga formato UUID
+        const id = String(req.params.id || "").trim();
+
+        const formatoUUID =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+        if (!formatoUUID.test(id)) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Identificador de planilla inválido"
+            });
+        }
+
+        // 2. Consultar la planilla guardada
+        const { data: planilla, error } = await supabase
+            .from("planillas")
+            .select(
+                "id, mes, anio, plantilla_nombre, empleado_codigo, empleado_nombre, " +
+                "empleado_dui, empleado_cargo, salario_base, ingresos_adicionales, " +
+                "descuentos_totales, total_pagar, fecha_guardado"
+            )
+            .eq("id", id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!planilla) {
+            return res.status(404).json({
+                ok: false,
+                mensaje: "Planilla no encontrada"
+            });
+        }
+
+        // 3. Devolver los datos con los nombres que usa la pantalla
+        return res.status(200).json({
+            ok: true,
+            planilla: {
+                id: planilla.id,
+                plantilla: planilla.plantilla_nombre,
+                periodo: formatearPeriodo(planilla.mes, planilla.anio),
+                fecha_guardado: planilla.fecha_guardado,
+                codigo: planilla.empleado_codigo,
+                nombre_completo: planilla.empleado_nombre,
+                dui: planilla.empleado_dui,
+                cargo: planilla.empleado_cargo,
+                salario_base: planilla.salario_base,
+                ingresos_adicionales: planilla.ingresos_adicionales,
+                descuentos_totales: planilla.descuentos_totales,
+                total_pagar: planilla.total_pagar
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al consultar la planilla:", error);
+
+        return res.status(500).json({
+            ok: false,
+            mensaje: "No se pudo consultar la planilla"
+        });
+    }
+});
 
 //
 // HU-01: RESPUESTA COMPARTIDA PARA RUTAS NO ENCONTRADAS
