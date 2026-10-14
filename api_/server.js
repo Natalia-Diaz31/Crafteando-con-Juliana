@@ -86,7 +86,8 @@ app.post("/api/auth/login", async (req, res) => {
         const token = jwt.sign(
             {
                 id: usuario.id,
-                correo: usuario.correo
+                correo: usuario.correo,
+                rol: usuario.rol
             },
             process.env.JWT_SECRET,
             {
@@ -101,7 +102,8 @@ app.post("/api/auth/login", async (req, res) => {
             token: token,
             usuario: {
                 id: usuario.id,
-                correo: usuario.correo
+                correo: usuario.correo,
+                rol: usuario.rol
             }
         });
 
