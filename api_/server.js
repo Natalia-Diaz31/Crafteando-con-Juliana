@@ -623,49 +623,6 @@ app.post(
 );
 
 //
-// HU-08: CONSULTAR PLANILLAS GUARDADAS
-//
-
-app.get("/api/planillas", verificarToken, async (req, res) => {
-    try {
-        const { data: planillas, error } = await supabase
-            .from("planillas")
-            .select(`
-                id,
-                fecha_guardado,
-                plantilla_nombre,
-                mes,
-                anio,
-                empleado_codigo,
-                empleado_nombre,
-                empleado_dui,
-                empleado_cargo,
-                salario_base,
-                ingresos_adicionales,
-                descuentos_totales,
-                total_pagar
-            `)
-            .order("fecha_guardado", { ascending: false });
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            ok: true,
-            planillas: planillas || []
-        });
-
-    } catch (error) {
-        console.error("Error al consultar planillas:", error);
-
-        return res.status(500).json({
-            ok: false,
-            mensaje: "No se pudieron consultar las planillas"
-        });
-    }
-});
-//
 // HU-01: RESPUESTA COMPARTIDA PARA RUTAS NO ENCONTRADAS
 //
 
