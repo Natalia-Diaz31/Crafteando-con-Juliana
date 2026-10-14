@@ -53,6 +53,13 @@ document.addEventListener("DOMContentLoaded", () => {
             // Guardar la sesión temporalmente
             sessionStorage.setItem("token", resultado.token);
 
+            // HU-09: guardar el rol para el menú y las páginas protegidas
+            if (resultado.usuario?.rol) {
+                sessionStorage.setItem(CLAVE_ROL, resultado.usuario.rol);
+            } else {
+                sessionStorage.removeItem(CLAVE_ROL);
+            }
+
             // Redirigir a la página de plantillas
             window.location.href = "plantilla.html";
 

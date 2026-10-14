@@ -54,6 +54,8 @@ window.mostrarDetallePlanilla = function (planilla) {
 
     mostrar("detalle-salario", dinero(planilla.salario_base));
     mostrar("detalle-ingresos", dinero(planilla.ingresos_adicionales));
+    // HU-16: lo calcula la API a partir de los montos guardados (muestra «—» si no lo envía)
+    mostrar("detalle-total-ingresos", dinero(planilla.total_ingresos));
     mostrar("detalle-descuentos", dinero(planilla.descuentos_totales));
     mostrar("detalle-total", dinero(planilla.total_pagar));
 
