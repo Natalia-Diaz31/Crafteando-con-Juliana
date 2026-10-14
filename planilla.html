@@ -202,7 +202,66 @@
                                 </span>
 
                             </div>
+                            <!-- HU-12 - Detalle de descuentos -->
+                            <div class="money-field">
+                                <label class="form-label">Detalle de descuentos</label>
 
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-6">
+                                        <label for="descuento-concepto" class="form-label">
+                                            Concepto
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="descuento-concepto"
+                                            class="form-control"
+                                            placeholder="Ej. Préstamo personal">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="descuento-importe" class="form-label">
+                                            Importe
+                                        </label>
+
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input
+                                                type="text"
+                                                id="descuento-importe"
+                                                class="form-control"
+                                                placeholder="0.00"
+                                                inputmode="decimal">
+                                        </div>
+
+                                        <span class="currency-text">
+                                            Dólares estadounidenses (USD)
+                                        </span>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <button
+                                            type="button"
+                                            id="agregar-descuento"
+                                            class="btn btn-primary w-100">
+                                            Agregar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Concepto</th>
+                                                <th scope="col">Importe</th>
+                                                <th scope="col">Acciones</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="detalle-descuentos"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                             <div class="money-field">
                                 <label for="descuentos" class="form-label">
                                     Descuentos totales
@@ -377,6 +436,7 @@
     <script src="js/planilla-total.js"></script>
     <script src="js/revision-planilla.js"></script>
     <script src="js/guardado-planilla.js"></script>
-</body>
+    <script src="js/descuentos-detalle.js"></script>
 
+</body>
 </html>
