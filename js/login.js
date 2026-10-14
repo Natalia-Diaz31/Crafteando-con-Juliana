@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
-            // Enviar credenciales a nuestra API publicada
+            // Enviar credenciales a la API
             const respuesta = await fetch(
                 `${API_URL}/api/auth/login`,
                 {
