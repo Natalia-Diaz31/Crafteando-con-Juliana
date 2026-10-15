@@ -44,8 +44,8 @@ body {
 
 /* Tamaño del logo */
 .brand img {
-    width: 31px;
-    height: 31px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
 }
 
@@ -53,14 +53,14 @@ body {
 .brand strong {
     display: block;
     color: white;
-    font-size: 11px;
+    font-size: 13px;
 }
 
 /* Texto corporativo */
 .brand span {
     display: block;
     color: #5b8df0;
-    font-size: 7px;
+    font-size: 8px;
     font-weight: bold;
 }
 
@@ -76,17 +76,17 @@ body {
 .menu-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: 11px;
+    padding: 11px 12px;
     border-radius: 6px;
     color: #8c98ae;
     text-decoration: none;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 /* Tamaño de los iconos */
 .menu-item i {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 /* Cambio cuando pasamos el mouse */
@@ -130,14 +130,14 @@ body {
 .user-info strong {
     display: block;
     color: white;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .user-info span {
     display: block;
     margin-top: 2px;
     color: #8c98ae;
-    font-size: 8px;
+    font-size: 9px;
 }
 
 .logout-button {
@@ -147,7 +147,7 @@ body {
     color: #aeb9cc;
     padding: 9px 4px;
     text-align: left;
-    font-size: 10px;
+    font-size: 11px;
     cursor: pointer;
 }
 
