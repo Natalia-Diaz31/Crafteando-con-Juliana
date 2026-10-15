@@ -16,7 +16,7 @@ body {
 }
 /* Barra lateral de navegación */
 .sidebar {
-    width: 230px;
+    width: 275px;
     height: 100vh;
     position: sticky;
     top: 0;
