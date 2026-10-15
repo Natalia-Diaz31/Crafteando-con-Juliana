@@ -21,7 +21,7 @@ body {
 
 /* Barra lateral */
 .sidebar {
-    width: 230px;
+    width: 250px;
     height: 100vh;
     position: sticky;
     top: 0;
