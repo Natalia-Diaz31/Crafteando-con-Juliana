@@ -53,6 +53,14 @@ function prepararAPI(opciones = {}) {
         then(ok, fallo) { return Promise.resolve().then(resolver).then(ok, fallo); }
       };
       function resolver() {
+        if (tabla === 'cuentas') {
+          return {
+            data: filtro?.valor === EMPLEADO.id
+              ? { rol: 'Encargado de nómina' }
+              : null,
+            error: null
+          };
+        }
         if (tabla === 'empleados') {
           return { data: !opciones.sinEmpleado && filtro?.valor === EMPLEADO.id ? { ...EMPLEADO } : null, error: null };
         }
@@ -89,12 +97,12 @@ function prepararAPI(opciones = {}) {
   const contexto = {
     require(nombre) {
       if (nombre === 'express') return expressPruebas;
-      if (nombre === 'dotenv') return { config() {} };
+      if (nombre === 'dotenv') return { config() { } };
       if (nombre === '@supabase/supabase-js') return { createClient: () => supabase };
       return apiRequire(nombre);
     },
     process: { env: { JWT_SECRET: SECRET, PORT: '3000', SUPABASE_URL: 'https://ci.example.invalid', SUPABASE_SECRET_KEY: 'ficticia' } },
-    console: { log() {}, error() {}, warn() {} },
+    console: { log() { }, error() { }, warn() { } },
     module: modulo, exports: modulo.exports,
     __dirname: path.dirname(serverPath), __filename: serverPath,
     Buffer, setTimeout, clearTimeout, setInterval, clearInterval
