@@ -162,14 +162,14 @@ body {
 /* Título principal */
 .top-header h1 {
     margin: 0;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
 }
 /* Texto debajo del título */
 .top-header p {
-    margin: 3px 0 0;
+    margin: 4px 0 0;
     color: #657187;
-    font-size: 9px;
+    font-size: 11px;
 }
 /* Tarjeta que contiene la vista previa */
 .plantilla-card {
@@ -205,23 +205,29 @@ body {
 }
 
 /* Texto pequeño que identifica la sección */
-.plantilla-header > span {
+.plantilla-header span {
     color: #2864dc;
-    font-size: 8px;
+    font-size: 10px;
     font-weight: bold;
     letter-spacing: 1px;
 }
 /* Nombre de la plantilla */
 .plantilla-header h1 {
     margin: 4px 0 0;
-    font-size: 17px;
+    font-size: 21px;
 }
 /* Descripción de la plantilla */
 .plantilla-header p {
     margin: 5px 0 0;
     color: #657187;
-    font-size: 10px;
+    font-size: 11px;
 }
+
+.form-check-label {
+    font-size: 16px;
+    font-weight: 500;
+}
+
 /* Permite desplazar horizontalmente la tabla cuando la pantalla es pequeña */
 .tabla-container {
     width: 100%;
@@ -230,6 +236,7 @@ body {
 /* Tabla principal */
 .planilla {
     width: 100%;
+    min-width: 900px;
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
@@ -287,7 +294,7 @@ body {
     padding: 12px 10px;
     background-color: #f5f8fc;
     color: #536174;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
     text-align: center;
     vertical-align: middle;
@@ -386,9 +393,8 @@ body {
 .plantilla-footer button i {
     margin-left: 5px;
 }
-/* Cuando la pantalla es más pequeña */
+/* Cuando la pantalla es más pequeña, compactamos la barra lateral */
 @media (max-width: 780px) {
-    /* Ocultamos la barra lateral */
     .sidebar {
         width: 72px;
         padding: 24px 10px;
