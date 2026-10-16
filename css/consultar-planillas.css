@@ -1,10 +1,6 @@
 
 /* HU-08: Consulta de planillas */
 
-.consulta-card {
-    max-width: 1050px;
-}
-
 .consulta-card .table {
     font-size: 12px;
 }
@@ -33,27 +29,38 @@
 }
 
 .consulta-seccion {
-    margin: 25px 0 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e7ebf2;
-    color: #172033;
-    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 25px 0 8px;
+    padding: 11px 14px;
+    background-color: #eef4ff;
+    border-radius: 7px;
+    color: #2864dc;
+    font-size: 15px;
     font-weight: 600;
 }
 
 .detalle-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
     margin: 0;
 }
 
 .detalle-grid > div {
-    padding: 15px;
+    padding: 15px 18px;
     background-color: #f8fafc;
     border: 1px solid #e7ebf2;
     border-radius: 7px;
     min-width: 0;
+}
+
+.detalle-item {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 30px;
+}
+
+.detalle-icono {
+    display: none;
 }
 
 .detalle-grid dt {
@@ -72,8 +79,11 @@
 }
 
 .detalle-grid .detalle-total {
+    grid-column: 1 / -1;
+    padding: 12px 15px;
     background-color: #eef4ff;
     border-color: #c9dcff;
+    border-radius: 7px;
 }
 
 .detalle-total dd {
@@ -82,7 +92,7 @@
 }
 
 @media (max-width: 650px) {
-    .detalle-grid {
+    .detalle-item {
         grid-template-columns: 1fr;
     }
 }
@@ -115,3 +125,4 @@
     width: 100%;
     overflow-x: auto;
 }
+

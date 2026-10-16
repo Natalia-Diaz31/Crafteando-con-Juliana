@@ -16,12 +16,16 @@ body {
 }
 /* Barra lateral de navegación */
 .sidebar {
-    width: 215px;
-    min-height: 100vh;
+    width: 275px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
     background-color: #08132f;
-    padding: 25px 16px;
+    padding: 24px 16px;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 /* Logo y nombre del banco */
 .brand {
@@ -32,21 +36,21 @@ body {
 }
 /* Tamaño del logo */
 .brand img {
-    width: 31px;
-    height: 31px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
 }
 /* Nombre del banco */
 .brand strong {
     display: block;
     color: white;
-    font-size: 11px;
+    font-size: 13px;
 }
 /* Texto corporativo */
 .brand span {
     display: block;
     color: #5b8df0;
-    font-size: 7px;
+    font-size: 8px;
     font-weight: bold;
 }
 /* Organizamos las opciones una debajo de otra */
@@ -59,16 +63,16 @@ body {
 .menu-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: 11px;
+    padding: 11px 12px;
     border-radius: 6px;
     color: #8c98ae;
     text-decoration: none;
-    font-size: 11px;
+    font-size: 13px;
 }
 /* Tamaño de los iconos del menú */
 .menu-item i {
-    font-size: 14px;
+    font-size: 16px;
 }
 /* Cambio visual cuando pasamos el mouse */
 .menu-item:hover {
@@ -80,6 +84,66 @@ body {
 
     color: white;
 }
+
+.sidebar-user {
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #7867e8;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.user-info strong {
+    display: block;
+    color: white;
+    font-size: 11px;
+}
+
+.user-info span {
+    display: block;
+    margin-top: 2px;
+    color: #8c98ae;
+    font-size: 9px;
+}
+
+.logout-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #aeb9cc;
+    padding: 9px 4px;
+    text-align: left;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.logout-button i {
+    margin-right: 8px;
+}
+
+.logout-button:hover {
+    color: white;
+}
+
 /* Hace que el contenido ocupe el espacio restante */
 .main-content {
     flex: 1;
@@ -98,18 +162,20 @@ body {
 /* Título principal */
 .top-header h1 {
     margin: 0;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
 }
 /* Texto debajo del título */
 .top-header p {
-    margin: 3px 0 0;
+    margin: 4px 0 0;
     color: #657187;
-    font-size: 9px;
+    font-size: 11px;
 }
 /* Tarjeta que contiene la vista previa */
 .plantilla-card {
-    width: 100%;
+    width: calc(100% - 48px);
+    max-width: 1400px;
+    margin: 24px auto;
     background-color: white;
     border-radius: 10px;
     padding: 20px;
@@ -118,25 +184,50 @@ body {
 /* Encabezado de la vista previa */
 .plantilla-header {
     margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
 }
-/* Texto pequeño que identifica la sección */
-.plantilla-header > span {
+
+.plantilla-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #eef4ff;
     color: #2864dc;
-    font-size: 8px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Texto pequeño que identifica la sección */
+.plantilla-header span {
+    color: #2864dc;
+    font-size: 10px;
     font-weight: bold;
     letter-spacing: 1px;
 }
 /* Nombre de la plantilla */
 .plantilla-header h1 {
     margin: 4px 0 0;
-    font-size: 17px;
+    font-size: 21px;
 }
 /* Descripción de la plantilla */
 .plantilla-header p {
     margin: 5px 0 0;
     color: #657187;
-    font-size: 10px;
+    font-size: 11px;
 }
+
+.form-check-label {
+    font-size: 16px;
+    font-weight: 500;
+}
+
 /* Permite desplazar horizontalmente la tabla cuando la pantalla es pequeña */
 .tabla-container {
     width: 100%;
@@ -145,6 +236,7 @@ body {
 /* Tabla principal */
 .planilla {
     width: 100%;
+    min-width: 900px;
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
@@ -202,7 +294,7 @@ body {
     padding: 12px 10px;
     background-color: #f5f8fc;
     color: #536174;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
     text-align: center;
     vertical-align: middle;
@@ -301,14 +393,45 @@ body {
 .plantilla-footer button i {
     margin-left: 5px;
 }
-/* Cuando la pantalla es más pequeña */
-@media (max-width: 650px) {
-    /* Ocultamos la barra lateral */
+/* Cuando la pantalla es más pequeña, compactamos la barra lateral */
+@media (max-width: 780px) {
     .sidebar {
+        width: 72px;
+        padding: 24px 10px;
+    }
+
+    .brand div,
+    .menu-item span,
+    .sidebar-user .user-info div:not(.user-avatar),
+    .logout-button {
         display: none;
     }
+
+    .brand {
+        justify-content: center;
+    }
+
+    .brand img {
+        width: 34px;
+        height: 34px;
+    }
+
+    .menu-item {
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .menu-item i {
+        font-size: 17px;
+    }
+
+    .user-info {
+        justify-content: center;
+    }
+
     .plantilla-card {
-        border-radius: 0;
+        width: calc(100% - 24px);
+        margin: 12px auto;
     }
     /* El contenido inferior pasa a organizarse verticalmente */
     .plantilla-footer {

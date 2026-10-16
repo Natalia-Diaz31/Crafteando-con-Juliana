@@ -21,12 +21,16 @@ body {
 
 /* Barra lateral */
 .sidebar {
-    width: 215px;
-    min-height: 100vh;
+    width: 275px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
     background-color: #08132f;
-    padding: 25px 16px;
+    padding: 24px 16px;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 
 
@@ -40,8 +44,8 @@ body {
 
 /* Tamaño del logo */
 .brand img {
-    width: 31px;
-    height: 31px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
 }
 
@@ -49,14 +53,14 @@ body {
 .brand strong {
     display: block;
     color: white;
-    font-size: 11px;
+    font-size: 13px;
 }
 
 /* Texto corporativo */
 .brand span {
     display: block;
     color: #5b8df0;
-    font-size: 7px;
+    font-size: 8px;
     font-weight: bold;
 }
 
@@ -72,17 +76,17 @@ body {
 .menu-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: 11px;
+    padding: 11px 12px;
     border-radius: 6px;
     color: #8c98ae;
     text-decoration: none;
-    font-size: 11px;
+    font-size: 13px;
 }
 
 /* Tamaño de los iconos */
 .menu-item i {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 /* Cambio cuando pasamos el mouse */
@@ -95,6 +99,66 @@ body {
     background-color: #2864dc;
     color: white;
 }
+
+.sidebar-user {
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #7867e8;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.user-info strong {
+    display: block;
+    color: white;
+    font-size: 11px;
+}
+
+.user-info span {
+    display: block;
+    margin-top: 2px;
+    color: #8c98ae;
+    font-size: 9px;
+}
+
+.logout-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #aeb9cc;
+    padding: 9px 4px;
+    text-align: left;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.logout-button i {
+    margin-right: 8px;
+}
+
+.logout-button:hover {
+    color: white;
+}
+
 
 
 /* Contenido principal */
@@ -117,7 +181,7 @@ body {
 /* Título del encabezado */
 .top-header h1 {
     margin: 0;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
 }
 
@@ -125,7 +189,7 @@ body {
 .top-header p {
     margin: 3px 0 0;
     color: #657187;
-    font-size: 9px;
+    font-size: 11px;
 }
 
 
@@ -137,11 +201,12 @@ body {
 
 /* Tarjeta blanca que contiene el formulario */
 .form-card {
-    max-width: 850px;
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
     background-color: white;
     border-radius: 10px;
-    padding: 25px;
+    padding: 28px;
     box-shadow: 0 3px 15px rgba(20, 40, 80, 0.06);
 }
 
@@ -154,7 +219,7 @@ body {
 /* Texto pequeño superior */
 .form-header > span {
     color: #2864dc;
-    font-size: 8px;
+    font-size: 10px;
     font-weight: bold;
     letter-spacing: 1px;
 }
@@ -162,14 +227,14 @@ body {
 /* Nombre de la plantilla */
 .form-header h2 {
     margin: 4px 0 0;
-    font-size: 18px;
+    font-size: 21px;
 }
 
 /* Descripción */
 .form-header p {
     margin: 5px 0 0;
     color: #657187;
-    font-size: 10px;
+    font-size: 11px;
 }
 
 /* Sección donde aparecerá el empleado seleccionado */
@@ -197,7 +262,7 @@ body {
 /* Título empleado seleccionado */
 .section-title h3 {
     margin: 0;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -245,7 +310,7 @@ body {
 /* Título de cada sección */
 .form-section h3 {
     margin: 0 0 15px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -259,14 +324,14 @@ body {
 /* Etiquetas de los campos */
 .form-label {
     color: #334155;
-    font-size: 10px;
+    font-size: 11px;
     margin-bottom: 6px;
 }
 
 /* Inputs y select */
 .form-control,
 .form-select {
-    min-height: 38px;
+    min-height: 42px;
     background-color: #f8fafc;
     border: 1px solid #dce3ed;
     border-radius: 6px;
@@ -304,15 +369,46 @@ body {
 }
 
 /* Para pantallas pequeñas */
-@media (max-width: 650px) {
+@media (max-width: 780px) {
     /* Oculta la barra lateral */
     .sidebar {
+        width: 72px;
+        padding: 24px 10px;
+    }
+
+    .brand div,
+    .menu-item span,
+    .sidebar-user .user-info div:not(.user-avatar),
+    .logout-button {
         display: none;
+    }
+
+    .brand {
+        justify-content: center;
+    }
+
+    .brand img {
+        width: 34px;
+        height: 34px;
+    }
+
+    .menu-item {
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .menu-item i {
+        font-size: 17px;
+    }
+
+    .user-info {
+        justify-content: center;
     }
     /* Reduce el espacio exterior */
     .content {
         padding: 15px;
     }
+
     /* Mes y año pasan a estar uno debajo del otro */
     .period-grid {
         grid-template-columns: 1fr;
@@ -320,6 +416,29 @@ body {
     /* La tarjeta ocupa mejor el espacio disponible */
     .form-card {
         padding: 20px;
+    }
+    .employee-data {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .employee-field {
+        border-right: none;
+        padding-right: 0;
+    }
+}
+
+@media (max-width: 520px) {
+
+    .employee-data {
+        grid-template-columns: 1fr;
+    }
+
+    .top-header {
+        padding: 12px 15px;
+    }
+
+    .form-card {
+        padding: 16px;
     }
 }
 
@@ -331,7 +450,7 @@ body {
    visual que las demás secciones */
 #titulo-busqueda {
     margin: 0 0 15px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: #172033;
 }
@@ -568,4 +687,99 @@ body {
     margin: 0;
     color: #8a96a8;
     font-size: 10px;
+}
+
+/* Barra visual del proceso de creación de planilla */
+.steps-bar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0 0 30px;
+    padding: 18px 22px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    position: sticky;
+    top: 50px;
+    z-index: 100;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-shrink: 0;
+}
+
+.step-circle {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #b9c8dc;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: white;
+    color: #657187;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.step-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.step-text strong {
+    color: #536174;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.step-text span {
+    margin-top: 2px;
+    color: #8a96a8;
+    font-size: 9px;
+}
+
+/* Paso activo */
+.step.active .step-circle {
+    background-color: #2864dc;
+    border-color: #2864dc;
+    color: white;
+}
+
+.step.active .step-text strong {
+    color: #2864dc;
+}
+
+/* Línea entre los pasos */
+.step-line {
+    height: 1px;
+    flex: 1;
+    min-width: 30px;
+    margin: 0 15px;
+    background-color: #cfd8e6;
+}
+
+/* Primera línea marcada como progreso actual */
+.step.active + .step-line {
+    background-color: #2864dc;
+}
+
+/* Responsive */
+@media (max-width: 780px) {
+    .steps-bar {
+        overflow-x: auto;
+    }
+
+    .step-line {
+        min-width: 25px;
+    }
+
+    .step-text {
+        min-width: 100px;
+    }
 }

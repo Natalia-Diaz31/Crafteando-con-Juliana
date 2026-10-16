@@ -17,35 +17,54 @@
 <body>
     <div class="app">
         <aside class="sidebar">
-            <div class="brand">
-                <img src="IMG/OIP.webp" alt="Logo Banco Hipotecario">
-                <div>
-                    <strong>BANCO HIPOTECARIO</strong>
-                    <span>CORPORATIVO</span>
+            <div>
+                <div class="brand">
+                    <img src="IMG/OIP.webp" alt="Logo Banco Hipotecario">
+                    <div>
+                        <strong>BANCO HIPOTECARIO</strong>
+                        <span>CORPORATIVO</span>
+                    </div>
                 </div>
+
+                <nav class="menu">
+
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-house-door"></i>
+                        <span>Inicio</span>
+                    </a>
+                        
+                    <a href="plantilla.html" class="menu-item">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Plantillas</span>
+                    </a>
+
+                    <a href="planilla.html" class="menu-item">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Crear Planilla</span>
+                    </a>
+
+                    <a href="consultar-planillas.html" class="menu-item active">
+                        <i class="bi bi-search"></i>
+                        <span>Consultar planillas</span>
+                    </a>
+                </nav>
             </div>
 
-            <nav class="menu">
+             <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">N</div>
 
-                <a href="#" class="menu-item">
-                    <i class="bi bi-house-door"></i>
-                    <span>Inicio</span>
-                    
-                <a href="plantilla.html" class="menu-item">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span>Plantillas</span>
-                </a>
+                    <div>
+                        <strong>Usuario</strong>
+                        <span id="sidebar-rol">Encargado de nómina</span>
+                    </div>
+                </div>
 
-                <a href="planilla.html" class="menu-item">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Crear Planilla</span>
-                </a>
-
-                <a href="consultar-planillas.html" class="menu-item active">
-                    <i class="bi bi-list-ul"></i>
-                    <span>Consultar planillas</span>
-                </a>
-            </nav>
+                <button type="button" id="cerrar-sesion" class="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Cerrar sesión
+                </button>
+            </div>
         </aside>
 
         <main class="main-content">
@@ -75,36 +94,53 @@
                     </p>
 
                     <div id="contenido-detalle" hidden>
-                        <h3 class="consulta-seccion">Datos generales</h3>
+                        <div class="detalle-bloque">
+                            <h3 class="consulta-seccion">
+                                <i class="bi bi-file-earmark-text"></i>
+                                Datos generales
+                            </h3>
 
-                        <dl class="detalle-grid">
-                            <div><dt>Identificador</dt><dd id="detalle-id"></dd></div>
-                            <div><dt>Plantilla</dt><dd id="detalle-plantilla"></dd></div>
-                            <div><dt>Período</dt><dd id="detalle-periodo"></dd></div>
-                            <div><dt>Fecha y hora de guardado</dt><dd id="detalle-fecha"></dd></div>
-                        </dl>
+                            <dl class="detalle-grid">
+                                <div class="detalle-item">
+                                    <i class="bi bi-hash detalle-icono"></i>
+                                    <div><dt>Identificador</dt><dd id="detalle-id"></dd></div>
+                                    <div><dt>Plantilla</dt><dd id="detalle-plantilla"></dd></div>
+                                    <div><dt>Período</dt><dd id="detalle-periodo"></dd></div>
+                                    <div><dt>Fecha y hora de guardado</dt><dd id="detalle-fecha"></dd></div>
+                                </div>
+                            </dl>
+                        </div>
+                        
+                        <div class="detalle-bloque">
+                            <h3 class="consulta-seccion">
+                                <i class="bi bi-person-fill"></i>
+                                Datos del empleado
+                            </h3>
 
-                        <h3 class="consulta-seccion">Datos del empleado</h3>
+                            <dl class="detalle-grid">
+                                <div class="detalle-item">
+                                    <div><dt>Código</dt><dd id="detalle-codigo"></dd></div>
+                                    <div><dt>Nombre completo</dt><dd id="detalle-nombre"></dd></div>
+                                    <div><dt>DUI</dt><dd id="detalle-dui"></dd></div>
+                                    <div><dt>Cargo</dt><dd id="detalle-cargo"></dd></div>
+                                </div>
+                            </dl>
+                        </div>
 
-                        <dl class="detalle-grid">
-                            <div><dt>Código</dt><dd id="detalle-codigo"></dd></div>
-                            <div><dt>Nombre completo</dt><dd id="detalle-nombre"></dd></div>
-                            <div><dt>DUI</dt><dd id="detalle-dui"></dd></div>
-                            <div><dt>Cargo</dt><dd id="detalle-cargo"></dd></div>
-                        </dl>
+                            <h3 class="consulta-seccion">
+                                <i class="bi bi-currency-dollar"></i>
+                                Montos de la planilla
+                            </h3>
 
-                        <h3 class="consulta-seccion">Montos de la planilla</h3>
-
-                        <dl class="detalle-grid">
-                            <div><dt>Salario base (USD)</dt><dd id="detalle-salario"></dd></div>
-                            <div><dt>Ingresos adicionales (USD)</dt><dd id="detalle-ingresos"></dd></div>
-                            <div><dt>Total de ingresos (USD)</dt><dd id="detalle-total-ingresos"></dd></div>
-                            <div><dt>Descuentos totales (USD)</dt><dd id="detalle-descuentos"></dd></div>
-                            <div class="detalle-total">
-                                <dt>Total líquido a pagar (USD)</dt>
-                                <dd id="detalle-total"></dd>
-                            </div>
-                        </dl>
+                            <dl class="detalle-grid">
+                                <div class="detalle-item">
+                                    <div><dt>Salario base (USD)</dt><dd id="detalle-salario"></dd></div>
+                                    <div><dt>Ingresos adicionales (USD)</dt><dd id="detalle-ingresos"></dd></div>
+                                    <div><dt>Total de ingresos (USD)</dt><dd id="detalle-total-ingresos"></dd></div>
+                                    <div><dt>Descuentos totales (USD)</dt><dd id="detalle-descuentos"></dd></div>
+                                    <div class="detalle-total"><dt>Total líquido a pagar (USD)</dt><dd id="detalle-total"></dd></div>
+                                </div>
+                            </dl>
                     </div>
                 </div>
             </section>
