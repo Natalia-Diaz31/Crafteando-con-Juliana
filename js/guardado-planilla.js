@@ -24,6 +24,15 @@ async function guardarPlanilla() {
         return;
     }
 
+    if (
+    !window.validarHorasPlanilla() ||
+    !window.validarDetalleDescuentos()
+) {
+    mostrarMensajeGuardado(
+        "Corrija los datos antes de guardar."
+    );
+    return;
+}
 
     // Construir objeto que espera la API
     const datosPlanilla = {
@@ -44,6 +53,15 @@ async function guardarPlanilla() {
 
         ingresos_adicionales:
             document.getElementById("ingresos").value,
+
+        horas_ordinarias:
+            document.getElementById("horas-ordinarias").value,
+
+        horas_extras:
+            document.getElementById("horas-extras").value,
+
+        descuentos:
+            window.obtenerDetalleDescuentos(),
 
         descuentos_totales:
             document.getElementById("descuentos").value
@@ -107,6 +125,8 @@ async function guardarPlanilla() {
         );
 
     }
+
+    
 
 }
 

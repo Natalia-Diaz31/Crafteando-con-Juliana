@@ -36,11 +36,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const obligatoriosValidos =
             window.validarObligatoriosPlanilla();
         const montosValidos = window.validarMontosPlanilla();
+        const detalleValido = window.validarDetalleDescuentos();
 
         if (
             !empleadoValido ||
             !obligatoriosValidos ||
-            !montosValidos
+            !montosValidos ||
+            !detalleValido
         ) {
             formulario.querySelector(".is-invalid")?.focus();
             return;
