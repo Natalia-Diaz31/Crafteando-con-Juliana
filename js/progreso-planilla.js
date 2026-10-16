@@ -1,79 +1,135 @@
 document.addEventListener("DOMContentLoaded", () => {
     const pasos = document.querySelectorAll(".steps-bar .step");
 
-    const seccionPeriodo = document.getElementById("mes")?.closest(".form-section");
+    // Secciones reales del formulario
+    const seccionDatos = document.getElementById("mes")?.closest(".form-section");
     const seccionMontos = document.getElementById("salario")?.closest(".form-section");
     const seccionDescuentos = document.querySelector(".descuentos-card");
     const seccionRevision = document.getElementById("resumen-planilla");
 
-    let pasoActual = 1;
+    // Campos
+    const mes = document.getElementById("mes");
+    const anio = document.getElementById("anio");
+    const horasOrdinarias = document.getElementById("horas-ordinarias");
+    const horasExtras = document.getElementById("horas-extras");
+    const salario = document.getElementById("salario");
+    const ingresos = document.getElementById("ingresos");
+
+    const revisarPlanilla = document.getElementById("revisar-planilla");
+    const editarDatos = document.getElementById("editar-datos");
 
     function activarPaso(numero) {
-        pasoActual = numero;
-
         pasos.forEach((paso, indice) => {
             paso.classList.toggle("active", indice === numero - 1);
             paso.classList.toggle("completed", indice < numero - 1);
         });
     }
 
-    function elementoVisible(elemento) {
-        if (!elemento || elemento.hidden) return false;
-
-        const rect = elemento.getBoundingClientRect();
-        const referencia = 180;
-
-        return rect.top <= referencia && rect.bottom > referencia;
+    function tieneValor(campo) {
+        return campo && campo.value.trim() !== "";
     }
 
-    function actualizarPorScroll() {
-        // Si la revisión está abierta y llegamos a ella
-        if (seccionRevision && !seccionRevision.hidden &&
-            elementoVisible(seccionRevision)) {
+    function datosGeneralesCompletos() {
+        return (
+            tieneValor(mes) &&
+            tieneValor(anio) &&
+            tieneValor(horasOrdinarias) &&
+            tieneValor(horasExtras)
+        );
+    }
+
+    function montosCompletos() {
+        return tieneValor(salario) && tieneValor(ingresos);
+    }
+
+    function actualizarProgreso() {
+        // Si la revisión está visible, siempre es paso 4
+        if (seccionRevision && !seccionRevision.hidden) {
             activarPaso(4);
             return;
         }
 
-        // Descuentos
-        if (elementoVisible(seccionDescuentos)) {
+        if (datosGeneralesCompletos() && montosCompletos()) {
             activarPaso(3);
             return;
         }
 
-        // Montos
-        if (elementoVisible(seccionMontos)) {
+        if (datosGeneralesCompletos()) {
             activarPaso(2);
             return;
         }
 
-        // Datos generales
-        if (elementoVisible(seccionPeriodo)) {
-            activarPaso(1);
-        }
+        activarPaso(1);
     }
 
-    // Estado inicial
-    activarPaso(1);
+    function irASeccion(elemento) {
+        if (!elemento) return;
 
-    window.addEventListener("scroll", actualizarPorScroll, {
-        passive: true
+        elemento.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+
+    // Navegación al hacer clic en la barra
+    pasos[0]?.addEventListener("click", () => {
+        activarPaso(1);
+        irASeccion(seccionDatos);
     });
 
-    // Cuando se abre la revisión
-    const revisarPlanilla = document.getElementById("revisar-planilla");
+    pasos[1]?.addEventListener("click", () => {
+        activarPaso(2);
+        irASeccion(seccionMontos);
+    });
+
+    pasos[2]?.addEventListener("click", () => {
+        activarPaso(3);
+        irASeccion(seccionDescuentos);
+    });
+
+    pasos[3]?.addEventListener("click", () => {
+        // Solo puede ir a revisión si ya está abierta
+        if (seccionRevision && !seccionRevision.hidden) {
+            activarPaso(4);
+            irASeccion(seccionRevision);
+        }
+    });
+
+    [
+        mes,
+        anio,
+        horasOrdinarias,
+        horasExtras,
+        salario,
+        ingresos
+    ].forEach((campo) => {
+        campo?.addEventListener("input", actualizarProgreso);
+        campo?.addEventListener("change", actualizarProgreso);
+    });
+
+    // Detectar correctamente cuando se abre la revisión
+    if (seccionRevision) {
+        const observadorRevision = new MutationObserver(() => {
+            if (!seccionRevision.hidden) {
+                activarPaso(4);
+            } else {
+                actualizarProgreso();
+            }
+        });
+
+        observadorRevision.observe(seccionRevision, {
+            attributes: true,
+            attributeFilter: ["hidden"]
+        });
+    }
 
     revisarPlanilla?.addEventListener("click", () => {
-        setTimeout(() => {
-            if (seccionRevision && !seccionRevision.hidden) {
-                activarPaso(4);
-            }
-        }, 0);
+        setTimeout(actualizarProgreso, 50);
     });
-
-    // Cuando vuelve a editar
-    const editarDatos = document.getElementById("editar-datos");
 
     editarDatos?.addEventListener("click", () => {
-        setTimeout(actualizarPorScroll, 0);
+        setTimeout(actualizarProgreso, 50);
     });
+
+    actualizarProgreso();
 });
