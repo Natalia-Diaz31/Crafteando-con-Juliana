@@ -688,3 +688,95 @@ body {
     color: #8a96a8;
     font-size: 10px;
 }
+
+/* Barra visual del proceso de creación de planilla */
+.steps-bar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0 0 30px;
+    padding: 18px 22px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-shrink: 0;
+}
+
+.step-circle {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #b9c8dc;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: white;
+    color: #657187;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.step-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.step-text strong {
+    color: #536174;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.step-text span {
+    margin-top: 2px;
+    color: #8a96a8;
+    font-size: 9px;
+}
+
+/* Paso activo */
+.step.active .step-circle {
+    background-color: #2864dc;
+    border-color: #2864dc;
+    color: white;
+}
+
+.step.active .step-text strong {
+    color: #2864dc;
+}
+
+/* Línea entre los pasos */
+.step-line {
+    height: 1px;
+    flex: 1;
+    min-width: 30px;
+    margin: 0 15px;
+    background-color: #cfd8e6;
+}
+
+/* Primera línea marcada como progreso actual */
+.step.active + .step-line {
+    background-color: #2864dc;
+}
+
+/* Responsive */
+@media (max-width: 780px) {
+    .steps-bar {
+        overflow-x: auto;
+    }
+
+    .step-line {
+        min-width: 25px;
+    }
+
+    .step-text {
+        min-width: 100px;
+    }
+}

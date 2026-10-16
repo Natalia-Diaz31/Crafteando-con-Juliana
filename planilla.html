@@ -47,7 +47,7 @@
                     </a>
                 </nav>
             </div>
-            
+
             <div class="sidebar-user">
                 <div class="user-info">
                     <div class="user-avatar">N</div>
@@ -81,6 +81,49 @@
                     <h2>Planilla básica mensual</h2>
                     <p>Ingrese los datos correspondientes al período y los montos de la planilla.</p>
                 </div>
+
+                <!-- Indicador visual del proceso de creación de planilla -->
+                <div class="steps-bar">
+
+                    <div class="step active">
+                        <div class="step-circle">1</div>
+                        <div class="step-text">
+                            <strong>Datos generales</strong>
+                            <span>Empleado y período</span>
+                        </div>
+                    </div>
+
+                    <div class="step-line"></div>
+
+                    <div class="step">
+                        <div class="step-circle">2</div>
+                        <div class="step-text">
+                            <strong>Montos</strong>
+                            <span>Salario e ingresos</span>
+                        </div>
+                    </div>
+
+                    <div class="step-line"></div>
+
+                    <div class="step">
+                        <div class="step-circle">3</div>
+                        <div class="step-text">
+                            <strong>Descuentos</strong>
+                            <span>Manuales y legales</span>
+                        </div>
+                    </div>
+
+                    <div class="step-line"></div>
+
+                    <div class="step">
+                        <div class="step-circle">4</div>
+                        <div class="step-text">
+                            <strong>Revisión</strong>
+                            <span>Verifique y guarde</span>
+                        </div>
+                    </div>
+                </div>
+
                 <section class="mb-4" aria-labelledby="titulo-busqueda">
                     <h3 id="titulo-busqueda">Buscar empleado</h3>
 
@@ -331,14 +374,14 @@
                         </div>
 
                         <div class="mt-3 p-3 border rounded">
-                            <span class="d-block text-muted">Total a pagar (USD)</span>
-                            <strong class="fs-4">
-                                $<span id="total-calculado">—</span>
+                            <span class="d-block text-muted">Total líquidoa pagar</span>
+                            <small>Dólares estadounidenses</small>
+                            <strong class="fs-4">$<span id="total-calculado">—</span>
                             </strong>
                         </div>
 
-                        <button type="submit" class="btn btn-primary mt-3" id="revisar-planilla"
-                            aria-controls="resumen-planilla" aria-expanded="false">
+                        <button type="submit" class="btn btn-primary mt-3" id="revisar-planilla" aria-controls="resumen-planilla" aria-expanded="false">
+                            <i class="bi bi-clipboard-check"></i>
                             Revisión de planilla
                         </button>
                     </fieldset>
@@ -490,6 +533,7 @@
     <script src="js/revision-planilla.js"></script>
     <script src="js/guardado-planilla.js"></script>
     <script src="js/descuentos-detalle.js"></script>
+    <script src="js/progreso-planilla.js"></script>
 
 </body>
 </html>
