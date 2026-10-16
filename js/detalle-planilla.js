@@ -67,6 +67,33 @@ window.mostrarDetallePlanilla = function (planilla) {
 // --- INICIO CÓDIGO DE VÍCTOR: CONEXIÓN CON LA API ---
 
 document.addEventListener("DOMContentLoaded", async () => {
+        if (!esEncargadoNomina()) {
+        const contenido = document.querySelector("main");
+
+        const aviso = document.createElement("div");
+        aviso.className = "container py-5";
+
+        const mensaje = document.createElement("p");
+        mensaje.className = "alert alert-danger";
+        mensaje.setAttribute("role", "alert");
+        mensaje.textContent =
+            "No tiene permisos para acceder a esta función";
+
+        const volver = document.createElement("a");
+        volver.href = "plantilla.html";
+        volver.className = "btn btn-primary";
+        volver.textContent = "Volver";
+
+        aviso.append(mensaje, volver);
+
+        if (contenido) {
+            contenido.replaceChildren(aviso);
+        } else {
+            document.body.replaceChildren(aviso);
+        }
+
+        return;
+    }
     // 1. Validamos que haya sesión iniciada
     const token = sessionStorage.getItem("token");
     if (!token) {
