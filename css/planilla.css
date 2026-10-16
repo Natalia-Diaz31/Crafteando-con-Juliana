@@ -700,7 +700,7 @@ body {
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     position: sticky;
-    top: 10px;
+    top: 25px;
     z-index: 100;
 }
 
