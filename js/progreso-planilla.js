@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const posicion =
             elemento.getBoundingClientRect().top +
             window.scrollY -
-            110;
+            330;
 
         window.scrollTo({
             top: posicion,
