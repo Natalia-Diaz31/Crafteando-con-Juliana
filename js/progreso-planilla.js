@@ -98,7 +98,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // Solo puede ir a revisión si ya está abierta
         if (seccionRevision && !seccionRevision.hidden) {
             activarPaso(4);
-            irASeccion(seccionRevision);
+            const barra = document.querySelector(".steps-bar");
+            const alturaBarra = barra ? barra.offsetHeight : 0;
+
+            const posicion =
+                seccionRevision.getBoundingClientRect().top +
+                window.scrollY -
+                alturaBarra -
+                15;
+
+            window.scrollTo({
+                top: posicion,
+                behavior: "smooth"
+            });
         }
     });
 
@@ -131,7 +143,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     revisarPlanilla?.addEventListener("click", () => {
-        setTimeout(actualizarProgreso, 50);
+        setTimeout(() => {
+            actualizarProgreso();
+            // Solo baja a Revisión si las validaciones permitieron abrirla
+            if (seccionRevision && !seccionRevision.hidden) {
+                activarPaso(4);
+                irASeccion(seccionRevision);
+            }
+        }, 50);
     });
 
     editarDatos?.addEventListener("click", () => {
