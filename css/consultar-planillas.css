@@ -1,10 +1,6 @@
 
 /* HU-08: Consulta de planillas */
 
-.consulta-card {
-    max-width: 1050px;
-}
-
 .consulta-card .table {
     font-size: 12px;
 }
@@ -115,3 +111,4 @@
     width: 100%;
     overflow-x: auto;
 }
+
