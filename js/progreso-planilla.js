@@ -96,7 +96,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // Solo puede ir a revisión si ya está abierta
         if (seccionRevision && !seccionRevision.hidden) {
             activarPaso(4);
-            irASeccion(seccionRevision);
+            const posicion =
+                seccionRevision.getBoundingClientRect().top +
+                window.scrollY -
+                180;
+
+            window.scrollTo({
+                top: posicion,
+                behavior: "smooth"
+            });
         }
     });
 
@@ -134,7 +142,15 @@ document.addEventListener("DOMContentLoaded", () => {
             // Solo baja a Revisión si las validaciones permitieron abrirla
             if (seccionRevision && !seccionRevision.hidden) {
                 activarPaso(4);
-                irASeccion(seccionRevision);
+                const posicion =
+                    seccionRevision.getBoundingClientRect().top +
+                    window.scrollY -
+                    180;
+
+                window.scrollTo({
+                    top: posicion,
+                    behavior: "smooth"
+                });
             }
         }, 50);
     });
