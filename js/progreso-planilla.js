@@ -64,13 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function irASeccion(elemento) {
         if (!elemento) return;
-        const barra = document.querySelector(".steps-bar");
-        const alturaBarra = barra ? barra.offsetHeight : 0;
 
         const posicion =
             elemento.getBoundingClientRect().top +
             window.scrollY -
-            alturaBarra - 30;
+            110;
 
         window.scrollTo({
             top: posicion,
@@ -81,7 +79,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Navegación al hacer clic en la barra
     pasos[0]?.addEventListener("click", () => {
         activarPaso(1);
-        irASeccion(seccionDatos);
+        if (!seccionDatos) return;
+        const posicion =
+            seccionDatos.getBoundingClientRect().top +
+            window.scrollY -
+            160;
+
+        window.scrollTo({
+            top: posicion,
+            behavior: "smooth"
+        });
     });
 
     pasos[1]?.addEventListener("click", () => {
