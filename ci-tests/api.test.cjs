@@ -20,9 +20,24 @@ const PLANTILLA = {
   id: '22222222-2222-4222-8222-222222222222', nombre: 'Planilla básica mensual'
 };
 const DATOS = {
-  empleado_id: EMPLEADO.id, plantilla_id: PLANTILLA.id, mes: 10, anio: 2026,
-  salario_base: '500.00', ingresos_adicionales: '50.00', descuentos_totales: '25.00'
+  empleado_id: EMPLEADO.id,
+  plantilla_id: PLANTILLA.id,
+  mes: 10,
+  anio: 2026,
+  salario_base: '500.00',
+  ingresos_adicionales: '50.00',
+
+  // HU-12: el detalle es la fuente del total de descuentos.
+  descuentos: [
+    { concepto: 'Préstamo', importe: '10.00' },
+    { concepto: 'Anticipo', importe: '15.00' }
+  ],
+
+  // Valor deliberadamente incorrecto para comprobar
+  // que la API calcule el total por su cuenta.
+  descuentos_totales: '999.00'
 };
+
 const PLANILLA_GUARDADA = {
   id: '33333333-3333-4333-8333-333333333333', mes: 10, anio: 2026,
   plantilla_nombre: PLANTILLA.nombre, empleado_codigo: EMPLEADO.codigo,
@@ -36,9 +51,66 @@ function prepararAPI(opciones = {}) {
   const registros = [];
   const supabase = {
     async rpc(nombre, datos) {
-      assert.equal(nombre, 'verificar_login');
-      const valido = datos.p_correo === 'demo@planillas.com' && datos.p_contrasena === 'Planilla123!';
-      return { data: valido ? [{ id: EMPLEADO.id, correo: datos.p_correo }] : [], error: null };
+      if (nombre === 'verificar_login') {
+        const valido =
+          datos.p_correo === 'demo@planillas.com' &&
+          datos.p_contrasena === 'Planilla123!';
+
+        return {
+          data: valido
+            ? [{ id: EMPLEADO.id, correo: datos.p_correo }]
+            : [],
+          error: null
+        };
+      }
+
+      if (nombre === 'guardar_planilla_con_descuentos') {
+        if (opciones.falloGuardado) {
+          return {
+            data: null,
+            error: { message: 'Fallo simulado de guardado' }
+          };
+        }
+
+        if (opciones.sinId) {
+          return { data: [], error: null };
+        }
+
+        const registro = datos.p_registro;
+        const descuentos = datos.p_descuentos;
+
+        const totalDescuentos = descuentos.reduce(
+          (suma, descuento) => suma + Math.round(Number(descuento.importe) * 100),
+          0
+        );
+
+        const totalPagar =
+          Math.round(Number(registro.salario_base) * 100) +
+          Math.round(Number(registro.ingresos_adicionales) * 100) -
+          totalDescuentos;
+
+        const guardado = {
+          ...registro,
+          id: PLANILLA_GUARDADA.id,
+          fecha_guardado: PLANILLA_GUARDADA.fecha_guardado,
+          descuentos,
+          descuentos_totales: (totalDescuentos / 100).toFixed(2),
+          total_pagar: (totalPagar / 100).toFixed(2)
+        };
+
+        registros.push(guardado);
+
+        return {
+          data: [{
+            id: guardado.id,
+            fecha_guardado: guardado.fecha_guardado,
+            total_pagar: guardado.total_pagar
+          }],
+          error: null
+        };
+      }
+
+      throw new Error(`Función RPC no contemplada: ${nombre}`);
     },
     from(tabla) {
       let filtro, registro;
@@ -66,6 +138,15 @@ function prepararAPI(opciones = {}) {
         }
         if (tabla === 'plantillas') {
           return { data: !opciones.sinPlantilla && filtro?.valor === PLANTILLA.id ? { ...PLANTILLA } : null, error: null };
+        }
+        if (tabla === 'planilla_descuentos') {
+          return {
+            data: [
+              { concepto: 'Préstamo', importe: 10 },
+              { concepto: 'Anticipo', importe: 15 }
+            ],
+            error: null
+          };
         }
         if (tabla === 'planillas' && !registro) {
           if (opciones.falloConsulta) return { data: null, error: { message: 'Fallo simulado de consulta' } };
@@ -170,8 +251,8 @@ for (const [nombre, campo, valor] of [
   ['salario negativo', 'salario_base', '-1.00'],
   ['tres decimales', 'salario_base', '500.001'],
   ['letras en monto', 'ingresos_adicionales', 'abc'],
-  ['monto vacío', 'descuentos_totales', ''],
-  ['descuentos excesivos', 'descuentos_totales', '600.00'],
+  ['monto vacío', 'descuentos', [{ concepto: 'Préstamo', importe: '' }]],
+  ['descuentos excesivos', 'descuentos', [{ concepto: 'Préstamo', importe: '600.00' }]],
   ['mes cero', 'mes', 0], ['mes trece', 'mes', 13],
   ['año vacío', 'anio', ''], ['empleado vacío', 'empleado_id', ''],
   ['plantilla vacía', 'plantilla_id', ''],
@@ -181,10 +262,50 @@ for (const [nombre, campo, valor] of [
     const api = await conAPI(t);
     const r = await api.pedir('/api/planillas', { ...DATOS, [campo]: valor });
     assert.equal(r.status, 400); assert.equal(r.body.ok, false);
-    assert.ok(r.body.errores?.[campo], `Debe identificar ${campo}`);
+    if (campo === 'descuentos') {
+      assert.ok(
+        r.body.errores?.['descuentos[0].importe'] ||
+        r.body.errores?.descuentos_totales,
+        'Debe identificar el error en los descuentos'
+      );
+    } else {
+      assert.ok(r.body.errores?.[campo], `Debe identificar ${campo}`);
+    }
     assert.equal(api.registros.length, 0); assert.equal(r.body.id, undefined);
   });
 }
+
+test('HU-12 rechaza descuentos con concepto vacío', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    descuentos: [
+      { concepto: '   ', importe: '10.00' }
+    ]
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.ok(r.body.errores?.['descuentos[0].concepto']);
+  assert.equal(api.registros.length, 0);
+});
+
+test('HU-12 rechaza descuentos con más de dos decimales', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    descuentos: [
+      { concepto: 'Préstamo', importe: '10.555' }
+    ]
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.ok(r.body.errores?.['descuentos[0].importe']);
+  assert.equal(api.registros.length, 0);
+});
 
 test('Guardar calcula 525.00 y conserva datos del empleado y plantilla', async t => {
   const api = await conAPI(t);
@@ -204,8 +325,18 @@ test('Guardar calcula 525.00 y conserva datos del empleado y plantilla', async t
 
 test('Montos cero y mes doce son válidos', async t => {
   const api = await conAPI(t);
-  const r = await api.pedir('/api/planillas', { ...DATOS, mes: 12, salario_base: '0.00', ingresos_adicionales: '0.00', descuentos_totales: '0.00' });
-  assert.equal(r.status, 201); assert.equal(Number(r.body.total_pagar), 0);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    mes: 12,
+    salario_base: '0.00',
+    ingresos_adicionales: '0.00',
+    descuentos: [],
+    descuentos_totales: '0.00'
+  });
+
+  assert.equal(r.status, 201);
+  assert.equal(Number(r.body.total_pagar), 0);
 });
 
 for (const [nombre, opcion] of [['empleado inexistente', 'sinEmpleado'], ['plantilla inexistente', 'sinPlantilla']]) {
@@ -252,7 +383,14 @@ test('El detalle devuelve todos los datos guardados', async t => {
     id: PLANILLA_GUARDADA.id, plantilla: PLANTILLA.nombre, periodo: 'Octubre 2026',
     fecha_guardado: PLANILLA_GUARDADA.fecha_guardado, codigo: EMPLEADO.codigo,
     nombre_completo: EMPLEADO.nombre_completo, dui: EMPLEADO.dui, cargo: EMPLEADO.cargo,
-    salario_base: 500, ingresos_adicionales: 50, descuentos_totales: 25, total_pagar: 525
+    salario_base: 500,
+    ingresos_adicionales: 50,
+    descuentos_totales: 25,
+    descuentos: [
+      { concepto: 'Préstamo', importe: 10 },
+      { concepto: 'Anticipo', importe: 15 }
+    ],
+    total_pagar: 525
   });
 });
 

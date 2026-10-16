@@ -487,7 +487,7 @@ function validarDatosPlanilla(req, res, next) {
             Number(entero) * 100 +
             Number(decimal.padEnd(2, "0"));
 
-            if (
+        if (
             !Number.isSafeInteger(centavos) ||
             centavos > 999999999999
         ) {
@@ -501,7 +501,69 @@ function validarDatosPlanilla(req, res, next) {
 
     const salario = obtenerCentavos("salario_base");
     const ingresos = obtenerCentavos("ingresos_adicionales");
-    const descuentos = obtenerCentavos("descuentos_totales");
+
+    // HU-12: validar el detalle y calcular los descuentos en la API.
+    const detalleDescuentos = [];
+    let descuentos = 0;
+
+    if (!Array.isArray(datos.descuentos)) {
+        errores.descuentos = "Debe enviar una lista de descuentos";
+        descuentos = null;
+    } else {
+        datos.descuentos.forEach((descuento, indice) => {
+            const concepto =
+                typeof descuento?.concepto === "string"
+                    ? descuento.concepto.trim()
+                    : "";
+
+            const importeTexto = obtenerTexto(descuento?.importe);
+
+            if (!concepto) {
+                errores[`descuentos[${indice}].concepto`] =
+                    "El concepto es obligatorio";
+            }
+
+            if (!/^\d+(?:\.\d{1,2})?$/.test(importeTexto)) {
+                errores[`descuentos[${indice}].importe`] =
+                    "Ingrese un importe válido con máximo dos decimales";
+                return;
+            }
+
+            const [entero, decimal = ""] = importeTexto.split(".");
+
+            const importeCentavos =
+                Number(entero) * 100 +
+                Number(decimal.padEnd(2, "0"));
+
+            if (
+                !Number.isSafeInteger(importeCentavos) ||
+                importeCentavos <= 0 ||
+                importeCentavos > 999999999999
+            ) {
+                errores[`descuentos[${indice}].importe`] =
+                    "El importe debe ser mayor que cero y no superar 9999999999.99";
+                return;
+            }
+
+            descuentos += importeCentavos;
+
+            if (concepto) {
+                detalleDescuentos.push({
+                    concepto,
+                    importe: (importeCentavos / 100).toFixed(2)
+                });
+            }
+        });
+
+        if (
+            !Number.isSafeInteger(descuentos) ||
+            descuentos > 999999999999
+        ) {
+            errores.descuentos =
+                "La suma de descuentos supera el monto permitido";
+            descuentos = null;
+        }
+    }
 
     let total = null;
 
@@ -552,7 +614,11 @@ function validarDatosPlanilla(req, res, next) {
         anio: Number(anioTexto),
         salario_base: aDecimal(salario),
         ingresos_adicionales: aDecimal(ingresos),
+
+        // HU-12: total calculado por la API y detalle validado.
         descuentos_totales: aDecimal(descuentos),
+        descuentos: detalleDescuentos,
+
         total_pagar: aDecimal(total)
     };
 
@@ -636,17 +702,26 @@ app.post(
                 total_pagar: datos.total_pagar
             };
 
-            // Supabase genera el ID y la fecha de guardado.
+            // HU-12: guardar la planilla y sus descuentos
+            // en una sola transacción de PostgreSQL.
             const {
-                data: planilla,
+                data: resultado,
                 error: errorGuardado
-            } = await supabase
-                .from("planillas")
-                .insert(registro)
-                .select("id, fecha_guardado, total_pagar")
-                .single();
+            } = await supabase.rpc(
+                "guardar_planilla_con_descuentos",
+                {
+                    p_registro: registro,
+                    p_descuentos: datos.descuentos
+                }
+            );
 
-            if (errorGuardado) throw errorGuardado;
+            // La función devuelve una lista con la planilla guardada.
+            const planilla = resultado?.[0];
+
+            // Comprobar que Supabase guardó correctamente la planilla.
+            if (errorGuardado) {
+                throw errorGuardado;
+            }
 
             if (!planilla?.id) {
                 throw new Error(
@@ -722,7 +797,7 @@ app.get("/api/planillas", verificarToken, verificarRolNomina, async (req, res) =
 });
 
 // Detalle: todos los datos guardados de una planilla
-app.get("/api/planillas/:id", verificarToken, verificarRolNomina,  async (req, res) => {
+app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, res) => {
     try {
         // 1. Comprobar que el identificador tenga formato UUID
         const id = String(req.params.id || "").trim();
@@ -757,6 +832,20 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina,  async (req, r
             });
         }
 
+        // HU-12: consultar los descuentos asociados a la planilla.
+        const {
+            data: detalleDescuentos,
+            error: errorDescuentos
+        } = await supabase
+            .from("planilla_descuentos")
+            .select("concepto, importe")
+            .eq("planilla_id", id)
+            .order("id", { ascending: true });
+
+        if (errorDescuentos) {
+            throw errorDescuentos;
+        }
+
         // 3. Devolver los datos con los nombres que usa la pantalla
         return res.status(200).json({
             ok: true,
@@ -772,6 +861,7 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina,  async (req, r
                 salario_base: planilla.salario_base,
                 ingresos_adicionales: planilla.ingresos_adicionales,
                 descuentos_totales: planilla.descuentos_totales,
+                descuentos: detalleDescuentos || [],
                 total_pagar: planilla.total_pagar
             }
         });
