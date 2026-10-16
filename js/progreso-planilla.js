@@ -64,10 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function irASeccion(elemento) {
         if (!elemento) return;
+        const barra = document.querySelector(".steps-bar");
+        const alturaBarra = barra ? barra.offsetHeight : 0;
 
-        elemento.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
+        const posicion =
+            elemento.getBoundingClientRect().top +
+            window.scrollY -
+            alturaBarra - 30;
+
+        window.scrollTo({
+            top: posicion,
+            behavior: "smooth"
         });
     }
 
