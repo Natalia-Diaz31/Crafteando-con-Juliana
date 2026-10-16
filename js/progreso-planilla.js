@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const pasos = document.querySelectorAll(".steps-bar .step");
 
     // Secciones reales del formulario
-    const seccionDatos = document.querySelector(".search-section");
+    const seccionDatos = document.getElementById("titulo-busqueda")?.closest("section");
     const seccionMontos = document.getElementById("salario")?.closest(".form-section");
     const seccionDescuentos = document.querySelector(".descuentos-card");
     const seccionRevision = document.getElementById("resumen-planilla");
