@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const pasos = document.querySelectorAll(".steps-bar .step");
 
     // Secciones reales del formulario
-    const seccionDatos = document.getElementById("mes")?.closest(".form-section");
+    const seccionDatos = document.querySelector(".search-section");
     const seccionMontos = document.getElementById("salario")?.closest(".form-section");
     const seccionDescuentos = document.querySelector(".descuentos-card");
     const seccionRevision = document.getElementById("resumen-planilla");
@@ -79,16 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Navegación al hacer clic en la barra
     pasos[0]?.addEventListener("click", () => {
         activarPaso(1);
-        if (!seccionDatos) return;
-        const posicion =
-            seccionDatos.getBoundingClientRect().top +
-            window.scrollY -
-            160;
-
-        window.scrollTo({
-            top: posicion,
-            behavior: "smooth"
-        });
+        irASeccion(seccionDatos);
     });
 
     pasos[1]?.addEventListener("click", () => {
@@ -105,19 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Solo puede ir a revisión si ya está abierta
         if (seccionRevision && !seccionRevision.hidden) {
             activarPaso(4);
-            const barra = document.querySelector(".steps-bar");
-            const alturaBarra = barra ? barra.offsetHeight : 0;
-
-            const posicion =
-                seccionRevision.getBoundingClientRect().top +
-                window.scrollY -
-                alturaBarra -
-                15;
-
-            window.scrollTo({
-                top: posicion,
-                behavior: "smooth"
-            });
+            irASeccion(seccionRevision);
         }
     });
 
