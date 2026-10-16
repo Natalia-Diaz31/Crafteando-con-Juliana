@@ -26,6 +26,9 @@ const DATOS = {
   anio: 2026,
   salario_base: '500.00',
   ingresos_adicionales: '50.00',
+  // HU-13: cantidades de horas trabajadas.
+  horas_ordinarias: '160.00',
+  horas_extras: '8.00',
 
   // HU-12: el detalle es la fuente del total de descuentos.
   descuentos: [
@@ -42,7 +45,15 @@ const PLANILLA_GUARDADA = {
   id: '33333333-3333-4333-8333-333333333333', mes: 10, anio: 2026,
   plantilla_nombre: PLANTILLA.nombre, empleado_codigo: EMPLEADO.codigo,
   empleado_nombre: EMPLEADO.nombre_completo, empleado_dui: EMPLEADO.dui, empleado_cargo: EMPLEADO.cargo,
-  salario_base: 500, ingresos_adicionales: 50, descuentos_totales: 25, total_pagar: 525,
+  salario_base: 500,
+  ingresos_adicionales: 50,
+
+  // HU-13: horas conservadas en la planilla guardada.
+  horas_ordinarias: 160,
+  horas_extras: 8,
+
+  descuentos_totales: 25,
+  total_pagar: 525,
   fecha_guardado: '2026-10-12T12:00:00Z'
 };
 const TOKEN = jwt.sign({ id: EMPLEADO.id, correo: 'demo@planillas.com' }, SECRET, { expiresIn: '1h' });
@@ -275,6 +286,32 @@ for (const [nombre, campo, valor] of [
   });
 }
 
+// HU-13: validar las horas ordinarias y extras.
+for (const [campo, valor, descripcion] of [
+  ['horas_ordinarias', '', 'horas ordinarias vacías'],
+  ['horas_ordinarias', '-5', 'horas ordinarias negativas'],
+  ['horas_ordinarias', 'abc', 'horas ordinarias con letras'],
+  ['horas_ordinarias', '160.123', 'horas ordinarias con más de dos decimales'],
+  ['horas_extras', '', 'horas extras vacías'],
+  ['horas_extras', '-2', 'horas extras negativas'],
+  ['horas_extras', 'abc', 'horas extras con letras'],
+  ['horas_extras', '8.123', 'horas extras con más de dos decimales']
+]) {
+  test(`HU-13 rechaza ${descripcion}`, async t => {
+    const api = await conAPI(t);
+
+    const r = await api.pedir('/api/planillas', {
+      ...DATOS,
+      [campo]: valor
+    });
+
+    assert.equal(r.status, 400);
+    assert.equal(r.body.ok, false);
+    assert.ok(r.body.errores?.[campo]);
+    assert.equal(api.registros.length, 0);
+  });
+}
+
 test('HU-12 rechaza descuentos con concepto vacío', async t => {
   const api = await conAPI(t);
 
@@ -317,6 +354,9 @@ test('Guardar calcula 525.00 y conserva datos del empleado y plantilla', async t
   const p = api.registros[0];
   assert.equal(p.total_pagar, '525.00'); assert.equal(p.salario_base, '500.00');
   assert.equal(p.ingresos_adicionales, '50.00'); assert.equal(p.descuentos_totales, '25.00');
+  // HU-13: comprobar que se guardan ambas cantidades de horas.
+  assert.equal(p.horas_ordinarias, '160.00');
+  assert.equal(p.horas_extras, '8.00');
   assert.equal(p.empleado_codigo, EMPLEADO.codigo); assert.equal(p.empleado_nombre, EMPLEADO.nombre_completo);
   assert.equal(p.empleado_dui, EMPLEADO.dui); assert.equal(p.empleado_cargo, EMPLEADO.cargo);
   assert.equal(p.plantilla_nombre, PLANTILLA.nombre); assert.equal(p.mes, 10); assert.equal(p.anio, 2026);
@@ -385,6 +425,9 @@ test('El detalle devuelve todos los datos guardados', async t => {
     nombre_completo: EMPLEADO.nombre_completo, dui: EMPLEADO.dui, cargo: EMPLEADO.cargo,
     salario_base: 500,
     ingresos_adicionales: 50,
+    // HU-13: verificar que las horas se conservan al consultar.
+    horas_ordinarias: 160,
+    horas_extras: 8,
     descuentos_totales: 25,
     descuentos: [
       { concepto: 'Préstamo', importe: 10 },

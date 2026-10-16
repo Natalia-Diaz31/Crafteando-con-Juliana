@@ -502,6 +502,37 @@ function validarDatosPlanilla(req, res, next) {
     const salario = obtenerCentavos("salario_base");
     const ingresos = obtenerCentavos("ingresos_adicionales");
 
+    // HU-13: validar cantidades de horas sin modificar los montos monetarios.
+    function obtenerHoras(campo) {
+        const texto = obtenerTexto(datos[campo]);
+
+        if (!texto) {
+            errores[campo] = "Este campo es obligatorio";
+            return null;
+        }
+
+        if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) {
+            errores[campo] =
+                "Ingrese una cantidad mayor o igual a cero, con máximo dos decimales";
+            return null;
+        }
+
+        const [entero, decimal = ""] = texto.split(".");
+        const centesimas =
+            Number(entero) * 100 +
+            Number(decimal.padEnd(2, "0"));
+
+        if (!Number.isSafeInteger(centesimas) || centesimas > 9999999999) {
+            errores[campo] = "Las horas no pueden superar 99999999.99";
+            return null;
+        }
+
+        return (centesimas / 100).toFixed(2);
+    }
+
+    const horasOrdinarias = obtenerHoras("horas_ordinarias");
+    const horasExtras = obtenerHoras("horas_extras");
+
     // HU-12: validar el detalle y calcular los descuentos en la API.
     const detalleDescuentos = [];
     let descuentos = 0;
@@ -615,6 +646,10 @@ function validarDatosPlanilla(req, res, next) {
         salario_base: aDecimal(salario),
         ingresos_adicionales: aDecimal(ingresos),
 
+        // HU-13: cantidades de horas trabajadas.
+        horas_ordinarias: horasOrdinarias,
+        horas_extras: horasExtras,
+
         // HU-12: total calculado por la API y detalle validado.
         descuentos_totales: aDecimal(descuentos),
         descuentos: detalleDescuentos,
@@ -698,6 +733,11 @@ app.post(
                 empleado_cargo: empleado.cargo,
                 salario_base: datos.salario_base,
                 ingresos_adicionales: datos.ingresos_adicionales,
+
+                // HU-13: conservar las horas trabajadas.
+                horas_ordinarias: datos.horas_ordinarias,
+                horas_extras: datos.horas_extras,
+
                 descuentos_totales: datos.descuentos_totales,
                 total_pagar: datos.total_pagar
             };
@@ -818,6 +858,7 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
             .select(
                 "id, mes, anio, plantilla_nombre, empleado_codigo, empleado_nombre, " +
                 "empleado_dui, empleado_cargo, salario_base, ingresos_adicionales, " +
+                "horas_ordinarias, horas_extras, " +
                 "descuentos_totales, total_pagar, fecha_guardado"
             )
             .eq("id", id)
@@ -860,6 +901,11 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 cargo: planilla.empleado_cargo,
                 salario_base: planilla.salario_base,
                 ingresos_adicionales: planilla.ingresos_adicionales,
+
+                // HU-13: devolver las horas registradas.
+                horas_ordinarias: planilla.horas_ordinarias,
+                horas_extras: planilla.horas_extras,
+                
                 descuentos_totales: planilla.descuentos_totales,
                 descuentos: detalleDescuentos || [],
                 total_pagar: planilla.total_pagar

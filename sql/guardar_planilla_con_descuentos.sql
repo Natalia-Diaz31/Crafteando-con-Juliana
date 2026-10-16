@@ -21,6 +21,9 @@ DECLARE
     v_descuento jsonb;
     v_concepto text;
     v_importe numeric;
+    -- HU-13: cantidades de horas trabajadas.
+    v_horas_ordinarias numeric;
+    v_horas_extras numeric;
 BEGIN
     -- Comprobar que se recibió una lista.
     IF p_descuentos IS NULL
@@ -73,6 +76,22 @@ BEGIN
 
     v_total_pagar := v_salario + v_ingresos - v_total_descuentos;
 
+    -- HU-13: validar las horas trabajadas.
+    IF (p_registro->>'horas_ordinarias') IS NULL
+        OR (p_registro->>'horas_ordinarias') !~ '^[0-9]+(\.[0-9]{1,2})?$'
+        OR (p_registro->>'horas_extras') IS NULL
+        OR (p_registro->>'horas_extras') !~ '^[0-9]+(\.[0-9]{1,2})?$' THEN
+        RAISE EXCEPTION 'Las horas deben ser números mayores o iguales a cero, con máximo dos decimales';
+    END IF;
+
+    v_horas_ordinarias := (p_registro->>'horas_ordinarias')::numeric;
+    v_horas_extras := (p_registro->>'horas_extras')::numeric;
+
+    IF v_horas_ordinarias > 99999999.99
+        OR v_horas_extras > 99999999.99 THEN
+        RAISE EXCEPTION 'Las horas no pueden superar 99999999.99';
+    END IF;
+
     -- Guardar la planilla.
     INSERT INTO public.planillas (
         plantilla_id,
@@ -86,6 +105,8 @@ BEGIN
         empleado_cargo,
         salario_base,
         ingresos_adicionales,
+        horas_ordinarias,
+        horas_extras,
         descuentos_totales,
         total_pagar
     )
@@ -101,6 +122,8 @@ BEGIN
         p_registro->>'empleado_cargo',
         v_salario,
         v_ingresos,
+        v_horas_ordinarias,
+        v_horas_extras,
         v_total_descuentos,
         v_total_pagar
     )
