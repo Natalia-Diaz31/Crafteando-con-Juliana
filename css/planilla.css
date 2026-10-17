@@ -783,3 +783,27 @@ body {
         min-width: 100px;
     }
 }
+
+/* HU-14 - Deducciones legales */
+
+.deduccion-legal {
+    padding: 13px 0;
+    border-bottom: 1px solid #e7ebf2;
+}
+
+.deduccion-legal h4 {
+    margin: 0 0 10px;
+    color: #2864dc;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.deducciones-legales-error {
+    margin: 12px 0 0;
+    padding: 9px 11px;
+    background-color: #fff5f5;
+    border: 1px solid #f1caca;
+    border-radius: 6px;
+    color: #b42318;
+    font-size: 10px;
+}

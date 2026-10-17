@@ -362,6 +362,101 @@
                                     </table>
                                 </div>
                             </div>
+
+                            <!-- HU-14 - Detalle de deducciones legales -->
+                            <div class="descuentos-card">
+
+                                <div class="descuentos-header">
+                                    <div>
+                                        <h3>Deducciones legales</h3>
+                                        <p>
+                                            Detalle de las deducciones legales aplicadas según
+                                            las reglas configuradas para El Salvador.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="deduccion-legal">
+                                    <h4>ISSS</h4>
+
+                                    <div class="revision-grid revision-grid-3">
+                                        <div class="revision-dato">
+                                            <span>Base de cálculo</span>
+                                            <strong id="isss-base">—</strong>
+                                        </div>
+
+                                        <div class="revision-dato">
+                                            <span>Tasa</span>
+                                            <strong id="isss-tasa">—</strong>
+                                        </div>
+
+                                        <div class="revision-dato">
+                                            <span>Importe</span>
+                                            <strong id="isss-importe">$0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="deduccion-legal">
+                                    <h4>AFP</h4>
+
+                                    <div class="revision-grid revision-grid-3">
+                                        <div class="revision-dato">
+                                            <span>Base de cálculo</span>
+                                            <strong id="afp-base">—</strong>
+                                        </div>
+
+                                        <div class="revision-dato">
+                                            <span>Tasa</span>
+                                            <strong id="afp-tasa">—</strong>
+                                        </div>
+
+                                        <div class="revision-dato">
+                                            <span>Importe</span>
+                                            <strong id="afp-importe">$0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="deduccion-legal">
+                                    <h4>ISR (Renta)</h4>
+
+                                    <div class="revision-grid revision-grid-3">
+                                        <div class="revision-dato">
+                                            <span>Base de cálculo</span>
+                                            <strong id="isr-base">—</strong>
+                                        </div>
+
+                                        <div class="revision-dato">
+                                            <span>Tramo aplicado</span>
+                                            <strong id="isr-tramo">—</strong>
+                                        </div>
+
+                                        <div class="revision-dato">
+                                            <span>Importe</span>
+                                            <strong id="isr-importe">$0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="revision-total">
+                                    <div>
+                                        <span>Total de deducciones legales</span>
+                                        <small>Dólares estadounidenses (USD)</small>
+                                    </div>
+                                        <strong id="total-deducciones-legales">$0.00</strong>
+                                </div>
+
+                                <p
+                                    id="mensaje-deducciones-legales"
+                                    class="deducciones-legales-error"
+                                    role="alert"
+                                    aria-live="polite"
+                                    hidden>
+                                    No se pueden calcular las deducciones legales: falta configurar una regla
+                                </p>
+
+                            </div>
                             <div class="money-field">
                                 <label for="descuentos" class="form-label">
                                     Descuentos totales
@@ -377,11 +472,12 @@
                             </div>
                         </div>
 
-                        <div class="total-planilla">
+                        <div class="revision-total">
+                            <div>
                                 <span>Total líquido a pagar</span>
-
-                            <strong class="fs-4">$<span id="total-calculado">—</span>
-                            </strong>
+                                <small>Dólares estadounidenses (USD)</small>
+                            </div>
+                            <strong>$<span id="total-calculado">—</span></strong>
                         </div>
 
                         <button type="submit" class="btn btn-primary mt-3" id="revisar-planilla" aria-controls="resumen-planilla" aria-expanded="false">
