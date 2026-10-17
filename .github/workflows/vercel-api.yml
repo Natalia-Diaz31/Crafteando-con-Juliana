@@ -1,0 +1,53 @@
+
+name: API - Preparar despliegue Vercel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preparar-api:
+    name: Probar y construir API
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: api_
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Obtener codigo de GitHub
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: api_/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar sintaxis del servidor
+        run: node --check server.js
+
+      - name: Ejecutar pruebas existentes
+        run: node --test --test-reporter=spec ../ci-tests/api.test.cjs
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Obtener configuracion de Vercel
+        run: vercel pull --yes --environment=production
+
+      - name: Comprobar construccion de la API
+        run: vercel build --prod
