@@ -87,9 +87,12 @@ jobs:
               --deployment "${{ steps.despliegue.outputs.url }}" \
               -X POST \
               -H "Content-Type: application/json" \
+             
               --data-binary @- \
-              -sS -o "$archivo" \
-              -w '%{http_code}'
+              --silent --show-error \
+              --output "$archivo" \
+              --write-out '%{http_code}'
+
           )"
 
           echo "Estado HTTP: $estado"
