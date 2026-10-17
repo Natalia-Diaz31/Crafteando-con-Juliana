@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="js/sesion.js"></script>
-    <script src="js/rol.js"></script>
+    <script src="js/rol.js" data-requiere-rol></script>
     <title>Crear planilla</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -245,8 +245,9 @@
                                     </label>
                                     <input
                                         type="text"
-                                        id="horas-ordinarias" 
+                                        id="horas-ordinarias"
                                         class="form-control"
+                                        value="0.00"
                                         placeholder="0.00"
                                         inputmode="decimal">
                                     <span class="currency-text">Horas</span>
@@ -260,6 +261,7 @@
                                         type="text"
                                         id="horas-extras"
                                         class="form-control"
+                                        value="0.00"
                                         placeholder="0.00"
                                         inputmode="decimal">
                                     <span class="currency-text">Horas</span>
@@ -543,7 +545,7 @@
                         <div class="revision-grid revision-grid-4">
 
                             <div class="revision-dato">
-                                <span>Código</span>
+                                <span>Código del empleado</span>
                                 <strong id="resumen-codigo"></strong>
                             </div>
 
@@ -560,6 +562,25 @@
                             <div class="revision-dato">
                                 <span>Cargo</span>
                                 <strong id="resumen-cargo"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="revision-section">
+                        <h3>
+                            <i class="bi bi-clock"></i>
+                            Horas trabajadas
+                        </h3>
+
+                        <div class="revision-grid revision-grid-2">
+                            <div class="revision-dato">
+                                <span>Horas ordinarias</span>
+                                <strong id="resumen-horas-ordinarias"></strong>
+                            </div>
+
+                            <div class="revision-dato">
+                                <span>Horas extras</span>
+                                <strong id="resumen-horas-extras"></strong>
                             </div>
                         </div>
                     </div>
@@ -603,9 +624,22 @@
                     </div>
 
                     <div class="revision-section">
-                        <h3>Deducciones legales aplicadas</h3>
+                        <h3>
+                            <i class="bi bi-list-ul"></i>
+                            Descuentos autorizados
+                        </h3>
+                        <div id="resumen-manuales" class="table-responsive"></div>
+                    </div>
+
+                    <div class="revision-section">
+                        <h3>
+                            <i class="bi bi-bank"></i>
+                            Deducciones legales aplicadas
+                        </h3>
                         <div id="resumen-legales" class="table-responsive"></div>
-                        <p id="resumen-manuales"></p>
+                        <p class="text-muted small mb-0">
+                            Descuentos totales = descuentos autorizados + deducciones legales.
+                        </p>
                     </div>
                     <div class="revision-actions">
                         <button type="button"
@@ -653,6 +687,7 @@
     <script src="js/reglas-nomina.js"></script>
     <script src="js/deducciones-legales.js"></script>
     <script src="js/horas-validacion.js"></script>
+    <script src="js/desglose-planilla.js"></script>
     <script src="js/revision-planilla.js"></script>
     <script src="js/guardado-planilla.js"></script>
     <script src="js/descuentos-detalle.js"></script>

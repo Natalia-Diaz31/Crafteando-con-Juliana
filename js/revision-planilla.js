@@ -129,18 +129,25 @@ document.addEventListener("DOMContentLoaded", () => {
             window.obtenerDeduccionesLegales()
         );
 
-        document.getElementById("resumen-manuales").textContent =
-            "Descuentos autorizados: " +
-            (
-                window.obtenerDetalleDescuentos()
-                    .map(d => `${d.concepto}: $${d.importe}`)
-                    .join("; ") ||
-                "Sin descuentos autorizados"
-            );
+        // HU-12: cada concepto, su importe y la suma del detalle.
+        window.pintarDescuentosAutorizados(
+            document.getElementById("resumen-manuales"),
+            window.obtenerDetalleDescuentos()
+        );
         mostrarDato("resumen-codigo", empleado.codigo);
         mostrarDato("resumen-nombre", empleado.nombre_completo);
         mostrarDato("resumen-dui", empleado.dui);
         mostrarDato("resumen-cargo", empleado.cargo);
+
+        // HU-13: horas del mismo empleado y período.
+        mostrarDato(
+            "resumen-horas-ordinarias",
+            window.formatoHoras(document.getElementById("horas-ordinarias").value)
+        );
+        mostrarDato(
+            "resumen-horas-extras",
+            window.formatoHoras(document.getElementById("horas-extras").value)
+        );
 
         mostrarDato("resumen-salario", formatoUSD.format(salario / 100));
         mostrarDato("resumen-ingresos", formatoUSD.format(ingresos / 100));

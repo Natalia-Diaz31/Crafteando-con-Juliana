@@ -59,17 +59,27 @@ window.mostrarDetallePlanilla = function (planilla) {
     mostrar("detalle-descuentos", dinero(planilla.descuentos_totales));
     mostrar("detalle-total", dinero(planilla.total_pagar));
 
-    let bloque = document.getElementById("historico-deducciones");
-    if (!bloque) {
-        bloque = document.createElement("section");
-        bloque.id = "historico-deducciones";
-        bloque.className = "detalle-bloque table-responsive";
-        contenido.append(bloque);
-    }
-    window.pintarDeduccionesLegales(bloque, planilla.deducciones_legales);
-    const manuales = document.createElement("p");
-    manuales.textContent = "Detalle de descuentos guardados: " + ((planilla.descuentos || []).map(d => `${d.concepto}: $${Number(d.importe).toFixed(2)}`).join("; ") || "Sin descuentos");
-    bloque.append(manuales);
+    // HU-13: horas guardadas («No registradas» en planillas anteriores a la HU-13)
+    mostrar("detalle-horas-ordinarias", window.formatoHoras(planilla.horas_ordinarias));
+    mostrar("detalle-horas-extras", window.formatoHoras(planilla.horas_extras));
+
+    // HU-12: descuentos autorizados guardados, sin las deducciones legales.
+    // Las planillas anteriores a la HU-12 tienen descuentos totales pero ningún detalle.
+    const sinDetalle =
+        !(planilla.descuentos?.length) && Number(planilla.descuentos_totales) > 0;
+
+    window.pintarDescuentosAutorizados(
+        document.getElementById("detalle-descuentos-autorizados"),
+        sinDetalle
+            ? null
+            : window.separarDescuentosAutorizados(planilla.descuentos, planilla.deducciones_legales)
+    );
+
+    // HU-14: deducciones legales tal como se guardaron
+    window.pintarDeduccionesLegales(
+        document.getElementById("historico-deducciones"),
+        planilla.deducciones_legales
+    );
     mensaje.textContent = "";
     contenido.hidden = false;
 };

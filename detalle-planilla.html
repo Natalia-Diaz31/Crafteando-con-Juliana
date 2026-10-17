@@ -119,7 +119,7 @@
 
                             <dl class="detalle-grid">
                                 <div class="detalle-item">
-                                    <div><dt>Código</dt><dd id="detalle-codigo"></dd></div>
+                                    <div><dt>Código del empleado</dt><dd id="detalle-codigo"></dd></div>
                                     <div><dt>Nombre completo</dt><dd id="detalle-nombre"></dd></div>
                                     <div><dt>DUI</dt><dd id="detalle-dui"></dd></div>
                                     <div><dt>Cargo</dt><dd id="detalle-cargo"></dd></div>
@@ -127,6 +127,21 @@
                             </dl>
                         </div>
 
+                        <div class="detalle-bloque">
+                            <h3 class="consulta-seccion">
+                                <i class="bi bi-clock"></i>
+                                Horas trabajadas
+                            </h3>
+
+                            <dl class="detalle-grid">
+                                <div class="detalle-item">
+                                    <div><dt>Horas ordinarias</dt><dd id="detalle-horas-ordinarias"></dd></div>
+                                    <div><dt>Horas extras</dt><dd id="detalle-horas-extras"></dd></div>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="detalle-bloque">
                             <h3 class="consulta-seccion">
                                 <i class="bi bi-currency-dollar"></i>
                                 Montos de la planilla
@@ -141,6 +156,23 @@
                                     <div class="detalle-total"><dt>Total líquido a pagar (USD)</dt><dd id="detalle-total"></dd></div>
                                 </div>
                             </dl>
+                        </div>
+
+                        <div class="detalle-bloque">
+                            <h3 class="consulta-seccion">
+                                <i class="bi bi-list-ul"></i>
+                                Descuentos autorizados
+                            </h3>
+                            <div id="detalle-descuentos-autorizados" class="table-responsive"></div>
+                        </div>
+
+                        <div class="detalle-bloque">
+                            <h3 class="consulta-seccion">
+                                <i class="bi bi-bank"></i>
+                                Deducciones legales aplicadas
+                            </h3>
+                            <div id="historico-deducciones" class="table-responsive"></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -149,6 +181,7 @@
 
     <script src="js/config.js"></script>
     <script src="js/deducciones-legales.js"></script>
+    <script src="js/desglose-planilla.js"></script>
     <script src="js/detalle-planilla.js"></script>
 </body>
 </html>
