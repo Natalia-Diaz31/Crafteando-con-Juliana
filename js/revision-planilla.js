@@ -109,6 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         mostrarDato("resumen-plantilla", plantilla.nombre);
         mostrarDato("resumen-periodo", `${mes} ${anio}`);
+        mostrarDato("resumen-empleados-incluidos", empleado ? 1 : 0);
         mostrarDato("resumen-codigo", empleado.codigo);
         mostrarDato("resumen-nombre", empleado.nombre_completo);
         mostrarDato("resumen-dui", empleado.dui);
