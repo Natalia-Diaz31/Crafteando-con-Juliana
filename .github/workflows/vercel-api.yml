@@ -2,6 +2,13 @@ name: API - Preparar despliegue Vercel
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "api_/**"
+      - "ci-tests/**"
+      - ".github/workflows/vercel-api.yml"
 
 permissions:
   contents: read
