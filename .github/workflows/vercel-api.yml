@@ -63,7 +63,6 @@ jobs:
         run: |
           vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --fail-with-body
 
-          
      
       - name: Diagnosticar login HU-09
         env:
@@ -76,61 +75,40 @@ jobs:
             exit 1
           fi
 
-          archivo="$RUNNER_TEMP/respuesta-login.json"
+          peticion="$RUNNER_TEMP/hu09-peticion.json"
+          respuesta="$RUNNER_TEMP/hu09-respuesta.json"
 
-          estado="$(
-            node -e 'process.stdout.write(JSON.stringify({
-              correo: "prueba.sinrol@planillas.com",
-              contrasena: process.env.API_TEST_PASSWORD
-            }))' |
-            vercel curl /api/auth/login \
-              --deployment "${{ steps.despliegue.outputs.url }}" \
-              -X POST \
-              -H "Content-Type: application/json" \
-             
-              --data-binary @- \
-              --silent --show-error \
-              --output "$archivo" \
-              --write-out '%{http_code}'
+          node -e 'const fs = require("fs"); fs.writeFileSync(process.argv[1], JSON.stringify({ correo: "prueba.sinrol@planillas.com", contrasena: process.env.API_TEST_PASSWORD }), { mode: 0o600 });' "$peticion"
 
-          )"
+          estado="$(vercel curl /api/auth/login --deployment "${{ steps.despliegue.outputs.url }}" -- --request POST --header "Content-Type: application/json" --data-binary "@$peticion" --silent --show-error --output "$respuesta" --write-out '%{http_code}')"
 
           echo "Estado HTTP: $estado"
 
-          ARCHIVO="$archivo" ESTADO="$estado" node -e '
+          LOGIN_STATUS="$estado" RESPUESTA="$respuesta" node -e '
             const fs = require("fs");
             let datos;
 
             try {
-              datos = JSON.parse(
-                fs.readFileSync(process.env.ARCHIVO, "utf8")
-              );
+              datos = JSON.parse(fs.readFileSync(process.env.RESPUESTA, "utf8"));
             } catch {
-              console.log("La respuesta no es JSON de la API.");
-              console.log("Revisar proteccion de Vercel.");
+              console.error("La respuesta no es JSON. Revisar proteccion de Vercel.");
               process.exit(1);
             }
 
             if (
-              process.env.ESTADO === "200" &&
+              process.env.LOGIN_STATUS === "200" &&
               datos.ok === true &&
+              datos.usuario?.correo === "prueba.sinrol@planillas.com" &&
               datos.usuario?.rol === "Sin permisos"
             ) {
               console.log("HU-09: autenticacion correcta");
               console.log("Rol recibido: Sin permisos");
-              process.exit(0);
-            }
-
-            if (
-              process.env.ESTADO === "401" &&
-              datos.mensaje === "Correo o contraseña incorrectos"
-            ) {
-              console.log("La API rechazo las credenciales de prueba.");
-              console.log("Revisar API_TEST_PASSWORD.");
+            } else {
+              console.error(
+                process.env.LOGIN_STATUS === "401"
+                  ? "Acceso rechazado: revisar las credenciales de prueba."
+                  : "La respuesta no contiene el rol esperado."
+              );
               process.exit(1);
             }
-
-            console.log("Respuesta distinta a la esperada.");
-            console.log("Estado HTTP:", process.env.ESTADO);
-            process.exit(1);
           '
