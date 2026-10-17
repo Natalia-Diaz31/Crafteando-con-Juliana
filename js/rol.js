@@ -17,3 +17,15 @@ function obtenerRol() {
 function esEncargadoNomina() {
     return obtenerRol() === ROL_ENCARGADO_NOMINA;
 }
+
+// Oculta las opciones de crear y consultar planillas
+// cuando la cuenta autenticada no tiene el rol requerido.
+document.addEventListener("DOMContentLoaded", () => {
+    const crearPlanilla = document.getElementById("menu-crear-planilla");
+    const consultarPlanillas = document.getElementById("menu-consultar-planillas");
+
+    if (!esEncargadoNomina()) {
+        if (crearPlanilla) crearPlanilla.hidden = true;
+        if (consultarPlanillas) consultarPlanillas.hidden = true;
+    }
+});
