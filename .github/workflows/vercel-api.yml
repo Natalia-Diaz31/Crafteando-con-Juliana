@@ -59,7 +59,9 @@ jobs:
           url=$(vercel deploy --prebuilt --prod --skip-domain --token="$VERCEL_TOKEN")
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
+     
       - name: Probar API protegida
         run: |
-          vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --token="$VERCEL_TOKEN"
+          vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --fail-with-body
+
 
