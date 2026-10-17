@@ -39,6 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const resultado = await respuesta.json();
 
+            console.log("Respuesta del login:", resultado);
+
             // Comprobar si el inicio de sesión fue exitoso
             if (!respuesta.ok || (!resultado.ok && !resultado.success) || !resultado.token) {
 
