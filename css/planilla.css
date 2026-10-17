@@ -602,7 +602,7 @@ body {
     border-radius: 8px;
 }
 
-.revision-total span {
+.revision-total > div > span {
     display: block;
     color: #334155;
     font-size: 11px;

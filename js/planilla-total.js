@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const resultado =
             salarioCentavos + ingresosCentavos - descuentosCentavos;
 
-        total.textContent = "$" + (resultado / 100).toFixed(2);
+        total.textContent = (resultado / 100).toFixed(2);
     }
 
     [salario, ingresos, descuentos].forEach(campo => {
