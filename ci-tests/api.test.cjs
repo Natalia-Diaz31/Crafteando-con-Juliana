@@ -349,6 +349,11 @@ test('Guardar calcula 525.00 y conserva datos del empleado y plantilla', async t
   const r = await api.pedir('/api/planillas', { ...DATOS, total_pagar: '1.00', empleado_nombre: 'Dato alterado' });
   assert.equal(r.status, 201); assert.equal(r.body.ok, true);
   assert.equal(r.body.mensaje, 'Planilla guardada'); assert.ok(r.body.id);
+  // HU-16: comprobar los cinco componentes monetarios de la respuesta.
+  assert.equal(r.body.salario_base, '500.00');
+  assert.equal(r.body.ingresos_adicionales, '50.00');
+  assert.equal(r.body.total_ingresos, '550.00');
+  assert.equal(r.body.descuentos_totales, '25.00');
   assert.equal(Number(r.body.total_pagar), 525);
   assert.equal(api.registros.length, 1);
   const p = api.registros[0];
@@ -425,6 +430,7 @@ test('El detalle devuelve todos los datos guardados', async t => {
     nombre_completo: EMPLEADO.nombre_completo, dui: EMPLEADO.dui, cargo: EMPLEADO.cargo,
     salario_base: 500,
     ingresos_adicionales: 50,
+    total_ingresos: "550.00",
     // HU-13: verificar que las horas se conservan al consultar.
     horas_ordinarias: 160,
     horas_extras: 8,

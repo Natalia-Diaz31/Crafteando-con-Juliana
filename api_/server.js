@@ -597,6 +597,7 @@ function validarDatosPlanilla(req, res, next) {
     }
 
     let total = null;
+    let totalIngresos = null;
 
     if (
         salario !== null &&
@@ -604,6 +605,7 @@ function validarDatosPlanilla(req, res, next) {
         descuentos !== null
     ) {
         const sumaIngresos = salario + ingresos;
+        totalIngresos = sumaIngresos;
 
         if (!Number.isSafeInteger(sumaIngresos)) {
             errores.ingresos_adicionales =
@@ -645,6 +647,7 @@ function validarDatosPlanilla(req, res, next) {
         anio: Number(anioTexto),
         salario_base: aDecimal(salario),
         ingresos_adicionales: aDecimal(ingresos),
+        total_ingresos: aDecimal(totalIngresos),
 
         // HU-13: cantidades de horas trabajadas.
         horas_ordinarias: horasOrdinarias,
@@ -775,6 +778,10 @@ app.post(
                 mensaje: "Planilla guardada",
                 id: planilla.id,
                 fecha_guardado: planilla.fecha_guardado,
+                salario_base: datos.salario_base,
+                ingresos_adicionales: datos.ingresos_adicionales,
+                total_ingresos: datos.total_ingresos,
+                descuentos_totales: datos.descuentos_totales,
                 total_pagar: planilla.total_pagar
             });
         } catch (error) {
@@ -887,6 +894,21 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
             throw errorDescuentos;
         }
 
+        // HU-16: calcular el total de ingresos con los montos guardados.
+        const salarioCentavos = Math.round(Number(planilla.salario_base) * 100);
+        const ingresosCentavos = Math.round(Number(planilla.ingresos_adicionales) * 100);
+
+        const totalIngresosCentavos = salarioCentavos + ingresosCentavos;
+
+        if (
+            !Number.isSafeInteger(totalIngresosCentavos) ||
+            totalIngresosCentavos > 999999999999
+        ) {
+            throw new Error("Total de ingresos fuera del rango permitido");
+        }
+
+        const totalIngresos = (totalIngresosCentavos / 100).toFixed(2);
+
         // 3. Devolver los datos con los nombres que usa la pantalla
         return res.status(200).json({
             ok: true,
@@ -901,11 +923,12 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 cargo: planilla.empleado_cargo,
                 salario_base: planilla.salario_base,
                 ingresos_adicionales: planilla.ingresos_adicionales,
+                total_ingresos: totalIngresos,
 
                 // HU-13: devolver las horas registradas.
                 horas_ordinarias: planilla.horas_ordinarias,
                 horas_extras: planilla.horas_extras,
-                
+
                 descuentos_totales: planilla.descuentos_totales,
                 descuentos: detalleDescuentos || [],
                 total_pagar: planilla.total_pagar
