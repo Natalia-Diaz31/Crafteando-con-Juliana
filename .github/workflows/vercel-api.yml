@@ -52,5 +52,14 @@ jobs:
       - name: Comprobar construccion de la API
         run: vercel build --prod --token="$VERCEL_TOKEN"
 
+   
       - name: Publicar API de prueba sin cambiar dominio
-        run: vercel deploy --prebuilt --prod --skip-domain --token="$VERCEL_TOKEN"
+        id: despliegue
+        run: |
+          url=$(vercel deploy --prebuilt --prod --skip-domain --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Probar API protegida
+        run: |
+          vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --token="$VERCEL_TOKEN"
+
