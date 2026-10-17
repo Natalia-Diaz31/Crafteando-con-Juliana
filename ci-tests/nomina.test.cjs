@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const motor = require('../js/reglas-nomina.js');
+const motor = require('../api_/utils/reglas-nomina.js');
 const datos = { salario_base: '500.00', ingresos_adicionales: '50.00', periodo_pago: 'mensual', mes: 10, anio: 2026 };
 test('AFP e ISSS usan salario más adicionales; redondeo exacto de medio centavo', () => {
     const r = motor.calcular(datos);

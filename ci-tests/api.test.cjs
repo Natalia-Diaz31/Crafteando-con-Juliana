@@ -20,6 +20,8 @@ const PLANTILLA = {
   id: '22222222-2222-4222-8222-222222222222', nombre: 'Planilla básica mensual'
 };
 const DATOS = {
+   periodo_pago: 'mensual',
+  version_regla: require('../api_/utils/reglas-nomina.js').VERSION,
   empleado_id: EMPLEADO.id,
   plantilla_id: PLANTILLA.id,
   mes: 10,
@@ -344,7 +346,7 @@ test('HU-12 rechaza descuentos con más de dos decimales', async t => {
   assert.equal(api.registros.length, 0);
 });
 
-test('Guardar calcula 525.00 y conserva datos del empleado y plantilla', async t => {
+test('Guardar calcula 468.62 y conserva datos del empleado y plantilla', async t => {
   const api = await conAPI(t);
   const r = await api.pedir('/api/planillas', { ...DATOS, total_pagar: '1.00', empleado_nombre: 'Dato alterado' });
   assert.equal(r.status, 201); assert.equal(r.body.ok, true);
@@ -353,12 +355,12 @@ test('Guardar calcula 525.00 y conserva datos del empleado y plantilla', async t
   assert.equal(r.body.salario_base, '500.00');
   assert.equal(r.body.ingresos_adicionales, '50.00');
   assert.equal(r.body.total_ingresos, '550.00');
-  assert.equal(r.body.descuentos_totales, '25.00');
-  assert.equal(Number(r.body.total_pagar), 525);
+ assert.equal(r.body.descuentos_totales, '81.38');
+assert.equal(Number(r.body.total_pagar), 468.62);
   assert.equal(api.registros.length, 1);
   const p = api.registros[0];
-  assert.equal(p.total_pagar, '525.00'); assert.equal(p.salario_base, '500.00');
-  assert.equal(p.ingresos_adicionales, '50.00'); assert.equal(p.descuentos_totales, '25.00');
+  assert.equal(p.total_pagar, '468.62'); assert.equal(p.salario_base, '500.00');
+  assert.equal(p.ingresos_adicionales, '50.00'); assert.equal(p.descuentos_totales, '81.38');
   // HU-13: comprobar que se guardan ambas cantidades de horas.
   assert.equal(p.horas_ordinarias, '160.00');
   assert.equal(p.horas_extras, '8.00');
