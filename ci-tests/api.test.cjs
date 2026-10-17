@@ -288,6 +288,28 @@ for (const [nombre, campo, valor] of [
   });
 }
 
+// HU-14: impedir guardar cuando no existe una regla legal vigente.
+test('HU-14 rechaza planilla sin regla legal y no la guarda', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    mes: 4,
+    anio: 2025
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+
+  assert.equal(
+    r.body.errores?.deducciones_legales,
+    'No se pueden calcular las deducciones legales: falta configurar una regla'
+  );
+
+  assert.equal(api.registros.length, 0);
+  assert.equal(r.body.id, undefined);
+});
+
 // HU-13: validar las horas ordinarias y extras.
 for (const [campo, valor, descripcion] of [
   ['horas_ordinarias', '', 'horas ordinarias vacías'],

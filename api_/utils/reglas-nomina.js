@@ -53,7 +53,7 @@
             throw new Error('Seleccione un mes y un año válido de cuatro cifras');
         }
         if (anio * 100 + mes < 202505) {
-            throw new Error('No se pueden calcular las deducciones legales: falta configurar una regla para períodos anteriores a mayo de 2025');
+            throw new Error('No se pueden calcular las deducciones legales: falta configurar una regla');
         }
         const salario = centavos(datos.salario_base), adicionales = centavos(datos.ingresos_adicionales);
         const bruto = salario + adicionales;
@@ -65,8 +65,10 @@
         const detalle = [
             { codigo: 'ISSS', nombre: 'ISSS', base: decimal(bruto), tasa: '3.00', tramo: null, tope: decimal(tabla.tope), importe: decimal(isss) },
             { codigo: 'AFP', nombre: 'AFP', base: decimal(bruto), tasa: '7.25', tramo: null, tope: null, importe: decimal(afp) },
-            { codigo: 'RENTA', nombre: 'Renta', base: decimal(base), tasa: renta.tasa, tramo: renta.tramo,
-              tope: null, exceso_desde: renta.exceso_desde, cuota_fija: renta.cuota_fija, importe: decimal(renta.centavos) }
+            {
+                codigo: 'RENTA', nombre: 'Renta', base: decimal(base), tasa: renta.tasa, tramo: renta.tramo,
+                tope: null, exceso_desde: renta.exceso_desde, cuota_fija: renta.cuota_fija, importe: decimal(renta.centavos)
+            }
         ];
         return {
             version: VERSION, fuente: FUENTE, vigente_desde: '2025-05-01', periodo_pago: datos.periodo_pago,
