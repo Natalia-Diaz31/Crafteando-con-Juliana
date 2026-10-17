@@ -1,4 +1,3 @@
-
 name: API - Preparar despliegue Vercel
 
 on:
@@ -63,5 +62,57 @@ jobs:
       - name: Probar API protegida
         run: |
           vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --fail-with-body
+
+          
+      - name: Verificar rol del usuario HU-09
+        env:
+          API_TEST_PASSWORD: ${{ secrets.API_TEST_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$API_TEST_PASSWORD" ]; then
+            echo "Falta configurar API_TEST_PASSWORD"
+            exit 1
+          fi
+
+          respuesta="$(
+            node -e 'process.stdout.write(JSON.stringify({
+              correo: "prueba.sinrol@planillas.com",
+              contrasena: process.env.API_TEST_PASSWORD
+            }))' |
+            vercel curl /api/auth/login \
+              --deployment "${{ steps.despliegue.outputs.url }}" \
+              -X POST \
+              -H "Content-Type: application/json" \
+              --data-binary @- \
+              --fail-with-body
+          )"
+
+          printf '%s' "$respuesta" | node -e '
+            let texto = "";
+            process.stdin.on("data", dato => texto += dato);
+            process.stdin.on("end", () => {
+              try {
+                const datos = JSON.parse(texto);
+
+                if (
+                  datos.ok !== true ||
+                  datos.usuario?.correo !== "prueba.sinrol@planillas.com" ||
+                  datos.usuario?.rol !== "Sin permisos" ||
+                  !datos.usuario?.id
+                ) {
+                  console.error("Error: login no devolvió los datos esperados");
+                  process.exitCode = 1;
+                } else {
+                  console.log("HU-09: autenticación correcta");
+                  console.log("Rol recibido: Sin permisos");
+                }
+              } catch {
+                console.error("Error: respuesta de login inválida");
+                process.exitCode = 1;
+              }
+            });
+          '
+
 
 
