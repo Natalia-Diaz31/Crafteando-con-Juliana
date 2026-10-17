@@ -69,7 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
         let errorImporte = "";
         let centavos = null;
 
-        if (!concepto) {
+        if (["isss", "afp", "renta"].includes(concepto.toLowerCase())) {
+            errorConcepto = "ISSS, AFP y Renta se calculan automáticamente";
+        } else if (!concepto) {
             errorConcepto = "Ingrese el concepto del descuento";
         }
 
@@ -130,7 +132,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function actualizarTotal() {
-        totalInput.value = aDecimal(obtenerSuma(descuentos));
+        const legales = window.obtenerDeduccionesLegales?.();
+        totalInput.value = legales
+            ? aDecimal(obtenerSuma(descuentos) + aCentavos(legales.total))
+            : "";
 
         totalInput.dispatchEvent(
             new Event("input", { bubbles: true })
@@ -284,9 +289,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
         }
 
+        mostrarError(conceptoInput, conceptoError, "");
+        mostrarError(importeInput, importeError, "");
         return true;
     };
 
+    window.actualizarDescuentosTotales = actualizarTotal;
     totalInput.readOnly = true;
 
     mostrarDescuentos();

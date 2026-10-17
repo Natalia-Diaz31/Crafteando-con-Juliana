@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function ocultarResumen() {
         resumen.hidden = true;
+        const casilla = document.getElementById("confirmacion-revisado");
+        if (casilla) casilla.checked = false;
+        document.getElementById("btn-guardar-planilla").disabled = true;
         boton.setAttribute("aria-expanded", "false");
     }
 
@@ -32,6 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
         evento.preventDefault();
         ocultarResumen();
 
+        const legalesValidos = window.validarDeduccionesLegales();
+        window.actualizarDescuentosTotales();
+        const horasValidas = window.validarHorasPlanilla();
         const empleadoValido = window.actualizarBloqueoEmpleado();
         const obligatoriosValidos =
             window.validarObligatoriosPlanilla();
@@ -42,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
             !empleadoValido ||
             !obligatoriosValidos ||
             !montosValidos ||
-            !detalleValido
+            !detalleValido || !legalesValidos || !horasValidas
         ) {
             formulario.querySelector(".is-invalid")?.focus();
             return;
@@ -108,8 +114,29 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         mostrarDato("resumen-plantilla", plantilla.nombre);
-        mostrarDato("resumen-periodo", `${mes} ${anio}`);
-        mostrarDato("resumen-empleados-incluidos", empleado ? 1 : 0);
+        mostrarDato(
+            "resumen-periodo",
+            `${mes} ${anio} · ${document.getElementById("periodo-pago").value}`
+        );
+
+        mostrarDato(
+            "resumen-empleados-incluidos",
+            empleado ? 1 : 0
+        );
+
+        window.pintarDeduccionesLegales(
+            document.getElementById("resumen-legales"),
+            window.obtenerDeduccionesLegales()
+        );
+
+        document.getElementById("resumen-manuales").textContent =
+            "Descuentos autorizados: " +
+            (
+                window.obtenerDetalleDescuentos()
+                    .map(d => `${d.concepto}: $${d.importe}`)
+                    .join("; ") ||
+                "Sin descuentos autorizados"
+            );
         mostrarDato("resumen-codigo", empleado.codigo);
         mostrarDato("resumen-nombre", empleado.nombre_completo);
         mostrarDato("resumen-dui", empleado.dui);

@@ -4,6 +4,15 @@
 
 async function guardarPlanilla() {
 
+    const resumen = document.getElementById("resumen-planilla");
+    if (resumen.hidden || !document.getElementById("confirmacion-revisado").checked) {
+        mostrarMensajeGuardado("Revise y confirme la planilla antes de guardar.");
+        return;
+    }
+    if (!window.validarDeduccionesLegales()) {
+        mostrarMensajeGuardado("Corrija las deducciones legales antes de guardar.");
+        return;
+    }
     // Obtener datos previamente seleccionados
     const empleado = JSON.parse(
         sessionStorage.getItem("empleadoSeleccionado")
@@ -37,6 +46,8 @@ async function guardarPlanilla() {
     // Construir objeto que espera la API
     const datosPlanilla = {
 
+        periodo_pago: document.getElementById("periodo-pago").value,
+        version_regla: window.ReglasNomina.VERSION,
         empleado_id: empleado.id,
 
         plantilla_id: plantilla.id,

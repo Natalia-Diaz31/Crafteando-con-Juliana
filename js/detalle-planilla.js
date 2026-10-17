@@ -59,6 +59,17 @@ window.mostrarDetallePlanilla = function (planilla) {
     mostrar("detalle-descuentos", dinero(planilla.descuentos_totales));
     mostrar("detalle-total", dinero(planilla.total_pagar));
 
+    let bloque = document.getElementById("historico-deducciones");
+    if (!bloque) {
+        bloque = document.createElement("section");
+        bloque.id = "historico-deducciones";
+        bloque.className = "detalle-bloque table-responsive";
+        contenido.append(bloque);
+    }
+    window.pintarDeduccionesLegales(bloque, planilla.deducciones_legales);
+    const manuales = document.createElement("p");
+    manuales.textContent = "Detalle de descuentos guardados: " + ((planilla.descuentos || []).map(d => `${d.concepto}: $${Number(d.importe).toFixed(2)}`).join("; ") || "Sin descuentos");
+    bloque.append(manuales);
     mensaje.textContent = "";
     contenido.hidden = false;
 };

@@ -40,4 +40,4 @@ jobs:
           find . ../ci-tests -type f \( -name '*.js' -o -name '*.cjs' \) -not -path './node_modules/*' -print0 | xargs -0 -r -n1 node --check
 
       - name: Ejecutar pruebas obligatorias
-        run: node --test --test-reporter=spec ../ci-tests/api.test.cjs
+        run: node --test --test-reporter=spec ../ci-tests/api.test.cjs ../ci-tests/nomina.test.cjs

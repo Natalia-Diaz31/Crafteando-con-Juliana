@@ -7,6 +7,8 @@ const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const { respuestaExitosa, respuestaError } = require("./utils/respuestas");
 
+const ReglasNomina = require("./utils/reglas-nomina.js");
+
 const app = express();
 
 
@@ -549,7 +551,9 @@ function validarDatosPlanilla(req, res, next) {
 
             const importeTexto = obtenerTexto(descuento?.importe);
 
-            if (!concepto) {
+            if (["isss", "afp", "renta"].includes(concepto.toLowerCase())) {
+                errores[`descuentos[${indice}].concepto`] = "ISSS, AFP y Renta son deducciones automáticas; no las registre manualmente";
+            } else if (!concepto) {
                 errores[`descuentos[${indice}].concepto`] =
                     "El concepto es obligatorio";
             }
@@ -593,6 +597,34 @@ function validarDatosPlanilla(req, res, next) {
             errores.descuentos =
                 "La suma de descuentos supera el monto permitido";
             descuentos = null;
+        }
+    }
+
+    // HU-14: la API recalcula. Nunca acepta importes legales enviados por el navegador.
+    let deduccionesLegales = null;
+    if (datos.version_regla !== ReglasNomina.VERSION) {
+        errores.version_regla = "Las reglas cambiaron. Recargue y revise nuevamente la planilla";
+    }
+    if (salario !== null && ingresos !== null) {
+        try {
+            deduccionesLegales = ReglasNomina.calcular({
+                salario_base: datos.salario_base,
+                ingresos_adicionales: datos.ingresos_adicionales,
+                periodo_pago: datos.periodo_pago,
+                mes: datos.mes, anio: datos.anio
+            });
+            if (descuentos !== null) {
+                descuentos += ReglasNomina.centavos(deduccionesLegales.total);
+                // La función SQL ya suma el detalle: incluir cada importe legal una vez.
+                for (const item of deduccionesLegales.detalle) {
+                    if (ReglasNomina.centavos(item.importe) > 0) {
+                        detalleDescuentos.push({ concepto: item.nombre, importe: item.importe });
+                    }
+                }
+                if (descuentos > 999999999999) errores.descuentos_totales = "La suma de descuentos supera el monto permitido";
+            }
+        } catch (error) {
+            errores.deducciones_legales = error.message;
         }
     }
 
@@ -641,6 +673,8 @@ function validarDatosPlanilla(req, res, next) {
 
     // La ruta de guardado utilizará estos datos ya validados.
     req.planillaValidada = {
+        periodo_pago: datos.periodo_pago,
+        deducciones_legales: deduccionesLegales,
         empleado_id: datos.empleado_id,
         plantilla_id: datos.plantilla_id,
         mes: Number(mesTexto),
@@ -725,6 +759,8 @@ app.post(
             // Conservar los datos del empleado y de la plantilla
             // junto con el período y los montos validados.
             const registro = {
+                periodo_pago: datos.periodo_pago,
+                deducciones_legales: datos.deducciones_legales,
                 plantilla_id: plantilla.id,
                 empleado_id: empleado.id,
                 mes: datos.mes,
@@ -866,7 +902,7 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 "id, mes, anio, plantilla_nombre, empleado_codigo, empleado_nombre, " +
                 "empleado_dui, empleado_cargo, salario_base, ingresos_adicionales, " +
                 "horas_ordinarias, horas_extras, " +
-                "descuentos_totales, total_pagar, fecha_guardado"
+                "descuentos_totales, total_pagar, fecha_guardado, periodo_pago, deducciones_legales"
             )
             .eq("id", id)
             .maybeSingle();
@@ -928,7 +964,8 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 // HU-13: devolver las horas registradas.
                 horas_ordinarias: planilla.horas_ordinarias,
                 horas_extras: planilla.horas_extras,
-
+                periodo_pago: planilla.periodo_pago,
+                deducciones_legales: planilla.deducciones_legales,
                 descuentos_totales: planilla.descuentos_totales,
                 descuentos: detalleDescuentos || [],
                 total_pagar: planilla.total_pagar
