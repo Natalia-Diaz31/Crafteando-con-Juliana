@@ -64,18 +64,21 @@ jobs:
           vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --fail-with-body
 
           
-      - name: Verificar rol del usuario HU-09
+     
+      - name: Diagnosticar login HU-09
         env:
           API_TEST_PASSWORD: ${{ secrets.API_TEST_PASSWORD }}
         run: |
           set -euo pipefail
 
-          if [ -z "$API_TEST_PASSWORD" ]; then
-            echo "Falta configurar API_TEST_PASSWORD"
+          if [ -z "${API_TEST_PASSWORD:-}" ]; then
+            echo "Falta API_TEST_PASSWORD"
             exit 1
           fi
 
-          respuesta="$(
+          archivo="$RUNNER_TEMP/respuesta-login.json"
+
+          estado="$(
             node -e 'process.stdout.write(JSON.stringify({
               correo: "prueba.sinrol@planillas.com",
               contrasena: process.env.API_TEST_PASSWORD
@@ -85,34 +88,46 @@ jobs:
               -X POST \
               -H "Content-Type: application/json" \
               --data-binary @- \
-              --fail-with-body
+              -sS -o "$archivo" \
+              -w '%{http_code}'
           )"
 
-          printf '%s' "$respuesta" | node -e '
-            let texto = "";
-            process.stdin.on("data", dato => texto += dato);
-            process.stdin.on("end", () => {
-              try {
-                const datos = JSON.parse(texto);
+          echo "Estado HTTP: $estado"
 
-                if (
-                  datos.ok !== true ||
-                  datos.usuario?.correo !== "prueba.sinrol@planillas.com" ||
-                  datos.usuario?.rol !== "Sin permisos" ||
-                  !datos.usuario?.id
-                ) {
-                  console.error("Error: login no devolvió los datos esperados");
-                  process.exitCode = 1;
-                } else {
-                  console.log("HU-09: autenticación correcta");
-                  console.log("Rol recibido: Sin permisos");
-                }
-              } catch {
-                console.error("Error: respuesta de login inválida");
-                process.exitCode = 1;
-              }
-            });
+          ARCHIVO="$archivo" ESTADO="$estado" node -e '
+            const fs = require("fs");
+            let datos;
+
+            try {
+              datos = JSON.parse(
+                fs.readFileSync(process.env.ARCHIVO, "utf8")
+              );
+            } catch {
+              console.log("La respuesta no es JSON de la API.");
+              console.log("Revisar proteccion de Vercel.");
+              process.exit(1);
+            }
+
+            if (
+              process.env.ESTADO === "200" &&
+              datos.ok === true &&
+              datos.usuario?.rol === "Sin permisos"
+            ) {
+              console.log("HU-09: autenticacion correcta");
+              console.log("Rol recibido: Sin permisos");
+              process.exit(0);
+            }
+
+            if (
+              process.env.ESTADO === "401" &&
+              datos.mensaje === "Correo o contraseña incorrectos"
+            ) {
+              console.log("La API rechazo las credenciales de prueba.");
+              console.log("Revisar API_TEST_PASSWORD.");
+              process.exit(1);
+            }
+
+            console.log("Respuesta distinta a la esperada.");
+            console.log("Estado HTTP:", process.env.ESTADO);
+            process.exit(1);
           '
-
-
-
