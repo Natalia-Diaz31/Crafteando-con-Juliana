@@ -62,13 +62,13 @@ document.addEventListener("DOMContentLoaded", () => {
         activarPaso(1);
     }
 
-    function irASeccion(elemento) {
+    function irASeccion(elemento, ajuste = 100) {
         if (!elemento) return;
 
         const posicion =
             elemento.getBoundingClientRect().top +
             window.scrollY -
-            330;
+            ajuste;
 
         window.scrollTo({
             top: posicion,
@@ -79,17 +79,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Navegación al hacer clic en la barra
     pasos[0]?.addEventListener("click", () => {
         activarPaso(1);
-        irASeccion(seccionDatos);
+        irASeccion(seccionDatos,330);
     });
 
     pasos[1]?.addEventListener("click", () => {
         activarPaso(2);
-        irASeccion(seccionMontos);
+        irASeccion(seccionMontos,100);
     });
 
     pasos[2]?.addEventListener("click", () => {
         activarPaso(3);
-        irASeccion(seccionDescuentos);
+        irASeccion(seccionDescuentos,100);
     });
 
     pasos[3]?.addEventListener("click", () => {
