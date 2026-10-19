@@ -84,12 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pasos[1]?.addEventListener("click", () => {
         activarPaso(2);
-        irASeccion(seccionMontos,100);
+        irASeccion(seccionMontos,120);
     });
 
     pasos[2]?.addEventListener("click", () => {
         activarPaso(3);
-        irASeccion(seccionDescuentos,100);
+        irASeccion(seccionDescuentos,120);
     });
 
     pasos[3]?.addEventListener("click", () => {
