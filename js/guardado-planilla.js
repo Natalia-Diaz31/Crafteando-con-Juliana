@@ -1,5 +1,6 @@
 //
 // HU-08: Integración del guardado de planilla con API
+// HU-17: Estados del botón durante el guardado de planilla
 //
 
 async function guardarPlanilla() {
@@ -78,6 +79,13 @@ async function guardarPlanilla() {
             document.getElementById("descuentos").value
     };
 
+    const botonGuardar = document.getElementById("btn-guardar-planilla");
+    const contenidoOriginal = botonGuardar.innerHTML;
+
+    botonGuardar.disabled = true;
+    botonGuardar.innerHTML = "Guardando…";
+
+    let guardadoExitoso = false;
 
     try {
 
@@ -123,20 +131,31 @@ async function guardarPlanilla() {
 
         }
 
+        guardadoExitoso = true;
 
         mostrarMensajeGuardado(
             `Planilla guardada correctamente. ID: ${resultado.id}`
         );
-
 
     } catch(error) {
 
         mostrarMensajeGuardado(
             error.message
         );
+    } finally {
 
+    const confirmacion =
+        document.getElementById("confirmacion-revisado");
+
+    if (guardadoExitoso) {
+        botonGuardar.innerHTML = "Planilla guardada";
+        botonGuardar.disabled = true;
+    } else {
+        botonGuardar.innerHTML = contenidoOriginal;
+        botonGuardar.disabled = !confirmacion.checked;
     }
 
+}
     
 
 }
