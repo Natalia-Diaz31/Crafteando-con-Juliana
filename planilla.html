@@ -386,6 +386,85 @@
                             </div>
                         </div>
 
+                        <!-- HU-18 - Novedades del empleado -->
+                        <div class="form-section">
+                            <h3>Novedades del empleado</h3>
+
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label for="novedad-tipo" class="form-label">
+                                        Tipo
+                                    </label>
+                                    <select id="novedad-tipo" class="form-select">
+                                        <option value="">Seleccione un tipo</option>
+                                        <option value="Incapacidad">Incapacidad</option>
+                                        <option value="Permiso">Permiso</option>
+                                        <option value="Ausencia">Ausencia</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="novedad-condicion" class="form-label">
+                                        Condición de pago
+                                    </label>
+                                    <select id="novedad-condicion" class="form-select">
+                                        <option value="">Seleccione una condición</option>
+                                        <option value="Con goce">Con goce</option>
+                                        <option value="Sin goce">Sin goce</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="novedad-inicio" class="form-label">
+                                        Fecha de inicio
+                                    </label>
+                                    <input
+                                        type="date"
+                                        id="novedad-inicio"
+                                        class="form-control">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="novedad-fin" class="form-label">
+                                        Fecha de finalización
+                                    </label>
+                                    <input
+                                        type="date"
+                                        id="novedad-fin"
+                                        class="form-control">
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                id="agregar-novedad"
+                                class="btn btn-primary mt-3">
+                                Agregar novedad
+                            </button>
+
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Tipo</th>
+                                            <th scope="col">Fecha de inicio</th>
+                                            <th scope="col">Fecha de finalización</th>
+                                            <th scope="col">Condición</th>
+                                            <th scope="col">Días</th>
+                                            <th scope="col">Acciones</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody id="detalle-novedades"></tbody>
+                                </table>
+                            </div>
+
+                            <p class="mt-3">
+                                <strong>Total de días remunerados:</strong>
+                                <span id="total-dias-remunerados">30</span>
+                            </p>
+                        </div>
+
                         <div class="revision-total">
                             <div>
                                 <span>Total líquido a pagar</span>
@@ -594,6 +673,7 @@
     <script src="js/revision-planilla.js"></script>
     <script src="js/guardado-planilla.js"></script>
     <script src="js/descuentos-detalle.js"></script>
+    <script src="js/novedades.js"></script>
     <script src="js/progreso-planilla.js"></script>
 
 </body>
