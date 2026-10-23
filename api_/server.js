@@ -3,6 +3,7 @@ require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
 const express = require("express");
+const { esUUIDValido } = require("./utils/validar-uuid");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const { respuestaExitosa, respuestaError } = require("./utils/respuestas");
@@ -700,11 +701,29 @@ function validarDatosPlanilla(req, res, next) {
 //
 // HU-08: GUARDAR UNA PLANILLA
 //
+// HU-17: validar el identificador de cada operación de guardado.
+function validarIdentificadorOperacion(req, res, next) {
+    const operacionId = req.body?.operacion_id;
+
+    if (!esUUIDValido(operacionId)) {
+        return res.status(400).json({
+            ok: false,
+            mensaje: "Identificador de operación inválido",
+            errores: {
+                operacion_id: "Debe proporcionar un UUID válido"
+            }
+        });
+    }
+
+    req.operacionId = operacionId;
+    return next();
+}
 
 app.post(
     "/api/planillas",
     verificarToken,
     verificarRolNomina, // HU-09: comprobar permisos
+    validarIdentificadorOperacion, // HU-17
     validarDatosPlanilla,
     async (req, res) => {
         try {
@@ -790,7 +809,8 @@ app.post(
                 "guardar_planilla_con_descuentos",
                 {
                     p_registro: registro,
-                    p_descuentos: datos.descuentos
+                    p_descuentos: datos.descuentos,
+                    p_operacion_id: req.operacionId
                 }
             );
 
@@ -809,7 +829,7 @@ app.post(
             }
 
             // Confirmar únicamente después de guardar.
-            return res.status(201).json({
+            return res.status(planilla.creada_nueva === false ? 200 : 201).json({
                 ok: true,
                 mensaje: "Planilla guardada",
                 id: planilla.id,

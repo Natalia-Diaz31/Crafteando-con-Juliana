@@ -1,0 +1,11 @@
+// Validación reutilizable de identificadores UUID.
+
+const FORMATO_UUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function esUUIDValido(valor) {
+    return typeof valor === "string" &&
+        FORMATO_UUID.test(valor);
+}
+
+module.exports = { esUUIDValido };

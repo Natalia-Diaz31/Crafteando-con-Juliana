@@ -20,7 +20,9 @@ const PLANTILLA = {
   id: '22222222-2222-4222-8222-222222222222', nombre: 'Planilla básica mensual'
 };
 const DATOS = {
-   periodo_pago: 'mensual',
+
+  operacion_id: '44444444-4444-4444-8444-444444444444', // HU-17: identificador de la operación de guardado.
+  periodo_pago: 'mensual',
   version_regla: require('../api_/utils/reglas-nomina.js').VERSION,
   empleado_id: EMPLEADO.id,
   plantilla_id: PLANTILLA.id,
@@ -89,6 +91,23 @@ function prepararAPI(opciones = {}) {
           return { data: [], error: null };
         }
 
+        // HU-17: simular el control de operaciones repetidas de Supabase.
+        const operacionExistente = registros.find(
+          registro => registro.operacion_id === datos.p_operacion_id
+        );
+
+        if (operacionExistente) {
+          return {
+            data: [{
+              id: operacionExistente.id,
+              fecha_guardado: operacionExistente.fecha_guardado,
+              total_pagar: operacionExistente.total_pagar,
+              creada_nueva: false
+            }],
+            error: null
+          };
+        }
+
         const registro = datos.p_registro;
         const descuentos = datos.p_descuentos;
 
@@ -104,6 +123,7 @@ function prepararAPI(opciones = {}) {
 
         const guardado = {
           ...registro,
+          operacion_id: datos.p_operacion_id,
           id: PLANILLA_GUARDADA.id,
           fecha_guardado: PLANILLA_GUARDADA.fecha_guardado,
           descuentos,
@@ -117,7 +137,8 @@ function prepararAPI(opciones = {}) {
           data: [{
             id: guardado.id,
             fecha_guardado: guardado.fecha_guardado,
-            total_pagar: guardado.total_pagar
+            total_pagar: guardado.total_pagar,
+            creada_nueva: true
           }],
           error: null
         };
@@ -260,6 +281,41 @@ for (const [nombre, token] of [
   });
 }
 
+// HU-17: repetir una operación no debe duplicar la planilla.
+test('HU-17 devuelve la misma planilla al repetir una operación', async t => {
+  const api = await conAPI(t);
+
+  const primera = await api.pedir('/api/planillas', DATOS);
+  const segunda = await api.pedir('/api/planillas', DATOS);
+
+  assert.equal(primera.status, 201);
+  assert.equal(primera.body.ok, true);
+
+  assert.equal(segunda.status, 200);
+  assert.equal(segunda.body.ok, true);
+
+  assert.equal(segunda.body.id, primera.body.id);
+  assert.equal(api.registros.length, 1);
+});
+
+// HU-17: rechazar identificadores de operación inválidos.
+test('HU-17 rechaza identificador de operación inválido', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    operacion_id: 'identificador-invalido'
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.equal(
+    r.body.errores?.operacion_id,
+    'Debe proporcionar un UUID válido'
+  );
+  assert.equal(api.registros.length, 0);
+});
+
 for (const [nombre, campo, valor] of [
   ['salario negativo', 'salario_base', '-1.00'],
   ['tres decimales', 'salario_base', '500.001'],
@@ -377,8 +433,8 @@ test('Guardar calcula 468.62 y conserva datos del empleado y plantilla', async t
   assert.equal(r.body.salario_base, '500.00');
   assert.equal(r.body.ingresos_adicionales, '50.00');
   assert.equal(r.body.total_ingresos, '550.00');
- assert.equal(r.body.descuentos_totales, '81.38');
-assert.equal(Number(r.body.total_pagar), 468.62);
+  assert.equal(r.body.descuentos_totales, '81.38');
+  assert.equal(Number(r.body.total_pagar), 468.62);
   assert.equal(api.registros.length, 1);
   const p = api.registros[0];
   assert.equal(p.total_pagar, '468.62'); assert.equal(p.salario_base, '500.00');
