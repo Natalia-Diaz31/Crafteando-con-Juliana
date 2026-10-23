@@ -1,3 +1,14 @@
+let aplicarDetalleDescuentos = null;
+
+export function reemplazarDescuentosManuales(lista) {
+    if (!aplicarDetalleDescuentos) {
+        throw new Error(
+            "El componente de descuentos todavía no está listo"
+        );
+    }
+
+    aplicarDetalleDescuentos(lista);
+}
 document.addEventListener("DOMContentLoaded", () => {
     const conceptoInput =
         document.getElementById("descuento-concepto");
@@ -293,7 +304,64 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarError(importeInput, importeError, "");
         return true;
     };
+aplicarDetalleDescuentos = lista => {
+    if (!Array.isArray(lista)) {
+        throw new Error("La lista de descuentos es inválida");
+    }
 
+    const motor = globalThis.ReglasNomina;
+
+    const propuesta = lista.map(item => {
+        const concepto =
+            typeof item?.concepto === "string"
+                ? item.concepto.trim()
+                : "";
+
+        if (
+            !concepto ||
+            ["isss", "afp", "renta"].includes(
+                concepto.toLowerCase()
+            )
+        ) {
+            throw new Error(
+                "Ingrese un concepto de descuento manual válido"
+            );
+        }
+
+        const importe = motor.centavos(item.importe);
+
+        if (importe <= 0) {
+            throw new Error(
+                "El importe del descuento debe ser mayor que cero"
+            );
+        }
+
+        const origen = item.origen ?? "Manual";
+
+        if (!["Manual", "CSV"].includes(origen)) {
+            throw new Error("El origen del descuento es inválido");
+        }
+
+        return {
+            concepto,
+            importe: motor.decimal(importe),
+            origen
+        };
+    });
+
+    const suma = propuesta.reduce(
+        (total, item) => total + motor.centavos(item.importe),
+        0
+    );
+
+    motor.centavos(motor.decimal(suma));
+
+    descuentos = propuesta;
+
+    terminarEdicion();
+    mostrarDescuentos();
+    actualizarTotal();
+};
     window.actualizarDescuentosTotales = actualizarTotal;
     totalInput.readOnly = true;
 

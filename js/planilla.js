@@ -72,6 +72,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Evita que una respuesta lenta reemplace una selección más reciente
     let ultimaConsulta = 0;
+    
+
+    document.addEventListener("empleado:limpiar", () => {
+    ultimaConsulta++;
+
+    sessionStorage.removeItem("empleadoSeleccionado");
+    mostrarEmpleadoEnPantalla(null);
+
+    document.dispatchEvent(
+        new CustomEvent("empleado:actualizado")
+    );
+});
+
+document.addEventListener("empleado:recuperar", async evento => {
+    const {
+        empleado,
+        resolver,
+        rechazar
+    } = evento.detail;
+
+    const consulta = ++ultimaConsulta;
+
+    try {
+        if (!empleado) {
+            sessionStorage.removeItem("empleadoSeleccionado");
+            mostrarEmpleadoEnPantalla(null);
+
+            document.dispatchEvent(
+                new CustomEvent("empleado:actualizado")
+            );
+
+            resolver();
+            return;
+        }
+
+        const actualizado = await consultarEmpleado(empleado.id);
+
+        if (consulta !== ultimaConsulta) {
+            throw new Error(
+                "La selección cambió durante la recuperación"
+            );
+        }
+
+        if (!guardarEmpleadoSeleccionado(actualizado)) {
+            throw new Error(
+                "No se pudieron recuperar los datos del empleado"
+            );
+        }
+
+        resolver();
+    } catch (error) {
+        rechazar(error);
+    }
+});
 
     document.addEventListener("empleado:seleccionar", async (evento) => {
         const consulta = ++ultimaConsulta;

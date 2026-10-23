@@ -1,9 +1,50 @@
+import {
+    obtenerNovedades,
+    validarNovedadesFormulario
+} from "./novedades.js";
+
+import {
+    obtenerIngresos,
+    validarIngresosPendientes
+} from "./ingresos-detalle.js";
+
+import {
+    obtenerAjusteSalario,
+    validarAjusteFormulario
+} from "./salario-ajuste.js";
+
+let operacionActual = null;
+let guardando = false;
+let guardadoConfirmado = false;
+
+document.addEventListener("planilla:nueva", () => {
+    if (guardando) return;
+
+    operacionActual = null;
+    guardadoConfirmado = false;
+});
 //
 // HU-08: Integración del guardado de planilla con API
 // HU-17: Estados del botón durante el guardado de planilla
 //
 
 async function guardarPlanilla() {
+    if (guardando) return;
+
+    if (guardadoConfirmado) {
+        mostrarMensajeGuardado(
+            "Esta planilla ya fue guardada. Cree otra planilla"
+        );
+        return;
+    }
+
+    if (
+        !validarNovedadesFormulario() ||
+        !validarIngresosPendientes() ||
+        !validarAjusteFormulario()
+    ) {
+        return;
+    }
 
     const resumen = document.getElementById("resumen-planilla");
     if (resumen.hidden || !document.getElementById("confirmacion-revisado").checked) {
@@ -79,6 +120,25 @@ async function guardarPlanilla() {
             document.getElementById("descuentos").value
     };
 
+    const contenidoOperacion = JSON.stringify({
+    datos: datosPlanilla,
+    novedades: obtenerNovedades(),
+    ingresos: obtenerIngresos()?.detalle ?? null,
+    ajuste: obtenerAjusteSalario(false)
+});
+
+if (
+    !operacionActual ||
+    operacionActual.contenido !== contenidoOperacion
+) {
+    operacionActual = {
+        id: crypto.randomUUID(),
+        contenido: contenidoOperacion
+    };
+}
+
+datosPlanilla.operacion_id = operacionActual.id;
+
     const botonGuardar = document.getElementById("btn-guardar-planilla");
     const contenidoOriginal = botonGuardar.innerHTML;
 
@@ -86,6 +146,7 @@ async function guardarPlanilla() {
     botonGuardar.innerHTML = "Guardando…";
 
     let guardadoExitoso = false;
+    guardando = true;
 
     try {
 
@@ -122,7 +183,7 @@ async function guardarPlanilla() {
             await respuesta.json();
 
 
-        if (!respuesta.ok) {
+        if (!respuesta.ok || !resultado.ok || !resultado.id) {
 
             throw new Error(
                 resultado.mensaje ||
@@ -132,6 +193,7 @@ async function guardarPlanilla() {
         }
 
         guardadoExitoso = true;
+        guardadoConfirmado = true;
 
         mostrarMensajeGuardado(
             `Planilla guardada correctamente. ID: ${resultado.id}`
@@ -143,6 +205,7 @@ async function guardarPlanilla() {
             error.message
         );
     } finally {
+    guardando = false;
 
     const confirmacion =
         document.getElementById("confirmacion-revisado");

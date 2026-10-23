@@ -1,198 +1,208 @@
-//
-// HU-18: Registro de novedades del empleado
-//
+import { validarNovedades } from "./novedades-reglas.js";
 
 let novedades = [];
-let novedadEditando = null;
+let indiceEdicion = null;
 
+const campo = id => document.getElementById(id);
 
-// Agregar una nueva novedad o guardar una edición
-function guardarNovedad() {
-
-    const tipo = document.getElementById("novedad-tipo").value;
-    const condicion = document.getElementById("novedad-condicion").value;
-    const fechaInicio = document.getElementById("novedad-inicio").value;
-    const fechaFin = document.getElementById("novedad-fin").value;
-
-    if (!tipo || !condicion || !fechaInicio || !fechaFin) {
-        return;
-    }
-
-    const dias = calcularDiasNovedad(fechaInicio, fechaFin);
-
-    const novedad = {
-        tipo,
-        condicion,
-        fechaInicio,
-        fechaFin,
-        dias
+function obtenerPeriodo() {
+    return {
+        mes: globalThis.ReglasNomina.numeroMes(campo("mes").value),
+        anio: campo("anio").value,
+        frecuencia: campo("periodo-pago").value
     };
-
-    if (novedadEditando === null) {
-        novedades.push(novedad);
-    } else {
-        novedades[novedadEditando] = novedad;
-        novedadEditando = null;
-    }
-
-    limpiarFormularioNovedad();
-    mostrarNovedades();
 }
 
-
-// Calcular los días de una novedad incluyendo inicio y fin
-function calcularDiasNovedad(fechaInicio, fechaFin) {
-
-    const inicio = new Date(`${fechaInicio}T00:00:00`);
-    const fin = new Date(`${fechaFin}T00:00:00`);
-
-    const diferencia = fin - inicio;
-
-    return Math.floor(
-        diferencia / (1000 * 60 * 60 * 24)
-    ) + 1;
+function notificarCambio() {
+    document.dispatchEvent(
+        new CustomEvent("planilla:modificada")
+    );
 }
 
+function mostrarError(texto) {
+    campo("novedades-error").textContent = texto;
+}
 
-// Mostrar las novedades registradas
-function mostrarNovedades() {
+export function obtenerNovedades() {
+    return structuredClone(novedades);
+}
 
-    const detalle =
-        document.getElementById("detalle-novedades");
+export function obtenerEstadoNovedades() {
+    return validarNovedades(novedades, obtenerPeriodo());
+}
 
-    detalle.innerHTML = "";
+function limpiarFormulario() {
+    indiceEdicion = null;
 
-    novedades.forEach((novedad, indice) => {
-
-        const fila = document.createElement("tr");
-
-        fila.innerHTML = `
-            <td>${novedad.tipo}</td>
-            <td>${novedad.fechaInicio}</td>
-            <td>${novedad.fechaFin}</td>
-            <td>${novedad.condicion}</td>
-            <td>${novedad.dias}</td>
-            <td>
-                <button
-                    type="button"
-                    class="btn btn-outline-primary btn-sm"
-                    data-accion="editar"
-                    data-indice="${indice}">
-                    Editar
-                </button>
-
-                <button
-                    type="button"
-                    class="btn btn-outline-danger btn-sm"
-                    data-accion="eliminar"
-                    data-indice="${indice}">
-                    Eliminar
-                </button>
-            </td>
-        `;
-
-        detalle.appendChild(fila);
+    [
+        "novedad-tipo",
+        "novedad-condicion",
+        "novedad-inicio",
+        "novedad-fin"
+    ].forEach(id => {
+        campo(id).value = "";
     });
 
-    actualizarDiasRemunerados();
+    campo("agregar-novedad").textContent = "Agregar novedad";
 }
 
+export function validarNovedadesFormulario() {
+    const resultado = obtenerEstadoNovedades();
 
-// Cargar una novedad nuevamente en el formulario
-function editarNovedad(indice) {
+    const hayPendiente =
+        indiceEdicion !== null ||
+        [
+            "novedad-tipo",
+            "novedad-condicion",
+            "novedad-inicio",
+            "novedad-fin"
+        ].some(id => campo(id).value !== "");
 
-    const novedad = novedades[indice];
-
-    document.getElementById("novedad-tipo").value =
-        novedad.tipo;
-
-    document.getElementById("novedad-condicion").value =
-        novedad.condicion;
-
-    document.getElementById("novedad-inicio").value =
-        novedad.fechaInicio;
-
-    document.getElementById("novedad-fin").value =
-        novedad.fechaFin;
-
-    novedadEditando = indice;
-
-    document.getElementById("agregar-novedad").textContent =
-        "Guardar cambios";
-}
-
-
-// Eliminar una novedad
-function eliminarNovedad(indice) {
-
-    novedades.splice(indice, 1);
-
-    if (novedadEditando === indice) {
-        limpiarFormularioNovedad();
-    }
-
-    novedadEditando = null;
-
-    mostrarNovedades();
-}
-
-// Calcular el total de días remunerados
-function actualizarDiasRemunerados() {
-
-    const diasSinGoce = novedades
-        .filter(novedad => novedad.condicion === "Sin goce")
-        .reduce((total, novedad) => total + novedad.dias, 0);
-
-    const totalRemunerados = 30 - diasSinGoce;
-
-    document.getElementById("total-dias-remunerados").textContent =
-        totalRemunerados;
-}
-
-// Limpiar los campos después de guardar
-function limpiarFormularioNovedad() {
-
-    document.getElementById("novedad-tipo").value = "";
-    document.getElementById("novedad-condicion").value = "";
-    document.getElementById("novedad-inicio").value = "";
-    document.getElementById("novedad-fin").value = "";
-
-    document.getElementById("agregar-novedad").textContent =
-        "Agregar novedad";
-}
-
-// Eventos de HU-18
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonAgregar =
-        document.getElementById("agregar-novedad");
-
-    const detalle =
-        document.getElementById("detalle-novedades");
-
-    botonAgregar.addEventListener(
-        "click",
-        guardarNovedad
+    mostrarError(
+        hayPendiente
+            ? "Agregue o confirme la novedad antes de continuar"
+            : resultado.errores.join(". ")
     );
 
-    detalle.addEventListener("click", (evento) => {
+    return resultado.valido && !hayPendiente;
+}
 
-        const boton = evento.target.closest(
-            "button[data-accion]"
-        );
+export function reemplazarNovedades(lista) {
+    const resultado = validarNovedades(lista, obtenerPeriodo());
 
-        if (!boton) {
-            return;
+    if (!resultado.valido) {
+        throw new Error(resultado.errores.join(". "));
+    }
+
+    novedades = resultado.novedades;
+    limpiarFormulario();
+    mostrarNovedades();
+    notificarCambio();
+}
+
+function mostrarNovedades() {
+    const cuerpo = campo("detalle-novedades");
+    cuerpo.replaceChildren();
+
+    novedades.forEach((novedad, indice) => {
+        const fila = document.createElement("tr");
+
+        [
+            novedad.tipo,
+            novedad.fechaInicio,
+            novedad.fechaFin,
+            novedad.condicion,
+            novedad.dias
+        ].forEach(valor => {
+            const celda = document.createElement("td");
+            celda.textContent = valor;
+            fila.append(celda);
+        });
+
+        const acciones = document.createElement("td");
+
+        ["Editar", "Eliminar"].forEach(accion => {
+            const boton = document.createElement("button");
+
+            boton.type = "button";
+            boton.textContent = accion;
+            boton.className = "btn btn-outline-primary btn-sm";
+
+            boton.addEventListener("click", () => {
+                if (accion === "Eliminar") {
+                    novedades.splice(indice, 1);
+                    limpiarFormulario();
+                    mostrarNovedades();
+                } else {
+                    indiceEdicion = indice;
+
+                    campo("novedad-tipo").value = novedad.tipo;
+                    campo("novedad-condicion").value = novedad.condicion;
+                    campo("novedad-inicio").value = novedad.fechaInicio;
+                    campo("novedad-fin").value = novedad.fechaFin;
+
+                    campo("agregar-novedad").textContent =
+                        "Guardar cambios";
+                }
+
+                notificarCambio();
+            });
+
+            acciones.append(boton);
+        });
+
+        fila.append(acciones);
+        cuerpo.append(fila);
+    });
+
+    const resultado = obtenerEstadoNovedades();
+
+    campo("total-dias-remunerados").textContent =
+        resultado.valido
+            ? resultado.diasRemunerados
+            : "—";
+
+    mostrarError(resultado.errores.join(". "));
+}
+
+function iniciarNovedades() {
+    const agregar = campo("agregar-novedad");
+
+    if (!agregar) return;
+
+    if (!campo("novedades-error")) {
+        const error = document.createElement("p");
+
+        error.id = "novedades-error";
+        error.className = "text-danger mt-2";
+        error.setAttribute("role", "alert");
+
+        agregar.after(error);
+    }
+
+    agregar.addEventListener("click", () => {
+        const nueva = {
+            tipo: campo("novedad-tipo").value,
+            condicion: campo("novedad-condicion").value,
+            fechaInicio: campo("novedad-inicio").value,
+            fechaFin: campo("novedad-fin").value
+        };
+
+        const propuesta = [...novedades];
+
+        if (indiceEdicion === null) {
+            propuesta.push(nueva);
+        } else {
+            propuesta[indiceEdicion] = nueva;
         }
 
-        const indice = Number(boton.dataset.indice);
-
-        if (boton.dataset.accion === "editar") {
-            editarNovedad(indice);
-        }
-
-        if (boton.dataset.accion === "eliminar") {
-            eliminarNovedad(indice);
+        try {
+            reemplazarNovedades(propuesta);
+        } catch (error) {
+            mostrarError(error.message);
         }
     });
-});
+
+    ["mes", "anio", "periodo-pago"].forEach(id => {
+        campo(id).addEventListener("change", () => {
+            mostrarNovedades();
+            notificarCambio();
+        });
+    });
+
+    campo("anio").addEventListener("input", () => {
+        mostrarNovedades();
+        notificarCambio();
+    });
+
+    document.addEventListener("empleado:actualizado", () => {
+        novedades = [];
+        limpiarFormulario();
+        mostrarNovedades();
+        notificarCambio();
+    });
+
+    mostrarNovedades();
+}
+
+document.addEventListener("DOMContentLoaded", iniciarNovedades);

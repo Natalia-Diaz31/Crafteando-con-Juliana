@@ -19,7 +19,11 @@
     function centavos(valor) {
         if (!['string', 'number'].includes(typeof valor)) throw new Error('Ingrese un monto válido');
         const texto = String(valor).trim();
-        if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) throw new Error('Ingrese un número no negativo con máximo dos decimales');
+       if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) {
+    throw new Error(
+        "Ingrese un número no negativo con máximo dos decimales"
+    );
+}
         const [entero, decimal = ''] = texto.split('.');
         const resultado = Number(entero) * 100 + Number(decimal.padEnd(2, '0'));
         if (!Number.isSafeInteger(resultado) || resultado > MAXIMO) throw new Error('El monto supera 9999999999.99');
@@ -79,5 +83,84 @@
             total: decimal(isss + afp + renta.centavos)
         };
     }
-    return Object.freeze({ VERSION, FUENTE, centavos, decimal, calcular, calcularRenta });
+    function numeroMes(valor) {
+    const meses = [
+        "Enero", "Febrero", "Marzo", "Abril",
+        "Mayo", "Junio", "Julio", "Agosto",
+        "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    const posicion = meses.indexOf(String(valor));
+
+    if (posicion !== -1) {
+        return posicion + 1;
+    }
+
+    const numero = Number(valor);
+
+    return Number.isInteger(numero) && numero >= 1 && numero <= 12
+        ? numero
+        : null;
+}
+
+function calcularSalarioProporcional(salarioMensual, diasRemunerados) {
+    const textoDias = String(diasRemunerados);
+
+    if (!/^(?:[0-9]|[12][0-9]|30)$/.test(textoDias)) {
+        throw new Error(
+            "Los días remunerados deben ser enteros entre 0 y 30"
+        );
+    }
+
+    const salarioCentavos = centavos(salarioMensual);
+    const dias = Number(textoDias);
+
+    const proporcionalCentavos = Number(
+        (
+            BigInt(salarioCentavos) * BigInt(dias) + 15n
+        ) / 30n
+    );
+
+    return {
+        salario_base_mensual: decimal(salarioCentavos),
+        dias_remunerados: dias,
+        salario_proporcional: decimal(proporcionalCentavos)
+    };
+}
+
+function calcularPorDias(datos) {
+    if (datos.periodo_pago !== "mensual") {
+        throw new Error(
+            "El cálculo por días requiere frecuencia mensual"
+        );
+    }
+
+    const salario = calcularSalarioProporcional(
+        datos.salario_base_mensual,
+        datos.dias_remunerados
+    );
+
+    const deducciones = calcular({
+        ...datos,
+        salario_base: salario.salario_proporcional
+    });
+
+    return {
+        ...deducciones,
+        ...salario,
+        modo_calculo: "dias",
+        version_prorrateo: "HU19-30-dias-v1"
+    };
+}
+   return Object.freeze({
+    VERSION,
+    FUENTE,
+    centavos,
+    decimal,
+    calcular,
+    calcularRenta,
+    numeroMes,
+    calcularSalarioProporcional,
+    calcularPorDias
+});
 });

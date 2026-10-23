@@ -1,3 +1,15 @@
+import {
+    validarNovedadesFormulario
+} from "./novedades.js";
+
+import {
+    validarIngresosPendientes
+} from "./ingresos-detalle.js";
+
+import {
+    validarAjusteFormulario
+} from "./salario-ajuste.js";
+
 document.addEventListener("DOMContentLoaded", () => {
     const formulario = document.getElementById("form-planilla");
     const resumen = document.getElementById("resumen-planilla");
@@ -34,6 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
     formulario.addEventListener("submit", (evento) => {
         evento.preventDefault();
         ocultarResumen();
+        if (
+    !validarNovedadesFormulario() ||
+    !validarIngresosPendientes() ||
+    !validarAjusteFormulario()
+    ) {
+    return;
+    }
 
         const legalesValidos = window.validarDeduccionesLegales();
         window.actualizarDescuentosTotales();
@@ -198,6 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formulario.addEventListener("input", ocultarResumen);
     formulario.addEventListener("change", ocultarResumen);
     document.addEventListener("empleado:actualizado", ocultarResumen);
+    document.addEventListener("planilla:modificada", ocultarResumen);
 
     // --- INICIO CÓDIGO DE VICTOR (HU-07) ---
   
