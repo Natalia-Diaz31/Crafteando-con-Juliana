@@ -1225,6 +1225,18 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
     }
 });
 
+// HU-22: rutas de importación CSV.
+const crearRutasImportacion = require("./routes/importacion");
+
+app.use(
+    "/api/planillas",
+    crearRutasImportacion({
+        supabase,
+        verificarToken,
+        verificarRolNomina
+    })
+);
+
 //
 // HU-01: RESPUESTA COMPARTIDA PARA RUTAS NO ENCONTRADAS
 //

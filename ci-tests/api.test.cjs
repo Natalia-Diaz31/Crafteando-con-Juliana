@@ -824,3 +824,159 @@ test('HU-21: no exige motivo cuando el salario no cambia', async t => {
   assert.equal(guardado.salario_base, '500.00');
   assert.equal(guardado.motivo_ajuste, null);
 });
+
+//
+// HU-22: Validación de importaciones CSV
+//
+
+const RUTA_IMPORTACION = '/api/planillas/validar-importacion';
+
+const IMPORTACION_VALIDA = {
+  empleado_id: EMPLEADO.id,
+  mes: 10,
+  anio: 2026,
+  filas: [
+    {
+      numeroFila: 2,
+      codigo_empleado: 'EMP-001',
+      mes: '10',
+      anio: '2026',
+      tipo: 'bono',
+      concepto: 'Bono de productividad',
+      importe: '50.00'
+    },
+    {
+      numeroFila: 3,
+      codigo_empleado: 'EMP-001',
+      mes: '10',
+      anio: '2026',
+      tipo: 'incentivo',
+      concepto: 'Cumplimiento de metas',
+      importe: '25.50'
+    },
+    {
+      numeroFila: 4,
+      codigo_empleado: 'EMP-001',
+      mes: '10',
+      anio: '2026',
+      tipo: 'descuento',
+      concepto: 'Anticipo',
+      importe: '10.00'
+    }
+  ]
+};
+
+test('HU-22: valida una importación correcta sin guardar', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(RUTA_IMPORTACION, IMPORTACION_VALIDA);
+
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.valido, true);
+  assert.equal(r.body.filas.length, 3);
+  assert.equal(r.body.total_ingresos, '75.50');
+  assert.equal(r.body.total_descuentos, '10.00');
+  assert.equal(api.registros.length, 0);
+});
+
+test('HU-22: rechaza un código de empleado diferente', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(RUTA_IMPORTACION, {
+    ...IMPORTACION_VALIDA,
+    filas: [{
+      ...IMPORTACION_VALIDA.filas[0],
+      codigo_empleado: 'EMP-999'
+    }]
+  });
+
+  assert.equal(r.body.valido, false);
+  assert.ok(
+    r.body.errores.some(e => e.campo === 'codigo_empleado')
+  );
+  assert.equal(api.registros.length, 0);
+});
+
+test('HU-22: rechaza un período diferente', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(RUTA_IMPORTACION, {
+    ...IMPORTACION_VALIDA,
+    filas: [{
+      ...IMPORTACION_VALIDA.filas[0],
+      mes: '11',
+      anio: '2025'
+    }]
+  });
+
+  assert.equal(r.body.valido, false);
+  assert.ok(r.body.errores.some(e => e.campo === 'mes'));
+  assert.ok(r.body.errores.some(e => e.campo === 'anio'));
+});
+
+test('HU-22: rechaza descuentos reservados', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(RUTA_IMPORTACION, {
+    ...IMPORTACION_VALIDA,
+    filas: [{
+      ...IMPORTACION_VALIDA.filas[0],
+      tipo: 'descuento',
+      concepto: 'ISSS'
+    }]
+  });
+
+  assert.equal(r.body.valido, false);
+  assert.ok(r.body.errores.some(e => e.campo === 'concepto'));
+});
+
+test('HU-22: rechaza importes inválidos', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(RUTA_IMPORTACION, {
+    ...IMPORTACION_VALIDA,
+    filas: [
+      { ...IMPORTACION_VALIDA.filas[0], importe: '-5.00' },
+      { ...IMPORTACION_VALIDA.filas[1], importe: '0' },
+      { ...IMPORTACION_VALIDA.filas[2], importe: '12.345' }
+    ]
+  });
+
+  assert.equal(r.body.valido, false);
+  assert.equal(
+    r.body.errores.filter(e => e.campo === 'importe').length,
+    3
+  );
+  assert.equal(api.registros.length, 0);
+});
+
+test('HU-22: rechaza más de 100 registros', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(RUTA_IMPORTACION, {
+    ...IMPORTACION_VALIDA,
+    filas: Array.from(
+      { length: 101 },
+      (_, i) => ({
+        ...IMPORTACION_VALIDA.filas[0],
+        numeroFila: i + 2
+      })
+    )
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.valido, false);
+});
+
+test('HU-22: exige autenticación', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(
+    RUTA_IMPORTACION,
+    IMPORTACION_VALIDA,
+    null
+  );
+
+  assert.equal(r.status, 401);
+  assert.equal(api.registros.length, 0);
+});
