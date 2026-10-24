@@ -508,7 +508,83 @@ function validarDatosPlanilla(req, res, next) {
     const salario = obtenerCentavos(
         esPlanillaPorDias ? "salario_base_mensual" : "salario_base"
     );
-    const ingresos = obtenerCentavos("ingresos_adicionales");
+    // HU-20: validar bonos e incentivos y calcular su suma.
+    let ingresos = null;
+    let ingresosDetalle = null;
+
+    if (datos.ingresos_detalle === undefined) {
+        // Compatibilidad con solicitudes anteriores.
+        ingresos = obtenerCentavos("ingresos_adicionales");
+    } else if (!Array.isArray(datos.ingresos_detalle)) {
+        errores.ingresos_detalle = "Los ingresos deben enviarse como una lista";
+    } else {
+        ingresosDetalle = [];
+        let suma = 0;
+
+        for (const item of datos.ingresos_detalle) {
+            if (!item || typeof item !== "object" || Array.isArray(item)) {
+                errores.ingresos_detalle = "Registro de ingreso inválido";
+                break;
+            }
+
+            if (!["Bono", "Incentivo"].includes(item.tipo)) {
+                errores.ingresos_detalle = "Seleccione Bono o Incentivo";
+                break;
+            }
+
+            const concepto =
+                typeof item.concepto === "string"
+                    ? item.concepto.trim()
+                    : "";
+
+            if (concepto.length < 1 || concepto.length > 100) {
+                errores.ingresos_detalle =
+                    "El concepto debe tener entre 1 y 100 caracteres";
+                break;
+            }
+
+            const texto = obtenerTexto(item.importe);
+
+            if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) {
+                errores.ingresos_detalle = "Importe inválido";
+                break;
+            }
+
+            const [entero, decimal = ""] = texto.split(".");
+            const centavos =
+                Number(entero) * 100 + Number(decimal.padEnd(2, "0"));
+
+            if (
+                !Number.isSafeInteger(centavos) ||
+                centavos <= 0 ||
+                centavos > 999999999999 ||
+                suma + centavos > 999999999999
+            ) {
+                errores.ingresos_detalle = "Importe fuera del rango permitido";
+                break;
+            }
+
+            const origen = item.origen ?? "Manual";
+
+            if (!["Manual", "CSV"].includes(origen)) {
+                errores.ingresos_detalle = "Origen de ingreso inválido";
+                break;
+            }
+
+            suma += centavos;
+
+            ingresosDetalle.push({
+                tipo: item.tipo,
+                concepto,
+                importe: (centavos / 100).toFixed(2),
+                origen
+            });
+        }
+
+        if (!errores.ingresos_detalle) {
+            ingresos = suma;
+        }
+    }
 
     // HU-13: validar cantidades de horas sin modificar los montos monetarios.
     function obtenerHoras(campo) {
@@ -637,14 +713,18 @@ function validarDatosPlanilla(req, res, next) {
                 ? ReglasNomina.calcularPorDias({
                     salario_base_mensual: datos.salario_base_mensual,
                     dias_remunerados: resultadoNovedades.diasRemunerados,
-                    ingresos_adicionales: datos.ingresos_adicionales,
+                    ingresos_adicionales: ingresos === null
+                        ? null
+                        : (ingresos / 100).toFixed(2),
                     periodo_pago: datos.periodo_pago,
                     mes: datos.mes,
                     anio: datos.anio
                 })
                 : ReglasNomina.calcular({
                     salario_base: datos.salario_base,
-                    ingresos_adicionales: datos.ingresos_adicionales,
+                    ingresos_adicionales: ingresos === null
+                        ? null
+                        : (ingresos / 100).toFixed(2),
                     periodo_pago: datos.periodo_pago,
                     mes: datos.mes,
                     anio: datos.anio
@@ -737,6 +817,7 @@ function validarDatosPlanilla(req, res, next) {
         // Mantener salario_base como importe utilizado para el pago.
         salario_base: aDecimal(salarioCalculado),
         ingresos_adicionales: aDecimal(ingresos),
+        ingresos_detalle: ingresosDetalle,
         total_ingresos: aDecimal(totalIngresos),
 
         // HU-13: cantidades de horas trabajadas.
@@ -863,17 +944,24 @@ app.post(
 
             // HU-12: guardar la planilla y sus descuentos
             // en una sola transacción de PostgreSQL.
+            const parametrosGuardado = {
+                p_registro: registro,
+                p_descuentos: datos.descuentos,
+                p_operacion_id: req.operacionId,
+                p_novedades: datos.novedades
+            };
+
+            // HU-20: enviar el detalle cuando esté disponible.
+            if (datos.ingresos_detalle !== null) {
+                parametrosGuardado.p_ingresos = datos.ingresos_detalle;
+            }
+
             const {
                 data: resultado,
                 error: errorGuardado
             } = await supabase.rpc(
                 "guardar_planilla_con_descuentos",
-                {
-                    p_registro: registro,
-                    p_descuentos: datos.descuentos,
-                    p_operacion_id: req.operacionId,
-                    p_novedades: datos.novedades
-                }
+                parametrosGuardado
             );
 
             // La función devuelve una lista con la planilla guardada.
@@ -1012,6 +1100,19 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
             throw errorDescuentos;
         }
 
+        // HU-20: consultar los bonos e incentivos guardados.
+        const {
+            data: detalleIngresos,
+            error: errorIngresos
+        } = await supabase
+            .from("planilla_ingresos")
+            .select("tipo, concepto, importe, origen")
+            .eq("planilla_id", id);
+
+        if (errorIngresos) {
+            throw errorIngresos;
+        }
+
         // HU-16: calcular el total de ingresos con los montos guardados.
         const salarioCentavos = Math.round(Number(planilla.salario_base) * 100);
         const ingresosCentavos = Math.round(Number(planilla.ingresos_adicionales) * 100);
@@ -1041,6 +1142,8 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 cargo: planilla.empleado_cargo,
                 salario_base: planilla.salario_base,
                 ingresos_adicionales: planilla.ingresos_adicionales,
+                ingresos_detalle: detalleIngresos || [],
+                detalle_ingresos_registrado: (detalleIngresos || []).length > 0,
                 total_ingresos: totalIngresos,
 
                 // HU-13: devolver las horas registradas.

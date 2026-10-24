@@ -112,7 +112,7 @@ function prepararAPI(opciones = {}) {
         const registro = datos.p_registro;
         const descuentos = datos.p_descuentos;
         const novedades = datos.p_novedades; // HU-18: novedades recibidas por la función de Supabase.
-
+        const ingresosDetalle = datos.p_ingresos;
         const totalDescuentos = descuentos.reduce(
           (suma, descuento) => suma + Math.round(Number(descuento.importe) * 100),
           0
@@ -130,6 +130,7 @@ function prepararAPI(opciones = {}) {
           fecha_guardado: PLANILLA_GUARDADA.fecha_guardado,
           descuentos,
           novedades,
+          ingresos_detalle: ingresosDetalle,
           descuentos_totales: (totalDescuentos / 100).toFixed(2),
           total_pagar: (totalPagar / 100).toFixed(2)
         };
@@ -175,6 +176,13 @@ function prepararAPI(opciones = {}) {
         }
         if (tabla === 'plantillas') {
           return { data: !opciones.sinPlantilla && filtro?.valor === PLANTILLA.id ? { ...PLANTILLA } : null, error: null };
+        }
+        // HU-20: simular la consulta de ingresos adicionales.
+        if (tabla === 'planilla_ingresos') {
+          return {
+            data: [],
+            error: null
+          };
         }
         if (tabla === 'planilla_descuentos') {
           return {
@@ -562,6 +570,8 @@ test('El detalle devuelve todos los datos guardados', async t => {
     nombre_completo: EMPLEADO.nombre_completo, dui: EMPLEADO.dui, cargo: EMPLEADO.cargo,
     salario_base: 500,
     ingresos_adicionales: 50,
+    ingresos_detalle: [],
+    detalle_ingresos_registrado: false,
     total_ingresos: "550.00",
     // HU-13: verificar que las horas se conservan al consultar.
     horas_ordinarias: 160,
@@ -629,3 +639,59 @@ test('HU-19: calcula salario proporcional y lo envía a Supabase', async t => {
   assert.equal(guardado.salario_base, '840.00');
   assert.equal(guardado.ingresos_adicionales, '50.00');
 });
+
+test('HU-20: suma bonos e incentivos y envía el detalle a Supabase', async t => {
+  const api = await conAPI(t);
+
+  const detalle = [
+    {
+      tipo: 'Bono',
+      concepto: 'Productividad',
+      importe: '25.00',
+      origen: 'Manual'
+    },
+    {
+      tipo: 'Incentivo',
+      concepto: 'Cumplimiento de metas',
+      importe: '40.00',
+      origen: 'Manual'
+    }
+  ];
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    ingresos_adicionales: '0.00',
+    ingresos_detalle: detalle
+  });
+
+  assert.equal(r.status, 201);
+  assert.equal(r.body.ok, true);
+  assert.equal(r.body.ingresos_adicionales, '65.00');
+
+  assert.equal(api.registros.length, 1);
+  assert.equal(api.registros[0].ingresos_adicionales, '65.00');
+  assert.deepEqual(api.registros[0].ingresos_detalle, detalle);
+});
+
+for (const [nombre, ingreso] of [
+  ['tipo inválido', { tipo: 'Otro', concepto: 'Bono', importe: '25.00' }],
+  ['concepto vacío', { tipo: 'Bono', concepto: '   ', importe: '25.00' }],
+  ['concepto demasiado largo', { tipo: 'Bono', concepto: 'A'.repeat(101), importe: '25.00' }],
+  ['importe cero', { tipo: 'Bono', concepto: 'Productividad', importe: '0.00' }],
+  ['importe negativo', { tipo: 'Bono', concepto: 'Productividad', importe: '-5.00' }],
+  ['tres decimales', { tipo: 'Bono', concepto: 'Productividad', importe: '25.123' }],
+  ['importe fuera de rango', { tipo: 'Bono', concepto: 'Productividad', importe: '10000000000.00' }]
+]) {
+  test(`HU-20: rechaza ${nombre}`, async t => {
+    const api = await conAPI(t);
+
+    const r = await api.pedir('/api/planillas', {
+      ...DATOS,
+      ingresos_detalle: [ingreso]
+    });
+
+    assert.equal(r.status, 400);
+    assert.equal(r.body.ok, false);
+    assert.equal(api.registros.length, 0);
+  });
+}
