@@ -1,12 +1,15 @@
 import {
+    obtenerEstadoNovedades,
     validarNovedadesFormulario
 } from "./novedades.js";
 
 import {
+    obtenerIngresos,
     validarIngresosPendientes
 } from "./ingresos-detalle.js";
 
 import {
+    obtenerAjusteSalario,
     validarAjusteFormulario
 } from "./salario-ajuste.js";
 
@@ -153,6 +156,50 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("resumen-manuales"),
             window.obtenerDetalleDescuentos()
         );
+
+        // HU-18, HU-20 y HU-21: cada bloque aparece solo si tiene datos
+        // o si su formulario ya está integrado en la página.
+        const complementos = document.getElementById("resumen-complementos");
+        complementos.replaceChildren();
+        complementos.hidden = true;
+
+        const estadoNovedades = obtenerEstadoNovedades();
+        if (estadoNovedades.novedades.length) {
+            window.pintarSeccion(complementos, {
+                titulo: "Novedades",
+                columnas: ["Tipo", "Inicio", "Fin", "Condición de pago", "Días"],
+                filas: estadoNovedades.novedades.map(n =>
+                    [n.tipo, n.fechaInicio, n.fechaFin, n.condicion, n.dias]
+                ),
+                nota: `Días remunerados: ${estadoNovedades.diasRemunerados}`
+            });
+        }
+
+        const ingresosDetalle = obtenerIngresos();
+        if (ingresosDetalle) {
+            window.pintarSeccion(complementos, {
+                titulo: "Bonos e incentivos",
+                columnas: ["Tipo", "Concepto", "Importe (USD)"],
+                filas: ingresosDetalle.detalle.map(i =>
+                    [i.tipo, i.concepto, formatoUSD.format(i.importe)]
+                ),
+                vacio: "Sin bonos ni incentivos",
+                nota: `Total de ingresos adicionales: ${formatoUSD.format(ingresosDetalle.total)}`
+            });
+        }
+
+        const ajuste = obtenerAjusteSalario(false);
+        if (ajuste?.ajustado) {
+            window.pintarSeccion(complementos, {
+                titulo: "Salario ajustado para esta planilla",
+                columnas: ["Salario registrado", "Salario utilizado", "Motivo"],
+                filas: [[
+                    formatoUSD.format(ajuste.salario_original),
+                    formatoUSD.format(ajuste.salario_utilizado),
+                    ajuste.motivo_ajuste
+                ]]
+            });
+        }
         mostrarDato("resumen-codigo", empleado.codigo);
         mostrarDato("resumen-nombre", empleado.nombre_completo);
         mostrarDato("resumen-dui", empleado.dui);

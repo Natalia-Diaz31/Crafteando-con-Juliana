@@ -80,6 +80,48 @@ window.mostrarDetallePlanilla = function (planilla) {
         document.getElementById("historico-deducciones"),
         planilla.deducciones_legales
     );
+
+    // HU-18, HU-20 y HU-21: cada bloque aparece solo cuando la API envía el dato
+    // (formato en docs/contrato-integracion-sprint3.md).
+    const complementos = document.getElementById("detalle-complementos");
+    complementos.replaceChildren();
+    complementos.hidden = true;
+
+    if (planilla.novedades?.length) {
+        window.pintarSeccion(complementos, {
+            titulo: "Novedades",
+            columnas: ["Tipo", "Inicio", "Fin", "Condición de pago", "Días"],
+            filas: planilla.novedades.map(n =>
+                [n.tipo, n.fecha_inicio, n.fecha_fin, n.condicion_pago, n.dias]
+            ),
+            nota: `Días remunerados: ${planilla.dias_remunerados ?? "—"}`
+        });
+    }
+
+    if (Array.isArray(planilla.ingresos)) {
+        window.pintarSeccion(complementos, {
+            titulo: "Bonos e incentivos",
+            columnas: ["Tipo", "Concepto", "Importe (USD)"],
+            filas: planilla.ingresos.map(i => [i.tipo, i.concepto, dinero(i.importe)]),
+            // Las planillas anteriores a la HU-20 tienen el total pero no el desglose.
+            vacio: Number(planilla.ingresos_adicionales) > 0
+                ? "Detalle de ingresos no registrado"
+                : "Sin bonos ni incentivos"
+        });
+    }
+
+    if (planilla.motivo_ajuste) {
+        window.pintarSeccion(complementos, {
+            titulo: "Salario ajustado para esta planilla",
+            columnas: ["Salario registrado", "Salario utilizado", "Motivo"],
+            filas: [[
+                dinero(planilla.salario_original),
+                dinero(planilla.salario_base),
+                planilla.motivo_ajuste
+            ]]
+        });
+    }
+
     mensaje.textContent = "";
     contenido.hidden = false;
 };
