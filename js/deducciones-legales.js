@@ -44,7 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (!window.ReglasNomina) throw new Error('No se pueden calcular las deducciones legales: falta configurar una regla');
             actual = window.ReglasNomina.calcular({
-                salario_base: document.getElementById('salario').value,
+                // HU-19: en la planilla por días se usa el salario proporcional.
+                salario_base: (document.getElementById('salario-proporcional') ?? document.getElementById('salario')).value,
                 ingresos_adicionales: document.getElementById('ingresos').value,
                 periodo_pago: frecuencia.value,
                 mes: meses.indexOf(document.getElementById('mes').value) + 1,
@@ -70,8 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return valido;
     };
-    ['salario','ingresos','periodo-pago','mes','anio'].forEach(id => {
-        ['input','change'].forEach(evento => document.getElementById(id).addEventListener(evento, () => {
+    ['salario','salario-proporcional','ingresos','periodo-pago','mes','anio'].forEach(id => {
+        ['input','change'].forEach(evento => document.getElementById(id)?.addEventListener(evento, () => {
             calcular();
             window.actualizarDescuentosTotales?.();
         }));

@@ -13,6 +13,8 @@ import {
     validarAjusteFormulario
 } from "./salario-ajuste.js";
 
+import { esPlanillaPorDias } from "./salario-dias.js";
+
 let operacionActual = null;
 let guardando = false;
 let guardadoConfirmado = false;
@@ -76,7 +78,7 @@ async function guardarPlanilla() {
     }
 
     if (
-    !window.validarHorasPlanilla() ||
+    !(esPlanillaPorDias() || window.validarHorasPlanilla()) ||
     !window.validarDetalleDescuentos()
 ) {
     mostrarMensajeGuardado(
@@ -122,17 +124,18 @@ async function guardarPlanilla() {
             document.getElementById("descuentos").value,
         // HU-18, HU-20 y HU-21: formato acordado en docs/contrato-integracion-sprint3.md.
         // Los campos de formularios todavía no integrados quedan undefined y no se envían.
-        novedades: obtenerNovedades().map(novedad => ({
-            tipo: novedad.tipo,
-            condicion_pago: novedad.condicion,
-            fecha_inicio: novedad.fechaInicio,
-            fecha_fin: novedad.fechaFin
-        })),
+        novedades: obtenerNovedades(),
 
-        ingresos: obtenerIngresos()?.detalle,
+        ingresos_detalle: obtenerIngresos()?.detalle,
 
         salario_original: ajuste?.salario_original,
-        motivo_ajuste: ajuste?.motivo_ajuste
+        motivo_ajuste: ajuste?.motivo_ajuste,
+
+        // HU-19: la API recalcula días y salario proporcional a partir de las novedades.
+        ...(esPlanillaPorDias() && {
+            modo_calculo: "dias",
+            salario_base_mensual: document.getElementById("salario").value
+        })
     };
 
     const contenidoOperacion = JSON.stringify(datosPlanilla);
@@ -195,8 +198,11 @@ datosPlanilla.operacion_id = operacionActual.id;
 
         if (!respuesta.ok || !resultado.ok || !resultado.id) {
 
+            // Incluye el motivo de cada campo rechazado por la API.
             throw new Error(
-                resultado.mensaje ||
+                [resultado.mensaje, ...Object.values(resultado.errores ?? {})]
+                    .filter(Boolean)
+                    .join(". ") ||
                 "No se pudo guardar la planilla"
             );
 
@@ -205,7 +211,10 @@ datosPlanilla.operacion_id = operacionActual.id;
         guardadoExitoso = true;
         guardadoConfirmado = true;
 
-        mostrarConfirmacion(resultado.id);
+        mostrarConfirmacion(
+            resultado.id,
+            `${empleado.nombre_completo} · ${document.getElementById("mes").value} ${datosPlanilla.anio}`
+        );
 
     } catch(error) {
 
@@ -259,7 +268,7 @@ function convertirMesANumero(mes) {
 // HU-17: confirmación con acceso al detalle y a una planilla nueva.
 // «Crear otra planilla» recarga la página: así se reinicia todo el estado,
 // incluido el identificador de operación, sin limpiar campo por campo.
-function mostrarConfirmacion(id) {
+function mostrarConfirmacion(id, empleadoYPeriodo) {
     const enlace = (texto, href, clase) => Object.assign(
         document.createElement("a"),
         { textContent: texto, href, className: `btn btn-sm ms-2 ${clase}` }
@@ -277,7 +286,7 @@ function mostrarConfirmacion(id) {
     );
 
     document.getElementById("mensaje-guardado").replaceChildren(
-        `Planilla guardada correctamente. ID: ${id}`, ver, otra
+        `Planilla guardada correctamente. ID: ${id} · ${empleadoYPeriodo}`, ver, otra
     );
 }
 

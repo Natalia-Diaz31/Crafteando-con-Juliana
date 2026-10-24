@@ -47,7 +47,7 @@ jobs:
         run: node --check server.js
 
       - name: Ejecutar pruebas existentes
-        run: node --test --test-reporter=spec ../ci-tests/api.test.cjs
+        run: node --test --test-reporter=spec ../ci-tests/*.test.cjs
 
       - name: Instalar Vercel CLI
         run: npm install --global vercel@latest

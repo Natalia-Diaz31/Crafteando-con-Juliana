@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const salario = document.getElementById("salario");
+    // HU-19: en la planilla por días se usa el salario proporcional.
+    const salario = document.getElementById("salario-proporcional") ?? document.getElementById("salario");
     const ingresos = document.getElementById("ingresos");
     const descuentos = document.getElementById("descuentos");
     const total = document.getElementById("total-calculado");

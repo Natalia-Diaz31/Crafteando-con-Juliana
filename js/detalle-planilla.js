@@ -87,6 +87,23 @@ window.mostrarDetallePlanilla = function (planilla) {
     complementos.replaceChildren();
     complementos.hidden = true;
 
+    // HU-19: las planillas por días muestran su cálculo en lugar de las horas;
+    // las anteriores conservan sus horas tal como se guardaron.
+    const porDias = planilla.salario_proporcional != null;
+    document.getElementById("detalle-horas-ordinarias").closest(".detalle-bloque").hidden = porDias;
+
+    if (porDias) {
+        window.pintarSeccion(complementos, {
+            titulo: "Salario por días remunerados",
+            columnas: ["Salario base mensual", "Días remunerados", "Salario proporcional"],
+            filas: [[
+                dinero(planilla.salario_base_mensual),
+                planilla.dias_remunerados ?? "—",
+                dinero(planilla.salario_proporcional)
+            ]]
+        });
+    }
+
     if (planilla.novedades?.length) {
         window.pintarSeccion(complementos, {
             titulo: "Novedades",
@@ -98,15 +115,14 @@ window.mostrarDetallePlanilla = function (planilla) {
         });
     }
 
-    if (Array.isArray(planilla.ingresos)) {
+    // Las planillas anteriores a la HU-20 tienen el total pero no el desglose.
+    const ingresos = planilla.ingresos_detalle ?? [];
+    if (ingresos.length || Number(planilla.ingresos_adicionales) > 0) {
         window.pintarSeccion(complementos, {
             titulo: "Bonos e incentivos",
             columnas: ["Tipo", "Concepto", "Importe (USD)"],
-            filas: planilla.ingresos.map(i => [i.tipo, i.concepto, dinero(i.importe)]),
-            // Las planillas anteriores a la HU-20 tienen el total pero no el desglose.
-            vacio: Number(planilla.ingresos_adicionales) > 0
-                ? "Detalle de ingresos no registrado"
-                : "Sin bonos ni incentivos"
+            filas: ingresos.map(i => [i.tipo, i.concepto, dinero(i.importe)]),
+            vacio: "Detalle de ingresos no registrado"
         });
     }
 

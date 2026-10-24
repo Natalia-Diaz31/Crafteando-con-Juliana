@@ -4,7 +4,7 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const { esUUIDValido } = require("./utils/validar-uuid");
-const { validarNovedades } = require("./utils/validar-novedades");
+const { validarNovedades, contarDias } = require("./utils/validar-novedades");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const { respuestaExitosa, respuestaError } = require("./utils/respuestas");
@@ -1072,7 +1072,8 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 "id, mes, anio, plantilla_nombre, empleado_codigo, empleado_nombre, " +
                 "empleado_dui, empleado_cargo, salario_base, ingresos_adicionales, " +
                 "horas_ordinarias, horas_extras, " +
-                "descuentos_totales, total_pagar, fecha_guardado, periodo_pago, deducciones_legales"
+                "descuentos_totales, total_pagar, fecha_guardado, periodo_pago, deducciones_legales, " +
+                "dias_remunerados"
             )
             .eq("id", id)
             .maybeSingle();
@@ -1112,6 +1113,15 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
         if (errorIngresos) {
             throw errorIngresos;
         }
+
+        // HU-18: novedades guardadas, con los días de cada una.
+        const { data: novedades, error: errorNovedades } = await supabase
+            .from("planilla_novedades")
+            .select("tipo, fecha_inicio, fecha_fin, condicion_pago")
+            .eq("planilla_id", id)
+            .order("fecha_inicio", { ascending: true });
+
+        if (errorNovedades) throw errorNovedades;
 
         // HU-16: calcular el total de ingresos con los montos guardados.
         const salarioCentavos = Math.round(Number(planilla.salario_base) * 100);
@@ -1153,7 +1163,14 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 deducciones_legales: planilla.deducciones_legales,
                 descuentos_totales: planilla.descuentos_totales,
                 descuentos: detalleDescuentos || [],
-                total_pagar: planilla.total_pagar
+                total_pagar: planilla.total_pagar,
+
+                // HU-18: formato de docs/contrato-integracion-sprint3.md.
+                novedades: (novedades || []).map(novedad => ({
+                    ...novedad,
+                    dias: contarDias(novedad.fecha_inicio, novedad.fecha_fin)
+                })),
+                dias_remunerados: planilla.dias_remunerados
             }
         });
 

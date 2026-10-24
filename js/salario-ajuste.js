@@ -120,6 +120,11 @@ function actualizarMensaje() {
 
         controles.error.textContent = "";
     } catch (error) {
+        // HU-21: el salario ya difiere del registrado aunque falte el motivo.
+        if (salarioOriginal !== null) {
+            controles.mensaje.textContent = "Salario ajustado para esta planilla";
+        }
+
         controles.error.textContent = error.message;
     }
 }

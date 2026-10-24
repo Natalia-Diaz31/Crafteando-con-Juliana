@@ -13,6 +13,8 @@ import {
     validarAjusteFormulario
 } from "./salario-ajuste.js";
 
+import { esPlanillaPorDias } from "./salario-dias.js";
+
 document.addEventListener("DOMContentLoaded", () => {
     const formulario = document.getElementById("form-planilla");
     const resumen = document.getElementById("resumen-planilla");
@@ -59,7 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const legalesValidos = window.validarDeduccionesLegales();
         window.actualizarDescuentosTotales();
-        const horasValidas = window.validarHorasPlanilla();
+        // HU-19: la planilla por días no usa horas.
+        const horasValidas = esPlanillaPorDias() || window.validarHorasPlanilla();
         const empleadoValido = window.actualizarBloqueoEmpleado();
         const obligatoriosValidos =
             window.validarObligatoriosPlanilla();
@@ -92,8 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // HU-19: en la planilla por días se usa el salario proporcional.
         const salario = aCentavos(
-            document.getElementById("salario").value
+            (document.getElementById("salario-proporcional") ??
+                document.getElementById("salario")).value
         );
         const ingresos = aCentavos(
             document.getElementById("ingresos").value
@@ -164,6 +169,19 @@ document.addEventListener("DOMContentLoaded", () => {
         complementos.hidden = true;
 
         const estadoNovedades = obtenerEstadoNovedades();
+
+        if (esPlanillaPorDias()) {
+            window.pintarSeccion(complementos, {
+                titulo: "Salario por días remunerados",
+                columnas: ["Salario base mensual", "Días remunerados", "Salario proporcional"],
+                filas: [[
+                    formatoUSD.format(document.getElementById("salario").value),
+                    estadoNovedades.diasRemunerados,
+                    formatoUSD.format(salario / 100)
+                ]]
+            });
+        }
+
         if (estadoNovedades.novedades.length) {
             window.pintarSeccion(complementos, {
                 titulo: "Novedades",

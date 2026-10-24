@@ -193,6 +193,12 @@ function prepararAPI(opciones = {}) {
             error: null
           };
         }
+        if (tabla === 'planilla_novedades') {
+          return {
+            data: [{ tipo: 'Permiso', fecha_inicio: '2026-10-05', fecha_fin: '2026-10-06', condicion_pago: 'Sin goce' }],
+            error: null
+          };
+        }
         if (tabla === 'planillas' && !registro) {
           if (opciones.falloConsulta) return { data: null, error: { message: 'Fallo simulado de consulta' } };
           const guardadas = [{ ...PLANILLA_GUARDADA }];
@@ -581,7 +587,11 @@ test('El detalle devuelve todos los datos guardados', async t => {
       { concepto: 'Préstamo', importe: 10 },
       { concepto: 'Anticipo', importe: 15 }
     ],
-    total_pagar: 525
+    total_pagar: 525,
+    // HU-18: novedades guardadas con los días calculados por la API.
+    novedades: [
+      { tipo: 'Permiso', fecha_inicio: '2026-10-05', fecha_fin: '2026-10-06', condicion_pago: 'Sin goce', dias: 2 }
+    ]
   });
 });
 
