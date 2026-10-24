@@ -117,7 +117,8 @@ async function guardarPlanilla() {
             window.obtenerDetalleDescuentos(),
 
         descuentos_totales:
-            document.getElementById("descuentos").value
+            document.getElementById("descuentos").value,
+        novedades: obtenerNovedades()
     };
 
     const contenidoOperacion = JSON.stringify({

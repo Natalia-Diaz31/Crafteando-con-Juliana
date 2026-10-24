@@ -22,6 +22,7 @@ const PLANTILLA = {
 const DATOS = {
 
   operacion_id: '44444444-4444-4444-8444-444444444444', // HU-17: identificador de la operación de guardado.
+  novedades: [],
   periodo_pago: 'mensual',
   version_regla: require('../api_/utils/reglas-nomina.js').VERSION,
   empleado_id: EMPLEADO.id,
@@ -110,6 +111,7 @@ function prepararAPI(opciones = {}) {
 
         const registro = datos.p_registro;
         const descuentos = datos.p_descuentos;
+        const novedades = datos.p_novedades; // HU-18: novedades recibidas por la función de Supabase.
 
         const totalDescuentos = descuentos.reduce(
           (suma, descuento) => suma + Math.round(Number(descuento.importe) * 100),
@@ -127,6 +129,7 @@ function prepararAPI(opciones = {}) {
           id: PLANILLA_GUARDADA.id,
           fecha_guardado: PLANILLA_GUARDADA.fecha_guardado,
           descuentos,
+          novedades,
           descuentos_totales: (totalDescuentos / 100).toFixed(2),
           total_pagar: (totalPagar / 100).toFixed(2)
         };
@@ -422,6 +425,55 @@ test('HU-12 rechaza descuentos con más de dos decimales', async t => {
   assert.equal(r.body.ok, false);
   assert.ok(r.body.errores?.['descuentos[0].importe']);
   assert.equal(api.registros.length, 0);
+});
+
+
+test('HU-18: la API envía novedades y días remunerados a Supabase', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    novedades: [
+      {
+        tipo: 'Ausencia',
+        condicion: 'Sin goce',
+        fechaInicio: '2026-10-03',
+        fechaFin: '2026-10-05'
+      },
+      {
+        tipo: 'Permiso',
+        condicion: 'Con goce',
+        fechaInicio: '2026-10-10',
+        fechaFin: '2026-10-10'
+      }
+    ],
+    dias_remunerados: 30
+  });
+
+  assert.equal(r.status, 201);
+  assert.equal(r.body.ok, true);
+  assert.equal(api.registros.length, 1);
+
+  const guardado = api.registros[0];
+
+  // La API calcula los días, sin confiar en el valor enviado por el cliente.
+  assert.equal(guardado.dias_remunerados, 27);
+
+  // Supabase recibe las novedades con los nombres de campos acordados.
+  assert.deepEqual(guardado.novedades, [
+    {
+      tipo: 'Ausencia',
+      fecha_inicio: '2026-10-03',
+      fecha_fin: '2026-10-05',
+      condicion_pago: 'Sin goce'
+    },
+    {
+      tipo: 'Permiso',
+      fecha_inicio: '2026-10-10',
+      fecha_fin: '2026-10-10',
+      condicion_pago: 'Con goce'
+    }
+  ]);
 });
 
 test('Guardar calcula 468.62 y conserva datos del empleado y plantilla', async t => {

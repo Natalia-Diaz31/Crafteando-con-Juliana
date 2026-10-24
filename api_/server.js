@@ -4,6 +4,7 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const { esUUIDValido } = require("./utils/validar-uuid");
+const { validarNovedades } = require("./utils/validar-novedades");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const { respuestaExitosa, respuestaError } = require("./utils/respuestas");
@@ -656,6 +657,20 @@ function validarDatosPlanilla(req, res, next) {
         }
     }
 
+    // HU-18: validar novedades y calcular días remunerados en la API.
+    const resultadoNovedades = validarNovedades(
+        datos.novedades,
+        {
+            mes: Number(mesTexto),
+            anio: Number(anioTexto),
+            frecuencia: datos.periodo_pago
+        }
+    );
+
+    if (!resultadoNovedades.valido) {
+        errores.novedades = resultadoNovedades.errores.join(". ");
+    }
+
     if (Object.keys(errores).length > 0) {
         return res.status(400).json({
             ok: false,
@@ -680,6 +695,9 @@ function validarDatosPlanilla(req, res, next) {
         plantilla_id: datos.plantilla_id,
         mes: Number(mesTexto),
         anio: Number(anioTexto),
+        // HU-18: novedades validadas y días calculados por la API.
+        novedades: resultadoNovedades.novedades,
+        dias_remunerados: resultadoNovedades.diasRemunerados,
         salario_base: aDecimal(salario),
         ingresos_adicionales: aDecimal(ingresos),
         total_ingresos: aDecimal(totalIngresos),
@@ -780,6 +798,7 @@ app.post(
             const registro = {
                 periodo_pago: datos.periodo_pago,
                 deducciones_legales: datos.deducciones_legales,
+                dias_remunerados: datos.dias_remunerados, // HU-18: días remunerados calculados por la API.
                 plantilla_id: plantilla.id,
                 empleado_id: empleado.id,
                 mes: datos.mes,
@@ -810,7 +829,8 @@ app.post(
                 {
                     p_registro: registro,
                     p_descuentos: datos.descuentos,
-                    p_operacion_id: req.operacionId
+                    p_operacion_id: req.operacionId,
+                    p_novedades: datos.novedades
                 }
             );
 
