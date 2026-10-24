@@ -423,6 +423,7 @@ app.get("/api/empleados/:id", verificarToken, async (req, res) => {
 function validarDatosPlanilla(req, res, next) {
     const datos = req.body || {};
     const errores = {};
+    const esPlanillaPorDias = datos.modo_calculo === "dias"; // HU-19: identificar las nuevas planillas calculadas por días.
 
     const formatoUUID =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -503,7 +504,10 @@ function validarDatosPlanilla(req, res, next) {
         return centavos;
     }
 
-    const salario = obtenerCentavos("salario_base");
+    // HU-19: aceptar el salario mensual en las planillas por días.
+    const salario = obtenerCentavos(
+        esPlanillaPorDias ? "salario_base_mensual" : "salario_base"
+    );
     const ingresos = obtenerCentavos("ingresos_adicionales");
 
     // HU-13: validar cantidades de horas sin modificar los montos monetarios.
@@ -534,8 +538,14 @@ function validarDatosPlanilla(req, res, next) {
         return (centesimas / 100).toFixed(2);
     }
 
-    const horasOrdinarias = obtenerHoras("horas_ordinarias");
-    const horasExtras = obtenerHoras("horas_extras");
+    // HU-19: las nuevas planillas por días no requieren horas.
+    const horasOrdinarias = esPlanillaPorDias
+        ? null
+        : obtenerHoras("horas_ordinarias");
+
+    const horasExtras = esPlanillaPorDias
+        ? null
+        : obtenerHoras("horas_extras");
 
     // HU-12: validar el detalle y calcular los descuentos en la API.
     const detalleDescuentos = [];
@@ -602,6 +612,20 @@ function validarDatosPlanilla(req, res, next) {
         }
     }
 
+    // HU-19: calcular los días remunerados antes de aplicar las deducciones.
+    const resultadoNovedades = validarNovedades(
+        datos.novedades,
+        {
+            mes: Number(mesTexto),
+            anio: Number(anioTexto),
+            frecuencia: datos.periodo_pago
+        }
+    );
+
+    if (!resultadoNovedades.valido) {
+        errores.novedades = resultadoNovedades.errores.join(". ");
+    }
+
     // HU-14: la API recalcula. Nunca acepta importes legales enviados por el navegador.
     let deduccionesLegales = null;
     if (datos.version_regla !== ReglasNomina.VERSION) {
@@ -609,12 +633,22 @@ function validarDatosPlanilla(req, res, next) {
     }
     if (salario !== null && ingresos !== null) {
         try {
-            deduccionesLegales = ReglasNomina.calcular({
-                salario_base: datos.salario_base,
-                ingresos_adicionales: datos.ingresos_adicionales,
-                periodo_pago: datos.periodo_pago,
-                mes: datos.mes, anio: datos.anio
-            });
+            deduccionesLegales = esPlanillaPorDias
+                ? ReglasNomina.calcularPorDias({
+                    salario_base_mensual: datos.salario_base_mensual,
+                    dias_remunerados: resultadoNovedades.diasRemunerados,
+                    ingresos_adicionales: datos.ingresos_adicionales,
+                    periodo_pago: datos.periodo_pago,
+                    mes: datos.mes,
+                    anio: datos.anio
+                })
+                : ReglasNomina.calcular({
+                    salario_base: datos.salario_base,
+                    ingresos_adicionales: datos.ingresos_adicionales,
+                    periodo_pago: datos.periodo_pago,
+                    mes: datos.mes,
+                    anio: datos.anio
+                });
             if (descuentos !== null) {
                 descuentos += ReglasNomina.centavos(deduccionesLegales.total);
                 // La función SQL ya suma el detalle: incluir cada importe legal una vez.
@@ -633,12 +667,21 @@ function validarDatosPlanilla(req, res, next) {
     let total = null;
     let totalIngresos = null;
 
+    // HU-19: utilizar el salario proporcional para calcular los importes.
+    const salarioCalculado = esPlanillaPorDias
+        ? (
+            deduccionesLegales?.salario_proporcional !== undefined
+                ? ReglasNomina.centavos(deduccionesLegales.salario_proporcional)
+                : null
+        )
+        : salario;
+
     if (
-        salario !== null &&
+        salarioCalculado !== null &&
         ingresos !== null &&
         descuentos !== null
     ) {
-        const sumaIngresos = salario + ingresos;
+        const sumaIngresos = salarioCalculado + ingresos;
         totalIngresos = sumaIngresos;
 
         if (!Number.isSafeInteger(sumaIngresos)) {
@@ -655,20 +698,6 @@ function validarDatosPlanilla(req, res, next) {
                     "El total a pagar no puede superar 9999999999.99";
             }
         }
-    }
-
-    // HU-18: validar novedades y calcular días remunerados en la API.
-    const resultadoNovedades = validarNovedades(
-        datos.novedades,
-        {
-            mes: Number(mesTexto),
-            anio: Number(anioTexto),
-            frecuencia: datos.periodo_pago
-        }
-    );
-
-    if (!resultadoNovedades.valido) {
-        errores.novedades = resultadoNovedades.errores.join(". ");
     }
 
     if (Object.keys(errores).length > 0) {
@@ -697,8 +726,16 @@ function validarDatosPlanilla(req, res, next) {
         anio: Number(anioTexto),
         // HU-18: novedades validadas y días calculados por la API.
         novedades: resultadoNovedades.novedades,
+
         dias_remunerados: resultadoNovedades.diasRemunerados,
-        salario_base: aDecimal(salario),
+
+        // HU-19: conservar el salario mensual y el proporcional.
+        modo_calculo: esPlanillaPorDias ? "dias" : "horas",
+        salario_base_mensual: esPlanillaPorDias ? aDecimal(salario) : null,
+        salario_proporcional: esPlanillaPorDias ? aDecimal(salarioCalculado) : null,
+
+        // Mantener salario_base como importe utilizado para el pago.
+        salario_base: aDecimal(salarioCalculado),
         ingresos_adicionales: aDecimal(ingresos),
         total_ingresos: aDecimal(totalIngresos),
 
@@ -798,7 +835,6 @@ app.post(
             const registro = {
                 periodo_pago: datos.periodo_pago,
                 deducciones_legales: datos.deducciones_legales,
-                dias_remunerados: datos.dias_remunerados, // HU-18: días remunerados calculados por la API.
                 plantilla_id: plantilla.id,
                 empleado_id: empleado.id,
                 mes: datos.mes,
@@ -808,6 +844,12 @@ app.post(
                 empleado_nombre: empleado.nombre_completo,
                 empleado_dui: empleado.dui,
                 empleado_cargo: empleado.cargo,
+                // HU-19: conservar los datos del cálculo proporcional.
+                modo_calculo: datos.modo_calculo,
+                salario_base_mensual: datos.salario_base_mensual,
+                dias_remunerados: datos.dias_remunerados,
+                salario_proporcional: datos.salario_proporcional,
+
                 salario_base: datos.salario_base,
                 ingresos_adicionales: datos.ingresos_adicionales,
 

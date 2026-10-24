@@ -16,6 +16,10 @@ DECLARE
     v_fecha timestamptz;
     v_salario numeric;
     v_ingresos numeric;
+    -- HU-19: datos para validar el cálculo proporcional.
+    v_salario_base_mensual numeric;
+    v_dias_remunerados integer;
+    v_salario_proporcional numeric;
     v_total_descuentos numeric := 0;
     v_total_pagar numeric;
     v_descuento jsonb;
@@ -24,7 +28,24 @@ DECLARE
     -- HU-13: cantidades de horas trabajadas.
     v_horas_ordinarias numeric;
     v_horas_extras numeric;
+
+    -- HU-19: identificar las planillas calculadas por días.
+    v_es_planilla_por_dias boolean;
 BEGIN
+    v_es_planilla_por_dias :=
+        (p_registro->>'modo_calculo') = 'dias';
+    -- HU-19: rechazar modalidades de cálculo desconocidas.
+    IF COALESCE(p_registro->>'modo_calculo', 'horas')
+        NOT IN ('dias', 'horas')
+    THEN
+        RAISE EXCEPTION 'Modo de calculo invalido';
+    END IF;
+    -- Exigir un resultado calculado por la nueva API.
+    IF coalesce(p_registro->>'periodo_pago', '') NOT IN ('mensual', 'quincenal', 'semanal')
+       OR jsonb_typeof(p_registro->'deducciones_legales') IS DISTINCT FROM 'object'
+       OR coalesce(p_registro->'deducciones_legales'->>'version', '') = '' THEN
+        RAISE EXCEPTION 'Falta la frecuencia o la versión de las deducciones legales';
+    END IF;
     -- Comprobar que se recibió una lista.
     IF p_descuentos IS NULL
        OR jsonb_typeof(p_descuentos) <> 'array' THEN
@@ -65,6 +86,49 @@ BEGIN
     v_salario := (p_registro->>'salario_base')::numeric;
     v_ingresos := (p_registro->>'ingresos_adicionales')::numeric;
 
+    -- HU-19: validar el salario proporcional de las planillas por días.
+IF v_es_planilla_por_dias THEN
+
+    IF p_registro->>'periodo_pago' IS DISTINCT FROM 'mensual' THEN
+        RAISE EXCEPTION
+            'El calculo proporcional por dias requiere una planilla mensual';
+    END IF;
+
+    IF COALESCE(p_registro->>'salario_base_mensual', '')
+        !~ '^[0-9]+(\.[0-9]{1,2})?$'
+        OR COALESCE(p_registro->>'dias_remunerados', '')
+        !~ '^[0-9]+$'
+        OR COALESCE(p_registro->>'salario_proporcional', '')
+        !~ '^[0-9]+(\.[0-9]{1,2})?$'
+    THEN
+        RAISE EXCEPTION 'Datos del salario proporcional invalidos';
+    END IF;
+
+    v_salario_base_mensual :=
+        (p_registro->>'salario_base_mensual')::numeric;
+
+    v_dias_remunerados :=
+        (p_registro->>'dias_remunerados')::integer;
+
+    v_salario_proporcional :=
+        (p_registro->>'salario_proporcional')::numeric;
+
+    IF v_salario_base_mensual > 9999999999.99
+        OR v_dias_remunerados NOT BETWEEN 0 AND 30
+        OR v_salario_proporcional > 9999999999.99
+    THEN
+        RAISE EXCEPTION 'Valores del salario proporcional fuera de rango';
+    END IF;
+
+    IF v_salario_proporcional <>
+        ROUND(v_salario_base_mensual * v_dias_remunerados / 30, 2)
+        OR v_salario IS DISTINCT FROM v_salario_proporcional
+    THEN
+        RAISE EXCEPTION 'El salario proporcional no coincide con el calculo';
+    END IF;
+
+END IF;
+
     IF v_salario IS NULL OR v_ingresos IS NULL
        OR v_salario < 0 OR v_ingresos < 0 THEN
         RAISE EXCEPTION 'Ingresos inválidos';
@@ -76,7 +140,11 @@ BEGIN
 
     v_total_pagar := v_salario + v_ingresos - v_total_descuentos;
 
-    -- HU-13: validar las horas trabajadas.
+-- HU-13 y HU-19: validar horas solo en planillas anteriores.
+IF v_es_planilla_por_dias THEN
+    v_horas_ordinarias := NULL;
+    v_horas_extras := NULL;
+ELSE
     IF (p_registro->>'horas_ordinarias') IS NULL
         OR (p_registro->>'horas_ordinarias') !~ '^[0-9]+(\.[0-9]{1,2})?$'
         OR (p_registro->>'horas_extras') IS NULL
@@ -91,6 +159,7 @@ BEGIN
         OR v_horas_extras > 99999999.99 THEN
         RAISE EXCEPTION 'Las horas no pueden superar 99999999.99';
     END IF;
+END IF;
 
     -- Guardar la planilla.
     INSERT INTO public.planillas (
@@ -104,6 +173,9 @@ BEGIN
         empleado_dui,
         empleado_cargo,
         salario_base,
+        salario_base_mensual,
+        salario_proporcional,
+        dias_remunerados,
         ingresos_adicionales,
         horas_ordinarias,
         horas_extras,
@@ -121,6 +193,9 @@ BEGIN
         p_registro->>'empleado_dui',
         p_registro->>'empleado_cargo',
         v_salario,
+        v_salario_base_mensual,
+        v_salario_proporcional,
+        v_dias_remunerados,
         v_ingresos,
         v_horas_ordinarias,
         v_horas_extras,

@@ -592,3 +592,40 @@ test('La consulta no devuelve datos ante fallo en Supabase', async t => {
   const r = await api.pedir('/api/planillas');
   assert.equal(r.status, 500); assert.equal(r.body.ok, false); assert.equal(r.body.planillas, undefined);
 });
+
+test('HU-19: calcula salario proporcional y lo envía a Supabase', async t => {
+  const api = await conAPI(t);
+
+  const datos = {
+    ...DATOS,
+    modo_calculo: 'dias',
+    salario_base_mensual: '900.00',
+    ingresos_adicionales: '50.00',
+    novedades: [
+      {
+        tipo: 'Ausencia',
+        fechaInicio: '2026-10-03',
+        fechaFin: '2026-10-04',
+        condicion: 'Sin goce'
+      }
+    ]
+  };
+
+  delete datos.salario_base;
+  delete datos.horas_ordinarias;
+  delete datos.horas_extras;
+
+  const r = await api.pedir('/api/planillas', datos);
+
+  assert.equal(r.status, 201, JSON.stringify(r.body, null, 2));
+  assert.equal(api.registros.length, 1);
+
+  const guardado = api.registros[0];
+
+  assert.equal(guardado.salario_base_mensual, '900.00');
+  assert.equal(guardado.dias_remunerados, 28);
+  assert.equal(guardado.salario_proporcional, '840.00');
+  assert.equal(guardado.total_ingresos, undefined); // No es un campo persistido actualmente.
+  assert.equal(guardado.salario_base, '840.00');
+  assert.equal(guardado.ingresos_adicionales, '50.00');
+});
