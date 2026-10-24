@@ -374,7 +374,7 @@ app.get("/api/empleados/:id", verificarToken, async (req, res) => {
         // 2. Consultar los datos registrados en Supabase
         const { data: empleado, error } = await supabase
             .from("empleados")
-            .select("codigo, nombre_completo, dui, cargo")
+            .select("codigo, nombre_completo, dui, cargo, salario_base_mensual")
             .eq("id", id)
             .maybeSingle();
 
@@ -402,7 +402,8 @@ app.get("/api/empleados/:id", verificarToken, async (req, res) => {
                 codigo: empleado.codigo,
                 nombre_completo: empleado.nombre_completo,
                 dui: empleado.dui,
-                cargo: empleado.cargo
+                cargo: empleado.cargo,
+                salario_base_mensual: empleado.salario_base_mensual
             }
         });
 
@@ -814,6 +815,9 @@ function validarDatosPlanilla(req, res, next) {
         salario_base_mensual: esPlanillaPorDias ? aDecimal(salario) : null,
         salario_proporcional: esPlanillaPorDias ? aDecimal(salarioCalculado) : null,
 
+        // HU-21: conservar el motivo para validarlo contra Supabase.
+        motivo_ajuste: datos.motivo_ajuste,
+
         // Mantener salario_base como importe utilizado para el pago.
         salario_base: aDecimal(salarioCalculado),
         ingresos_adicionales: aDecimal(ingresos),
@@ -871,7 +875,7 @@ app.post(
                 error: errorEmpleado
             } = await supabase
                 .from("empleados")
-                .select("id, codigo, nombre_completo, dui, cargo")
+                .select("id, codigo, nombre_completo, dui, cargo, salario_base_mensual")
                 .eq("id", datos.empleado_id)
                 .maybeSingle();
 
@@ -882,6 +886,38 @@ app.post(
                     ok: false,
                     mensaje: "El empleado seleccionado no existe"
                 });
+            }
+
+            // HU-21: validar el ajuste contra el salario registrado en Supabase.
+            const salarioOriginal = empleado.salario_base_mensual;
+
+            const salarioUtilizado = datos.modo_calculo === "dias"
+                ? datos.salario_base_mensual
+                : datos.salario_base;
+
+            const motivo = typeof datos.motivo_ajuste === "string"
+                ? datos.motivo_ajuste.trim()
+                : "";
+
+            const tieneSalarioOriginal =
+                salarioOriginal !== null && salarioOriginal !== undefined;
+
+            const ajustado = tieneSalarioOriginal &&
+                Math.round(Number(salarioOriginal) * 100) !==
+                Math.round(Number(salarioUtilizado) * 100);
+
+            if (tieneSalarioOriginal) {
+
+                if (ajustado && (motivo.length < 1 || motivo.length > 200)) {
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: "Corrija el ajuste salarial",
+                        errores: {
+                            motivo_ajuste:
+                                "El motivo del ajuste debe tener entre 1 y 200 caracteres"
+                        }
+                    });
+                }
             }
 
             // Consultar la plantilla seleccionada.
@@ -930,10 +966,12 @@ app.post(
                 salario_base_mensual: datos.salario_base_mensual,
                 dias_remunerados: datos.dias_remunerados,
                 salario_proporcional: datos.salario_proporcional,
+                // HU-21: conservar el salario original sin modificar el expediente.
+                salario_original: salarioOriginal ?? null,
+                motivo_ajuste: ajustado ? motivo : null,
 
                 salario_base: datos.salario_base,
                 ingresos_adicionales: datos.ingresos_adicionales,
-
                 // HU-13: conservar las horas trabajadas.
                 horas_ordinarias: datos.horas_ordinarias,
                 horas_extras: datos.horas_extras,
@@ -1070,7 +1108,7 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
             .from("planillas")
             .select(
                 "id, mes, anio, plantilla_nombre, empleado_codigo, empleado_nombre, " +
-                "empleado_dui, empleado_cargo, salario_base, ingresos_adicionales, " +
+                "empleado_dui, empleado_cargo, salario_base, salario_original, motivo_ajuste, ingresos_adicionales, " +
                 "horas_ordinarias, horas_extras, " +
                 "descuentos_totales, total_pagar, fecha_guardado, periodo_pago, deducciones_legales, " +
                 "dias_remunerados"
@@ -1151,6 +1189,9 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 dui: planilla.empleado_dui,
                 cargo: planilla.empleado_cargo,
                 salario_base: planilla.salario_base,
+                // HU-21: mostrar los datos del ajuste salarial guardado.
+                salario_original: planilla.salario_original,
+                motivo_ajuste: planilla.motivo_ajuste,
                 ingresos_adicionales: planilla.ingresos_adicionales,
                 ingresos_detalle: detalleIngresos || [],
                 detalle_ingresos_registrado: (detalleIngresos || []).length > 0,

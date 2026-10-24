@@ -13,8 +13,12 @@ const express = apiRequire('express');
 const jwt = apiRequire('jsonwebtoken');
 const SECRET = 'secreto-ficticio-solo-para-pruebas-ci';
 const EMPLEADO = {
-  id: '11111111-1111-4111-8111-111111111111', codigo: 'EMP-001',
-  nombre_completo: 'Empleado de prueba CI', dui: '00000001-1', cargo: 'Analista'
+  id: '11111111-1111-4111-8111-111111111111',
+  codigo: 'EMP-001',
+  nombre_completo: 'Empleado de prueba CI',
+  dui: '00000001-1',
+  cargo: 'Analista',
+  salario_base_mensual: '500.00'
 };
 const PLANTILLA = {
   id: '22222222-2222-4222-8222-222222222222', nombre: 'Planilla básica mensual'
@@ -51,6 +55,8 @@ const PLANILLA_GUARDADA = {
   plantilla_nombre: PLANTILLA.nombre, empleado_codigo: EMPLEADO.codigo,
   empleado_nombre: EMPLEADO.nombre_completo, empleado_dui: EMPLEADO.dui, empleado_cargo: EMPLEADO.cargo,
   salario_base: 500,
+  salario_original: 450,
+  motivo_ajuste: 'Aumento salarial autorizado',
   ingresos_adicionales: 50,
 
   // HU-13: horas conservadas en la planilla guardada.
@@ -172,7 +178,17 @@ function prepararAPI(opciones = {}) {
           };
         }
         if (tabla === 'empleados') {
-          return { data: !opciones.sinEmpleado && filtro?.valor === EMPLEADO.id ? { ...EMPLEADO } : null, error: null };
+          return {
+            data: !opciones.sinEmpleado && filtro?.valor === EMPLEADO.id
+              ? {
+                ...EMPLEADO,
+                salario_base_mensual: opciones.empleadoSinSalario
+                  ? null
+                  : EMPLEADO.salario_base_mensual
+              }
+              : null,
+            error: null
+          };
         }
         if (tabla === 'plantillas') {
           return { data: !opciones.sinPlantilla && filtro?.valor === PLANTILLA.id ? { ...PLANTILLA } : null, error: null };
@@ -523,7 +539,8 @@ test('Montos cero y mes doce son válidos', async t => {
     salario_base: '0.00',
     ingresos_adicionales: '0.00',
     descuentos: [],
-    descuentos_totales: '0.00'
+    descuentos_totales: '0.00',
+    motivo_ajuste: 'Ajuste salarial autorizado para esta planilla',
   });
 
   assert.equal(r.status, 201);
@@ -575,6 +592,9 @@ test('El detalle devuelve todos los datos guardados', async t => {
     fecha_guardado: PLANILLA_GUARDADA.fecha_guardado, codigo: EMPLEADO.codigo,
     nombre_completo: EMPLEADO.nombre_completo, dui: EMPLEADO.dui, cargo: EMPLEADO.cargo,
     salario_base: 500,
+    // HU-21: verificar los datos del ajuste salarial.
+    salario_original: 450,
+    motivo_ajuste: 'Aumento salarial autorizado',
     ingresos_adicionales: 50,
     ingresos_detalle: [],
     detalle_ingresos_registrado: false,
@@ -620,6 +640,7 @@ test('HU-19: calcula salario proporcional y lo envía a Supabase', async t => {
     ...DATOS,
     modo_calculo: 'dias',
     salario_base_mensual: '900.00',
+    motivo_ajuste: 'Ajuste autorizado del salario mensual a 900 dólares',
     ingresos_adicionales: '50.00',
     novedades: [
       {
@@ -705,3 +726,101 @@ for (const [nombre, ingreso] of [
     assert.equal(api.registros.length, 0);
   });
 }
+test('HU-21: rechaza un ajuste salarial sin motivo', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    salario_base: '600.00',
+    motivo_ajuste: ''
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.equal(
+    r.body.errores.motivo_ajuste,
+    'El motivo del ajuste debe tener entre 1 y 200 caracteres'
+  );
+
+  // No debe guardar ninguna planilla si falta la justificación.
+  assert.equal(api.registros.length, 0);
+});
+
+test('HU-21: guarda un ajuste salarial con motivo válido', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    salario_base: '600.00',
+    motivo_ajuste: 'Aumento salarial autorizado'
+  });
+
+  assert.equal(r.status, 201, JSON.stringify(r.body, null, 2));
+  assert.equal(api.registros.length, 1);
+
+  const guardado = api.registros[0];
+
+  assert.equal(guardado.salario_original, '500.00');
+  assert.equal(guardado.salario_base, '600.00');
+  assert.equal(
+    guardado.motivo_ajuste,
+    'Aumento salarial autorizado'
+  );
+});
+
+test('HU-21: rechaza motivos de más de 200 caracteres', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    salario_base: '600.00',
+    motivo_ajuste: 'A'.repeat(201)
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.equal(
+    r.body.errores.motivo_ajuste,
+    'El motivo del ajuste debe tener entre 1 y 200 caracteres'
+  );
+
+  // No debe guardar la planilla con un motivo inválido.
+  assert.equal(api.registros.length, 0);
+});
+
+test('HU-21: conserva salario original nulo cuando no está registrado', async t => {
+  const api = await conAPI(t, { empleadoSinSalario: true });
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    salario_base: '600.00',
+    motivo_ajuste: ''
+  });
+
+  assert.equal(r.status, 201, JSON.stringify(r.body, null, 2));
+  assert.equal(api.registros.length, 1);
+
+  const guardado = api.registros[0];
+
+  assert.equal(guardado.salario_original, null);
+  assert.equal(guardado.salario_base, '600.00');
+  assert.equal(guardado.motivo_ajuste, null);
+});
+test('HU-21: no exige motivo cuando el salario no cambia', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    salario_base: '500.00',
+    motivo_ajuste: ''
+  });
+
+  assert.equal(r.status, 201, JSON.stringify(r.body, null, 2));
+  assert.equal(api.registros.length, 1);
+
+  const guardado = api.registros[0];
+
+  assert.equal(guardado.salario_original, '500.00');
+  assert.equal(guardado.salario_base, '500.00');
+  assert.equal(guardado.motivo_ajuste, null);
+});
