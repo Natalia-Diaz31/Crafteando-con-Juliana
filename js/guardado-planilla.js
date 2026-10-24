@@ -85,6 +85,8 @@ async function guardarPlanilla() {
     return;
 }
 
+    const ajuste = obtenerAjusteSalario(false);
+
     // Construir objeto que espera la API
     const datosPlanilla = {
 
@@ -117,15 +119,24 @@ async function guardarPlanilla() {
             window.obtenerDetalleDescuentos(),
 
         descuentos_totales:
-            document.getElementById("descuentos").value
+            document.getElementById("descuentos").value,
+
+        // HU-18, HU-20 y HU-21: formato acordado en docs/contrato-integracion-sprint3.md.
+        // Los campos de formularios todavía no integrados quedan undefined y no se envían.
+        novedades: obtenerNovedades().map(novedad => ({
+            tipo: novedad.tipo,
+            condicion_pago: novedad.condicion,
+            fecha_inicio: novedad.fechaInicio,
+            fecha_fin: novedad.fechaFin
+        })),
+
+        ingresos: obtenerIngresos()?.detalle,
+
+        salario_original: ajuste?.salario_original,
+        motivo_ajuste: ajuste?.motivo_ajuste
     };
 
-    const contenidoOperacion = JSON.stringify({
-    datos: datosPlanilla,
-    novedades: obtenerNovedades(),
-    ingresos: obtenerIngresos()?.detalle ?? null,
-    ajuste: obtenerAjusteSalario(false)
-});
+    const contenidoOperacion = JSON.stringify(datosPlanilla);
 
 if (
     !operacionActual ||
@@ -195,9 +206,7 @@ datosPlanilla.operacion_id = operacionActual.id;
         guardadoExitoso = true;
         guardadoConfirmado = true;
 
-        mostrarMensajeGuardado(
-            `Planilla guardada correctamente. ID: ${resultado.id}`
-        );
+        mostrarConfirmacion(resultado.id);
 
     } catch(error) {
 
@@ -247,6 +256,31 @@ function convertirMesANumero(mes) {
 
 }
 
+
+// HU-17: confirmación con acceso al detalle y a una planilla nueva.
+// «Crear otra planilla» recarga la página: así se reinicia todo el estado,
+// incluido el identificador de operación, sin limpiar campo por campo.
+function mostrarConfirmacion(id) {
+    const enlace = (texto, href, clase) => Object.assign(
+        document.createElement("a"),
+        { textContent: texto, href, className: `btn btn-sm ms-2 ${clase}` }
+    );
+
+    const ver = enlace(
+        "Ver planilla",
+        `detalle-planilla.html?id=${encodeURIComponent(id)}`,
+        "btn-outline-primary"
+    );
+    const otra = enlace("Crear otra planilla", "planilla.html", "btn-primary");
+
+    otra.addEventListener("click", () =>
+        sessionStorage.removeItem("empleadoSeleccionado")
+    );
+
+    document.getElementById("mensaje-guardado").replaceChildren(
+        `Planilla guardada correctamente. ID: ${id}`, ver, otra
+    );
+}
 
 // Mostrar mensajes al usuario
 function mostrarMensajeGuardado(mensaje) {

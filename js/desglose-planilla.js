@@ -107,4 +107,38 @@
             `Suma de descuentos autorizados: ${formatoUSD.format(suma / 100)}`;
         contenedor.append(total);
     };
+
+    // HU-18, HU-20 y HU-21: bloque con título, tabla y nota final.
+    // Se agrega al contenedor; quien lo llama lo vacía y lo oculta antes de pintar.
+    window.pintarSeccion = function (contenedor, { titulo, columnas, filas, vacio, nota }) {
+        const crear = (etiqueta, propiedades) =>
+            Object.assign(document.createElement(etiqueta), propiedades);
+
+        contenedor.append(crear("h3", {
+            className: contenedor.dataset.claseTitulo ?? "",
+            textContent: titulo
+        }));
+
+        if (filas.length === 0) {
+            contenedor.append(crear("p", { textContent: vacio }));
+        } else {
+            const tabla = crear("table", { className: "table table-striped align-middle" });
+
+            tabla.createTHead().insertRow().append(
+                ...columnas.map(texto => crear("th", { scope: "col", textContent: texto }))
+            );
+
+            const cuerpo = tabla.createTBody();
+            filas.forEach(fila => {
+                const tr = cuerpo.insertRow();
+                fila.forEach(valor => { tr.insertCell().textContent = valor; });
+            });
+
+            contenedor.append(tabla);
+        }
+
+        if (nota) contenedor.append(crear("p", { className: "fw-bold", textContent: nota }));
+
+        contenedor.hidden = false;
+    };
 })();
