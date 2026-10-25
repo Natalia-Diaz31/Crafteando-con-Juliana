@@ -235,43 +235,15 @@
                         </div>
 
                         <!-- HU-13 - Horas trabajadas -->
-                        <div class="form-section">
-                            <h3>Horas trabajadas</h3>
-
-                            <div class="period-grid">
-                                <div>
-                                    <label for="horas-ordinarias" class="form-label">
-                                        Horas ordinarias
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="horas-ordinarias"
-                                        class="form-control"
-                                        placeholder="0.00"
-                                        inputmode="decimal">
-                                    <span class="currency-text">Horas</span>
-                                </div>
-
-                                <div>
-                                    <label for="horas-extras" class="form-label">
-                                        Horas extras
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="horas-extras"
-                                        class="form-control"
-                                        placeholder="0.00"
-                                        inputmode="decimal">
-                                    <span class="currency-text">Horas</span>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Compatibilidad con planillas históricas basadas en horas -->
+                        <input type="hidden" id="horas-ordinarias" value="0.00">
+                        <input type="hidden" id="horas-extras" value="0.00">
 
                         <div class="form-section">
                             <h3>Montos</h3>
                             <div class="money-field">
                                 <label for="salario" class="form-label">
-                                    Salario base
+                                    Salario base mensual 
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -284,13 +256,147 @@
                                 </span>
                             </div>
 
+                            <!-- HU-21 - Ajuste manual del salario base -->
+                            <div class="mt-3">
+                                <p id="salario-origen" class="text-muted mb-2" role="status"></p>
+
+                                <label for="salario-motivo" class="form-label">
+                                    Motivo del ajuste
+                                </label>
+
+                                <textarea
+                                    id="salario-motivo"
+                                    class="form-control"
+                                    maxlength="200"
+                                    rows="2"
+                                    placeholder="Explique por qué se ajusta el salario"></textarea>
+
+                                <p
+                                    id="salario-ajuste-error"
+                                    class="text-danger mt-1"
+                                    role="status">
+                                </p>
+
+                                <button
+                                    type="button"
+                                    id="restaurar-salario"
+                                    class="btn btn-outline-primary btn-sm">
+                                    Restaurar salario registrado
+                                </button>
+                            </div>
+                            
+                             <!-- HU-19 - Salario proporcional por días remunerados -->
+                            <div class="money-field">
+                                <label for="dias-remunerados" class="form-label">
+                                    Días remunerados
+                                </label>
+                                <input
+                                    type="text"
+                                    id="dias-remunerados"
+                                    class="form-control"
+                                    value="30"
+                                    readonly>
+                            </div>
+
+                            <div class="money-field">
+                                <label for="salario-proporcional" class="form-label">
+                                    Salario proporcional
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input
+                                        type="text"
+                                        id="salario-proporcional"
+                                        class="form-control"
+                                        value="0.00"
+                                        readonly>
+                                </div>
+                                <span class="currency-text">
+                                    Dólares estadounidenses
+                                </span>
+                            </div>
+                            <!-- HU-20 - Bonos e incentivos -->
+                            <div class="descuentos-card" aria-labelledby="titulo-ingresos-adicionales">
+                                <div class="descuentos-header">
+                                    <div>
+                                        <h3 id="titulo-ingresos-adicionales">Bonos e incentivos</h3>
+                                        <p>Registre los ingresos adicionales del empleado.</p>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-3">
+                                        <label for="ingreso-tipo" class="form-label">Tipo</label>
+                                        <select id="ingreso-tipo" class="form-select">
+                                            <option value="">Seleccione</option>
+                                            <option value="Bono">Bono</option>
+                                            <option value="Incentivo">Incentivo</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="ingreso-concepto" class="form-label">Concepto</label>
+                                        <input
+                                            type="text"
+                                            id="ingreso-concepto"
+                                            class="form-control"
+                                            maxlength="100"
+                                            placeholder="Ej. Bono por desempeño">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="ingreso-importe" class="form-label">Importe</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input
+                                                type="text"
+                                                id="ingreso-importe"
+                                                class="form-control"
+                                                placeholder="0.00"
+                                                inputmode="decimal">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <button
+                                            type="button"
+                                            id="agregar-ingreso"
+                                            class="btn btn-primary w-100">
+                                            Agregar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <p
+                                    id="ingreso-error"
+                                    class="text-danger mt-2"
+                                    role="status"
+                                    aria-live="polite">
+                                </p>
+
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Tipo</th>
+                                                <th>Concepto</th>
+                                                <th>Importe</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="detalle-ingresos"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                             <div class="money-field">
                                 <label for="ingresos" class="form-label">
                                     Ingresos adicionales
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="text" id="ingresos" class="form-control" placeholder="0.00" inputmode="decimal">
+                                    <input type="text" id="ingresos" class="form-control" placeholder="0.00" readonly>
                                 </div>
                                 <span class="currency-text">
                                     Dólares estadounidenses (USD)
@@ -549,7 +655,7 @@
                         </div>
                     </div>
 
-                    <div class="revision-section">
+                    <div class="revision-section" hidden aria-hidden="true">
                         <h3>
                             <i class="bi bi-clock"></i>
                             Horas trabajadas
@@ -576,22 +682,22 @@
 
                         <div class="revision-grid revision-grid-4">
                             <div class="revision-dato">
-                                <span>Salario base (USD)</span>
+                                <span>Salario base</span>
                                 <strong id="resumen-salario"></strong>
                             </div>
-
+                           
                             <div class="revision-dato">
-                                <span>Ingresos adicionales (USD)</span>
+                                <span>Ingresos adicionales</span>
                                 <strong id="resumen-ingresos"></strong>
                             </div>
 
                             <div class="revision-dato">
-                                <span>Total de ingresos (USD)</span>
+                                <span>Total de ingresos</span>
                                 <strong id="resumen-total-ingresos"></strong>
                             </div>
 
                             <div class="revision-dato">
-                                <span>Descuentos totales (USD)</span>
+                                <span>Descuentos totales</span>
                                 <strong id="resumen-descuentos"></strong>
                             </div>
                         </div>
@@ -605,9 +711,6 @@
                             <strong id="resumen-total"></strong>
                         </div>
                     </div>
-
-                    <!-- HU-18, HU-20 y HU-21: novedades, bonos y ajuste salarial (se pinta desde revision-planilla.js) -->
-                    <div id="resumen-complementos" class="revision-section table-responsive" hidden></div>
 
                     <div class="revision-section">
                         <h3>
@@ -680,6 +783,8 @@
     <script src="js/reglas-nomina.js"></script>
     <script type="module" src="js/ingresos-detalle.js"></script>
     <script type="module" src="js/salario-ajuste.js"></script>
+    <script type="module" src="js/salario-dias.js"></script>
 
 </body>
 </html>
+

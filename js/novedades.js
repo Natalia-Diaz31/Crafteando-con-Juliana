@@ -142,7 +142,17 @@ function mostrarNovedades() {
             ? resultado.diasRemunerados
             : "—";
 
+    const diasRemunerados = campo("dias-remunerados");
+
+    if (diasRemunerados) {
+        diasRemunerados.value =
+            resultado.valido
+                ? resultado.diasRemunerados
+                : "";
+    }
+
     mostrarError(resultado.errores.join(". "));
+
 }
 
 function iniciarNovedades() {
