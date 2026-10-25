@@ -265,91 +265,19 @@ async function verificarRolNomina(req, res, next) {
     }
 }
 
-// Endpoint para buscar empleados
-app.get("/api/empleados/buscar", verificarToken, async (req, res) => {
-    try {
-        // 1. Obtener el término de búsqueda
-        const termino = String(req.query.q || "").trim();
+// HU-24: rutas y servicio de búsqueda de empleados.
+const crearServicioEmpleados = require("./services/empleados");
+const crearRutasEmpleados = require("./routes/empleados");
 
-        if (!termino) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: "Debe ingresar un dato para buscar"
-            });
-        }
+const servicioEmpleados = crearServicioEmpleados(supabase);
 
-        if (termino.length > 100) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: "La búsqueda es demasiado larga"
-            });
-        }
-
-        const columnas =
-            "id, codigo, nombre_completo, dui, cargo";
-
-        // 2. Buscar primero por código exacto
-        const { data: porCodigo, error: errorCodigo } =
-            await supabase
-                .from("empleados")
-                .select(columnas)
-                .eq("codigo", termino);
-
-        if (errorCodigo) throw errorCodigo;
-
-        if (porCodigo.length > 0) {
-            return res.json({
-                ok: true,
-                empleados: porCodigo
-            });
-        }
-
-        // 3. Buscar por DUI exacto
-        const { data: porDui, error: errorDui } =
-            await supabase
-                .from("empleados")
-                .select(columnas)
-                .eq("dui", termino);
-
-        if (errorDui) throw errorDui;
-
-        if (porDui.length > 0) {
-            return res.json({
-                ok: true,
-                empleados: porDui
-            });
-        }
-
-        // 4. Buscar por nombre parcial
-        // Escapar caracteres especiales de ILIKE
-        const nombreSeguro = termino.replace(
-            /[%_\\]/g,
-            "\\$&"
-        );
-
-        const { data: porNombre, error: errorNombre } =
-            await supabase
-                .from("empleados")
-                .select(columnas)
-                .ilike("nombre_completo", `%${nombreSeguro}%`);
-
-        if (errorNombre) throw errorNombre;
-
-        // 5. Devolver los resultados
-        return res.status(200).json({
-            ok: true,
-            empleados: porNombre || []
-        });
-
-    } catch (error) {
-        console.error("Error al buscar empleados:", error);
-
-        return res.status(500).json({
-            ok: false,
-            mensaje: "Error al buscar empleados"
-        });
-    }
-});
+app.use(
+    "/api/empleados",
+    crearRutasEmpleados({
+        servicio: servicioEmpleados,
+        verificarToken
+    })
+);
 
 //
 // HU-05: CONSULTAR DATOS BÁSICOS DE UN EMPLEADO
