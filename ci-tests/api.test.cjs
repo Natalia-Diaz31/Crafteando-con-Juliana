@@ -71,6 +71,7 @@ const TOKEN = jwt.sign({ id: EMPLEADO.id, correo: 'demo@planillas.com' }, SECRET
 
 function prepararAPI(opciones = {}) {
   const registros = [];
+  const borradores = [];
   const supabase = {
     async rpc(nombre, datos) {
       if (nombre === 'verificar_login') {
@@ -154,29 +155,179 @@ function prepararAPI(opciones = {}) {
         };
       }
 
+      // HU-23: simular la finalización atómica de un borrador.
+      if (nombre === 'finalizar_borrador_validado') {
+        const borrador = borradores.find(
+          item =>
+            item.id === datos.p_borrador_id &&
+            item.propietario_id === datos.p_propietario_id
+        );
+
+        if (!borrador) {
+          return {
+            data: null,
+            error: { message: 'Borrador no encontrado' }
+          };
+        }
+
+        // Una finalización repetida devuelve la planilla existente.
+        if (borrador.estado === 'Finalizado') {
+          const existente = registros.find(
+            item => item.id === borrador.planilla_final_id
+          );
+
+          return {
+            data: existente
+              ? [{ ...existente, creada_nueva: false }]
+              : null,
+            error: existente
+              ? null
+              : { message: 'Planilla definitiva no encontrada' }
+          };
+        }
+
+        if (borrador.estado !== 'Borrador') {
+          return {
+            data: null,
+            error: { message: 'El borrador no se puede finalizar' }
+          };
+        }
+
+        const registro = datos.p_registro;
+
+        if (
+          registro.plantilla_id !== borrador.plantilla_id ||
+          registro.empleado_id !== borrador.empleado_id
+        ) {
+          return {
+            data: null,
+            error: { message: 'Los datos no corresponden al borrador' }
+          };
+        }
+
+        const guardado = {
+          ...registro,
+          id: PLANILLA_GUARDADA.id,
+          fecha_guardado: PLANILLA_GUARDADA.fecha_guardado,
+          descuentos: datos.p_descuentos,
+          novedades: datos.p_novedades,
+          ingresos_detalle: datos.p_ingresos,
+          borrador_origen_id: borrador.id
+        };
+
+        registros.push(guardado);
+
+        borrador.estado = 'Finalizado';
+        borrador.planilla_final_id = guardado.id;
+        borrador.actualizado_en = new Date().toISOString();
+
+        return {
+          data: [{
+            id: guardado.id,
+            fecha_guardado: guardado.fecha_guardado,
+            total_pagar: guardado.total_pagar,
+            creada_nueva: true
+          }],
+          error: null
+        };
+      }
       throw new Error(`Función RPC no contemplada: ${nombre}`);
     },
+
     from(tabla) {
       let filtro, registro;
+      const filtros = [];
+      let actualizacion = null;
+      let operacion = null;
+
       const consulta = {
         select() { return consulta; },
-        eq(campo, valor) { filtro = { campo, valor }; return consulta; },
+        eq(campo, valor) {
+          filtro = { campo, valor };
+          filtros.push({ campo, valor });
+          return consulta;
+        },
         order() { return consulta; },
-        insert(datos) { registro = datos; return consulta; },
-        async maybeSingle() { return resolver(); },
-        async single() { return resolver(); },
-        // Los listados usan await directamente sobre la consulta.
-        then(ok, fallo) { return Promise.resolve().then(resolver).then(ok, fallo); }
+        insert(datos) {
+          registro = datos;
+          operacion = 'insert';
+          return consulta;
+        },
+        update(datos) {
+          actualizacion = datos;
+          operacion = 'update';
+          return consulta;
+        },
+        async maybeSingle() { return resolver(true); },
+        async single() { return resolver(true); },
+        then(ok, fallo) {
+          return Promise.resolve()
+            .then(() => resolver(false))
+            .then(ok, fallo);
+        }
       };
-      function resolver() {
+
+      function resolver(unico = false) {
+        if (tabla === 'planilla_borradores') {
+          const coincide = borrador =>
+            filtros.every(({ campo, valor }) =>
+              borrador[campo] === valor
+            );
+
+          if (operacion === 'insert') {
+            const nuevo = {
+              id: '55555555-5555-4555-8555-555555555555',
+              estado: 'Borrador',
+              creado_en: '2026-10-24T10:00:00Z',
+              actualizado_en: '2026-10-24T10:00:00Z',
+              planilla_final_id: null,
+              ...registro
+            };
+
+            borradores.push(nuevo);
+
+            return {
+              data: unico ? { ...nuevo } : [{ ...nuevo }],
+              error: null
+            };
+          }
+
+          if (operacion === 'update') {
+            const encontrado = borradores.find(coincide);
+
+            if (!encontrado) {
+              return { data: unico ? null : [], error: null };
+            }
+
+            Object.assign(encontrado, actualizacion);
+
+            return {
+              data: unico ? { ...encontrado } : [{ ...encontrado }],
+              error: null
+            };
+          }
+
+          const encontrados = borradores.filter(coincide);
+
+          return {
+            data: unico
+              ? (encontrados[0] ? { ...encontrados[0] } : null)
+              : encontrados.map(borrador => ({ ...borrador })),
+            error: null
+          };
+        }
+
         if (tabla === 'cuentas') {
           return {
             data: filtro?.valor === EMPLEADO.id
-              ? { rol: 'Encargado de nómina' }
+              ? {
+                rol: opciones.rolCuenta ?? 'Encargado de nómina'
+              }
               : null,
             error: null
           };
         }
+
         if (tabla === 'empleados') {
           return {
             data: !opciones.sinEmpleado && filtro?.valor === EMPLEADO.id
@@ -190,16 +341,21 @@ function prepararAPI(opciones = {}) {
             error: null
           };
         }
+
         if (tabla === 'plantillas') {
-          return { data: !opciones.sinPlantilla && filtro?.valor === PLANTILLA.id ? { ...PLANTILLA } : null, error: null };
-        }
-        // HU-20: simular la consulta de ingresos adicionales.
-        if (tabla === 'planilla_ingresos') {
           return {
-            data: [],
+            data: !opciones.sinPlantilla &&
+              filtro?.valor === PLANTILLA.id
+              ? { ...PLANTILLA }
+              : null,
             error: null
           };
         }
+
+        if (tabla === 'planilla_ingresos') {
+          return { data: [], error: null };
+        }
+
         if (tabla === 'planilla_descuentos') {
           return {
             data: [
@@ -209,29 +365,72 @@ function prepararAPI(opciones = {}) {
             error: null
           };
         }
+
         if (tabla === 'planilla_novedades') {
           return {
-            data: [{ tipo: 'Permiso', fecha_inicio: '2026-10-05', fecha_fin: '2026-10-06', condicion_pago: 'Sin goce' }],
+            data: [{
+              tipo: 'Permiso',
+              fecha_inicio: '2026-10-05',
+              fecha_fin: '2026-10-06',
+              condicion_pago: 'Sin goce'
+            }],
             error: null
           };
         }
+
         if (tabla === 'planillas' && !registro) {
-          if (opciones.falloConsulta) return { data: null, error: { message: 'Fallo simulado de consulta' } };
+          if (opciones.falloConsulta) {
+            return {
+              data: null,
+              error: { message: 'Fallo simulado de consulta' }
+            };
+          }
+
           const guardadas = [{ ...PLANILLA_GUARDADA }];
-          if (filtro) return { data: guardadas.find(p => p[filtro.campo] === filtro.valor) ?? null, error: null };
+
+          if (filtro) {
+            return {
+              data: guardadas.find(
+                p => p[filtro.campo] === filtro.valor
+              ) ?? null,
+              error: null
+            };
+          }
+
           return { data: guardadas, error: null };
         }
+
         if (tabla === 'planillas' && registro) {
-          if (opciones.falloGuardado) return { data: null, error: { message: 'Fallo simulado de inserción' } };
-          if (opciones.sinId) return { data: null, error: null };
-          const guardado = { ...registro, id: '33333333-3333-4333-8333-333333333333', fecha_guardado: '2026-10-12T12:00:00Z' };
+          if (opciones.falloGuardado) {
+            return {
+              data: null,
+              error: { message: 'Fallo simulado de inserción' }
+            };
+          }
+
+          if (opciones.sinId) {
+            return { data: null, error: null };
+          }
+
+          const guardado = {
+            ...registro,
+            id: '33333333-3333-4333-8333-333333333333',
+            fecha_guardado: '2026-10-12T12:00:00Z'
+          };
+
           registros.push(guardado);
+
           return { data: guardado, error: null };
         }
-        throw new Error(`Consulta no contemplada por las pruebas: ${tabla}`);
+
+        throw new Error(
+          `Consulta no contemplada por las pruebas: ${tabla}`
+        );
       }
+
       return consulta;
     }
+
   };
   let app;
   function expressPruebas() {
@@ -258,7 +457,7 @@ function prepararAPI(opciones = {}) {
   const cargar = vm.compileFunction(fs.readFileSync(serverPath, 'utf8'), Object.keys(contexto), { filename: serverPath });
   cargar(...Object.values(contexto));
   assert.ok(app, 'server.js debe crear la aplicación Express');
-  return { app, registros };
+  return { app, registros, borradores };
 }
 
 async function conAPI(t, opciones = {}) {
@@ -270,15 +469,31 @@ async function conAPI(t, opciones = {}) {
     servidor.close(error => error ? reject(error) : resolve());
     servidor.closeAllConnections();
   }));
-  async function pedir(ruta, body, token = TOKEN) {
+
+  async function pedir(ruta, body, token = TOKEN, metodo) {
     const headers = {};
-    if (token !== null) headers.Authorization = `Bearer ${token}`;
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
-    const respuesta = await fetch(`http://127.0.0.1:${servidor.address().port}${ruta}`, {
-      method: body === undefined ? 'GET' : 'POST', headers,
-      body: body === undefined ? undefined : JSON.stringify(body)
-    });
-    return { status: respuesta.status, body: await respuesta.json() };
+
+    if (token !== null) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (body !== undefined) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const respuesta = await fetch(
+      `http://127.0.0.1:${servidor.address().port}${ruta}`,
+      {
+        method: metodo ?? (body === undefined ? 'GET' : 'POST'),
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body)
+      }
+    );
+
+    return {
+      status: respuesta.status,
+      body: await respuesta.json()
+    };
   }
   return { ...estado, pedir };
 }
@@ -979,4 +1194,390 @@ test('HU-22: exige autenticación', async t => {
 
   assert.equal(r.status, 401);
   assert.equal(api.registros.length, 0);
+});
+
+//
+// HU-23: PRUEBAS DE BORRADORES
+//
+
+const CONTENIDO_BORRADOR = {
+  version_formato: 1,
+  plantilla: { id: PLANTILLA.id },
+  empleado: null,
+  mes: '',
+  anio: '',
+  periodo_pago: '',
+  salario_base: '',
+  ingresos_adicionales: '',
+  horas_ordinarias: '',
+  horas_extras: '',
+  ingresos: [],
+  descuentos: [],
+  novedades: []
+};
+
+const CONTENIDO_BORRADOR_COMPLETO = {
+  ...CONTENIDO_BORRADOR,
+  plantilla: { id: PLANTILLA.id },
+  empleado: { id: EMPLEADO.id },
+  mes: DATOS.mes,
+  anio: DATOS.anio,
+  periodo_pago: DATOS.periodo_pago,
+  salario_base: DATOS.salario_base,
+  ingresos_adicionales: DATOS.ingresos_adicionales,
+  horas_ordinarias: DATOS.horas_ordinarias,
+  horas_extras: DATOS.horas_extras,
+  ingresos: [],
+  descuentos: DATOS.descuentos,
+  novedades: DATOS.novedades
+};
+
+test('HU-23: permite crear un borrador incompleto', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  assert.equal(r.status, 201);
+  assert.equal(r.body.ok, true);
+  assert.equal(r.body.borrador.estado, 'Borrador');
+  assert.equal(r.body.borrador.propietario_id, EMPLEADO.id);
+  assert.equal(r.body.borrador.empleado_id, null);
+  assert.equal(api.borradores.length, 1);
+});
+
+test('HU-23: lista los borradores del usuario', async t => {
+  const api = await conAPI(t);
+
+  await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  const r = await api.pedir('/api/borradores');
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.ok, true);
+  assert.equal(r.body.borradores.length, 1);
+});
+
+test('HU-23: recupera un borrador existente', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  const id = creado.body.borrador.id;
+  const r = await api.pedir(`/api/borradores/${id}`);
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.borrador.id, id);
+  assert.deepEqual(
+    r.body.borrador.contenido,
+    CONTENIDO_BORRADOR
+  );
+});
+
+test('HU-23: actualiza el borrador sin cambiar su ID', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  const id = creado.body.borrador.id;
+
+  const contenidoActualizado = {
+    ...CONTENIDO_BORRADOR,
+    mes: '10',
+    anio: '2026'
+  };
+
+  const r = await api.pedir(
+    `/api/borradores/${id}`,
+    { contenido: contenidoActualizado },
+    TOKEN,
+    'PUT'
+  );
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.borrador.id, id);
+  assert.equal(r.body.borrador.contenido.mes, '10');
+  assert.equal(api.borradores.length, 1);
+});
+
+test('HU-23: rechaza crear borradores sin plantilla', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/borradores', {
+    contenido: {
+      ...CONTENIDO_BORRADOR,
+      plantilla: null
+    }
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.equal(api.borradores.length, 0);
+});
+
+test('HU-23: rechaza solicitudes sin autenticación', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(
+    '/api/borradores',
+    { contenido: CONTENIDO_BORRADOR },
+    null
+  );
+
+  assert.equal(r.status, 401);
+  assert.equal(api.borradores.length, 0);
+});
+
+test('HU-23: impide modificar un borrador finalizado', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  const id = creado.body.borrador.id;
+  api.borradores[0].estado = 'Finalizado';
+
+  const r = await api.pedir(
+    `/api/borradores/${id}`,
+    { contenido: CONTENIDO_BORRADOR },
+    TOKEN,
+    'PUT'
+  );
+
+  assert.equal(r.status, 404);
+  assert.equal(api.borradores[0].estado, 'Finalizado');
+});
+//
+// HU-23: PRUEBAS DE SEGURIDAD
+//
+
+test('HU-23: no permite recuperar borradores de otra cuenta', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  const id = creado.body.borrador.id;
+
+  // Simulamos que el borrador pertenece a otra cuenta.
+  api.borradores[0].propietario_id =
+    '99999999-9999-4999-8999-999999999999';
+
+  const r = await api.pedir(`/api/borradores/${id}`);
+
+  assert.equal(r.status, 404);
+  assert.equal(r.body.ok, false);
+});
+
+test('HU-23: no permite actualizar borradores de otra cuenta', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  const id = creado.body.borrador.id;
+
+  api.borradores[0].propietario_id =
+    '99999999-9999-4999-8999-999999999999';
+
+  const r = await api.pedir(
+    `/api/borradores/${id}`,
+    {
+      contenido: {
+        ...CONTENIDO_BORRADOR,
+        mes: '10'
+      }
+    },
+    TOKEN,
+    'PUT'
+  );
+
+  assert.equal(r.status, 404);
+  assert.equal(api.borradores[0].contenido.mes, '');
+});
+
+test('HU-23: no muestra borradores de otras cuentas en el listado', async t => {
+  const api = await conAPI(t);
+
+  await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  api.borradores[0].propietario_id =
+    '99999999-9999-4999-8999-999999999999';
+
+  const r = await api.pedir('/api/borradores');
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.borradores.length, 0);
+});
+
+test('HU-23: rechaza identificadores de borrador inválidos', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/borradores/123');
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+});
+
+test('HU-23: rechaza valores salariales inválidos', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/borradores', {
+    contenido: {
+      ...CONTENIDO_BORRADOR,
+      salario_base: '-100'
+    }
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(api.borradores.length, 0);
+});
+test('HU-23: rechaza cuentas sin el rol autorizado', async t => {
+  const api = await conAPI(t, {
+    rolCuenta: 'Empleado'
+  });
+
+  const r = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  assert.equal(r.status, 403);
+  assert.equal(r.body.ok, false);
+  assert.equal(api.borradores.length, 0);
+});
+test('HU-23: exige confirmar la revisión antes de finalizar', async t => {
+  const api = await conAPI(t);
+
+  const respuesta = await api.pedir(
+    '/api/borradores/55555555-5555-4555-8555-555555555555/finalizar',
+    { confirmar_revision: false }
+  );
+
+  assert.equal(respuesta.status, 400);
+  assert.equal(respuesta.body.ok, false);
+});
+
+test('HU-23: impide finalizar un borrador de otra cuenta', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  assert.equal(creado.status, 201);
+
+  api.borradores[0].propietario_id =
+    '99999999-9999-4999-8999-999999999999';
+
+  const respuesta = await api.pedir(
+    `/api/borradores/${api.borradores[0].id}/finalizar`,
+    { confirmar_revision: true }
+  );
+
+  assert.equal(respuesta.status, 404);
+  assert.equal(respuesta.body.ok, false);
+});
+
+test('HU-23: rechaza finalizar un borrador incompleto', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  assert.equal(creado.status, 201);
+
+  const respuesta = await api.pedir(
+    `/api/borradores/${creado.body.borrador.id}/finalizar`,
+    { confirmar_revision: true }
+  );
+
+  assert.equal(respuesta.status, 400);
+  assert.equal(respuesta.body.ok, false);
+});
+
+test('HU-23: finaliza un borrador y crea una planilla definitiva', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR_COMPLETO
+  });
+
+  assert.equal(creado.status, 201);
+
+  const idBorrador = creado.body.borrador.id;
+
+  const respuesta = await api.pedir(
+    `/api/borradores/${idBorrador}/finalizar`,
+    { confirmar_revision: true }
+  );
+
+  assert.equal(
+    respuesta.status,
+    201,
+    `Respuesta inesperada: ${JSON.stringify(respuesta.body)}`
+  );
+
+  assert.equal(respuesta.body.ok, true);
+  assert.equal(respuesta.body.borrador_id, idBorrador);
+
+  assert.equal(api.registros.length, 1);
+  assert.equal(api.borradores.length, 1);
+
+  const borrador = api.borradores[0];
+  const planilla = api.registros[0];
+
+  assert.equal(borrador.estado, 'Finalizado');
+  assert.equal(borrador.planilla_final_id, planilla.id);
+  assert.equal(respuesta.body.id, planilla.id);
+  assert.equal(planilla.borrador_origen_id, idBorrador);
+});
+
+test('HU-23: no duplica la planilla al finalizar dos veces', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR_COMPLETO
+  });
+
+  assert.equal(creado.status, 201);
+
+  const idBorrador = creado.body.borrador.id;
+  const ruta = `/api/borradores/${idBorrador}/finalizar`;
+
+  const primera = await api.pedir(ruta, {
+    confirmar_revision: true
+  });
+
+  assert.equal(primera.status, 201);
+  assert.equal(api.registros.length, 1);
+
+  const segunda = await api.pedir(ruta, {
+    confirmar_revision: true
+  });
+
+  // La API debe impedir una segunda finalización.
+  assert.equal(segunda.status, 409);
+  assert.equal(segunda.body.ok, false);
+
+  // La planilla definitiva original permanece intacta.
+  assert.equal(api.registros.length, 1);
+  assert.equal(api.borradores.length, 1);
+  assert.equal(api.borradores[0].estado, 'Finalizado');
+  assert.equal(
+    api.borradores[0].planilla_final_id,
+    primera.body.id
+  );
 });

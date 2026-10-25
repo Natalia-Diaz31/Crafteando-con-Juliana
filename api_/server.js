@@ -838,6 +838,168 @@ function validarDatosPlanilla(req, res, next) {
     return next();
 }
 
+// HU-23: adaptar el contenido recuperado de un borrador
+// al contrato de validación de una planilla definitiva.
+function prepararDatosDesdeBorrador(contenido) {
+    const esMensual = contenido.periodo_pago === "mensual";
+
+    return {
+        periodo_pago: contenido.periodo_pago,
+        modo_calculo: esMensual ? "dias" : "horas",
+        version_regla: ReglasNomina.VERSION,
+
+        plantilla_id: contenido.plantilla?.id ?? null,
+        empleado_id: contenido.empleado?.id ?? null,
+
+        mes: contenido.mes,
+        anio: contenido.anio,
+
+        salario_base: contenido.salario_base,
+        salario_base_mensual: contenido.salario_base,
+
+        ingresos_adicionales: contenido.ingresos_adicionales,
+
+        horas_ordinarias: esMensual
+            ? null
+            : contenido.horas_ordinarias,
+
+        horas_extras: esMensual
+            ? null
+            : contenido.horas_extras,
+
+        descuentos: contenido.descuentos,
+        novedades: contenido.novedades,
+        ingresos_detalle: contenido.ingresos,
+
+        motivo_ajuste: contenido.motivo_ajuste
+    };
+}
+// HU-23: consultar y comprobar los registros necesarios
+// para guardar una planilla definitiva.
+async function verificarReferenciasPlanilla(datos) {
+    const { data: empleado, error: errorEmpleado } = await supabase
+        .from("empleados")
+        .select("id, codigo, nombre_completo, dui, cargo, salario_base_mensual")
+        .eq("id", datos.empleado_id)
+        .maybeSingle();
+
+    if (errorEmpleado) throw errorEmpleado;
+
+    if (!empleado) {
+        return {
+            error: {
+                estado: 404,
+                mensaje: "El empleado seleccionado no existe"
+            }
+        };
+    }
+
+    const salarioOriginal = empleado.salario_base_mensual;
+
+    const salarioUtilizado = datos.modo_calculo === "dias"
+        ? datos.salario_base_mensual
+        : datos.salario_base;
+
+    const motivo = typeof datos.motivo_ajuste === "string"
+        ? datos.motivo_ajuste.trim()
+        : "";
+
+    const tieneSalarioOriginal =
+        salarioOriginal !== null && salarioOriginal !== undefined;
+
+    const ajustado = tieneSalarioOriginal &&
+        Math.round(Number(salarioOriginal) * 100) !==
+        Math.round(Number(salarioUtilizado) * 100);
+
+    if (ajustado && (motivo.length < 1 || motivo.length > 200)) {
+        return {
+            error: {
+                estado: 400,
+                mensaje: "Corrija el ajuste salarial",
+                errores: {
+                    motivo_ajuste:
+                        "El motivo del ajuste debe tener entre 1 y 200 caracteres"
+                }
+            }
+        };
+    }
+
+    const { data: plantilla, error: errorPlantilla } = await supabase
+        .from("plantillas")
+        .select("id, nombre")
+        .eq("id", datos.plantilla_id)
+        .maybeSingle();
+
+    if (errorPlantilla) throw errorPlantilla;
+
+    if (!plantilla) {
+        return {
+            error: {
+                estado: 404,
+                mensaje: "La plantilla seleccionada no existe"
+            }
+        };
+    }
+
+    if (plantilla.nombre !== "Planilla básica mensual") {
+        return {
+            error: {
+                estado: 400,
+                mensaje: "Seleccione la plantilla Planilla básica mensual"
+            }
+        };
+    }
+
+    return { empleado, plantilla };
+}
+
+// HU-23: construir el registro definitivo a partir de datos validados.
+// Se reutiliza tanto en el guardado normal como en la finalización.
+function construirRegistroPlanilla(datos, empleado, plantilla) {
+    const salarioOriginal = empleado.salario_base_mensual;
+
+    const salarioUtilizado = datos.modo_calculo === "dias"
+        ? datos.salario_base_mensual
+        : datos.salario_base;
+
+    const tieneSalarioOriginal =
+        salarioOriginal !== null && salarioOriginal !== undefined;
+
+    const ajustado = tieneSalarioOriginal &&
+        Math.round(Number(salarioOriginal) * 100) !==
+        Math.round(Number(salarioUtilizado) * 100);
+
+    const motivo = typeof datos.motivo_ajuste === "string"
+        ? datos.motivo_ajuste.trim()
+        : "";
+
+    return {
+        periodo_pago: datos.periodo_pago,
+        deducciones_legales: datos.deducciones_legales,
+        plantilla_id: plantilla.id,
+        empleado_id: empleado.id,
+        mes: datos.mes,
+        anio: datos.anio,
+        plantilla_nombre: plantilla.nombre,
+        empleado_codigo: empleado.codigo,
+        empleado_nombre: empleado.nombre_completo,
+        empleado_dui: empleado.dui,
+        empleado_cargo: empleado.cargo,
+        modo_calculo: datos.modo_calculo,
+        salario_base_mensual: datos.salario_base_mensual,
+        dias_remunerados: datos.dias_remunerados,
+        salario_proporcional: datos.salario_proporcional,
+        salario_original: salarioOriginal ?? null,
+        motivo_ajuste: ajustado ? motivo : null,
+        salario_base: datos.salario_base,
+        ingresos_adicionales: datos.ingresos_adicionales,
+        horas_ordinarias: datos.horas_ordinarias,
+        horas_extras: datos.horas_extras,
+        descuentos_totales: datos.descuentos_totales,
+        total_pagar: datos.total_pagar
+    };
+}
+
 //
 // HU-08: GUARDAR UNA PLANILLA
 //
@@ -868,117 +1030,25 @@ app.post(
     async (req, res) => {
         try {
             const datos = req.planillaValidada;
+            const referencias = await verificarReferenciasPlanilla(datos);
 
-            // Consultar los datos reales del empleado.
-            const {
-                data: empleado,
-                error: errorEmpleado
-            } = await supabase
-                .from("empleados")
-                .select("id, codigo, nombre_completo, dui, cargo, salario_base_mensual")
-                .eq("id", datos.empleado_id)
-                .maybeSingle();
+            if (referencias.error) {
+                const { estado, ...respuesta } = referencias.error;
 
-            if (errorEmpleado) throw errorEmpleado;
-
-            if (!empleado) {
-                return res.status(404).json({
+                return res.status(estado).json({
                     ok: false,
-                    mensaje: "El empleado seleccionado no existe"
+                    ...respuesta
                 });
             }
 
-            // HU-21: validar el ajuste contra el salario registrado en Supabase.
-            const salarioOriginal = empleado.salario_base_mensual;
+            const { empleado, plantilla } = referencias;
 
-            const salarioUtilizado = datos.modo_calculo === "dias"
-                ? datos.salario_base_mensual
-                : datos.salario_base;
-
-            const motivo = typeof datos.motivo_ajuste === "string"
-                ? datos.motivo_ajuste.trim()
-                : "";
-
-            const tieneSalarioOriginal =
-                salarioOriginal !== null && salarioOriginal !== undefined;
-
-            const ajustado = tieneSalarioOriginal &&
-                Math.round(Number(salarioOriginal) * 100) !==
-                Math.round(Number(salarioUtilizado) * 100);
-
-            if (tieneSalarioOriginal) {
-
-                if (ajustado && (motivo.length < 1 || motivo.length > 200)) {
-                    return res.status(400).json({
-                        ok: false,
-                        mensaje: "Corrija el ajuste salarial",
-                        errores: {
-                            motivo_ajuste:
-                                "El motivo del ajuste debe tener entre 1 y 200 caracteres"
-                        }
-                    });
-                }
-            }
-
-            // Consultar la plantilla seleccionada.
-            const {
-                data: plantilla,
-                error: errorPlantilla
-            } = await supabase
-                .from("plantillas")
-                .select("id, nombre")
-                .eq("id", datos.plantilla_id)
-                .maybeSingle();
-
-            if (errorPlantilla) throw errorPlantilla;
-
-            if (!plantilla) {
-                return res.status(404).json({
-                    ok: false,
-                    mensaje: "La plantilla seleccionada no existe"
-                });
-            }
-
-            if (plantilla.nombre !== "Planilla básica mensual") {
-                return res.status(400).json({
-                    ok: false,
-                    mensaje:
-                        "Seleccione la plantilla Planilla básica mensual"
-                });
-            }
-
-            // Conservar los datos del empleado y de la plantilla
-            // junto con el período y los montos validados.
-            const registro = {
-                periodo_pago: datos.periodo_pago,
-                deducciones_legales: datos.deducciones_legales,
-                plantilla_id: plantilla.id,
-                empleado_id: empleado.id,
-                mes: datos.mes,
-                anio: datos.anio,
-                plantilla_nombre: plantilla.nombre,
-                empleado_codigo: empleado.codigo,
-                empleado_nombre: empleado.nombre_completo,
-                empleado_dui: empleado.dui,
-                empleado_cargo: empleado.cargo,
-                // HU-19: conservar los datos del cálculo proporcional.
-                modo_calculo: datos.modo_calculo,
-                salario_base_mensual: datos.salario_base_mensual,
-                dias_remunerados: datos.dias_remunerados,
-                salario_proporcional: datos.salario_proporcional,
-                // HU-21: conservar el salario original sin modificar el expediente.
-                salario_original: salarioOriginal ?? null,
-                motivo_ajuste: ajustado ? motivo : null,
-
-                salario_base: datos.salario_base,
-                ingresos_adicionales: datos.ingresos_adicionales,
-                // HU-13: conservar las horas trabajadas.
-                horas_ordinarias: datos.horas_ordinarias,
-                horas_extras: datos.horas_extras,
-
-                descuentos_totales: datos.descuentos_totales,
-                total_pagar: datos.total_pagar
-            };
+            // Construir el registro definitivo con los datos validados.
+            const registro = construirRegistroPlanilla(
+                datos,
+                empleado,
+                plantilla
+            );
 
             // HU-12: guardar la planilla y sus descuentos
             // en una sola transacción de PostgreSQL.
@@ -1235,6 +1305,516 @@ app.use(
         verificarToken,
         verificarRolNomina
     })
+);
+
+//
+// HU-23: VALIDACIÓN DE BORRADORES
+//
+
+function validarContenidoBorrador(contenido) {
+    const errores = {};
+
+    if (
+        !contenido ||
+        typeof contenido !== "object" ||
+        Array.isArray(contenido)
+    ) {
+        return {
+            valido: false,
+            errores: {
+                contenido: "El contenido del borrador debe ser un objeto"
+            }
+        };
+    }
+
+    if (
+        !contenido.plantilla ||
+        !esUUIDValido(contenido.plantilla.id)
+    ) {
+        errores.plantilla =
+            "Debe seleccionar una plantilla válida";
+    }
+
+    if (
+        contenido.empleado?.id &&
+        !esUUIDValido(contenido.empleado.id)
+    ) {
+        errores.empleado =
+            "El identificador del empleado no es válido";
+    }
+
+    const mes = contenido.mes;
+
+    if (
+        mes !== undefined &&
+        mes !== null &&
+        mes !== "" &&
+        (
+            !Number.isInteger(Number(mes)) ||
+            Number(mes) < 1 ||
+            Number(mes) > 12
+        )
+    ) {
+        errores.mes = "Seleccione un mes válido";
+    }
+
+    const anio = contenido.anio;
+
+    if (
+        anio !== undefined &&
+        anio !== null &&
+        anio !== "" &&
+        !/^[1-9]\d{3}$/.test(String(anio))
+    ) {
+        errores.anio = "Ingrese un año de cuatro cifras";
+    }
+
+    if (
+        contenido.periodo_pago !== undefined &&
+        contenido.periodo_pago !== "" &&
+        !["mensual", "quincenal", "semanal"].includes(
+            contenido.periodo_pago
+        )
+    ) {
+        errores.periodo_pago =
+            "Seleccione una frecuencia válida";
+    }
+
+    const camposNumericos = [
+        "salario_base",
+        "ingresos_adicionales",
+        "horas_ordinarias",
+        "horas_extras"
+    ];
+
+    for (const campo of camposNumericos) {
+        const valor = contenido[campo];
+
+        if (
+            valor === undefined ||
+            valor === null ||
+            valor === ""
+        ) {
+            continue;
+        }
+
+        if (
+            !/^\d+(?:\.\d{1,2})?$/.test(String(valor)) ||
+            Number(valor) > 9999999999.99
+        ) {
+            errores[campo] =
+                "Ingrese un valor válido con máximo dos decimales";
+        }
+    }
+
+    for (const campo of ["ingresos", "descuentos", "novedades"]) {
+        if (
+            contenido[campo] !== undefined &&
+            !Array.isArray(contenido[campo])
+        ) {
+            errores[campo] =
+                `El campo ${campo} debe contener una lista`;
+        }
+    }
+
+    return {
+        valido: Object.keys(errores).length === 0,
+        errores
+    };
+}
+
+
+//
+// HU-23: ENDPOINTS DE BORRADORES
+//
+
+// Crear borrador
+app.post(
+    "/api/borradores",
+    verificarToken,
+    verificarRolNomina,
+    async (req, res) => {
+        try {
+            const contenido = req.body?.contenido;
+            const validacion = validarContenidoBorrador(contenido);
+
+            if (!validacion.valido) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "Corrija los datos del borrador",
+                    errores: validacion.errores
+                });
+            }
+
+            const plantillaId = contenido.plantilla.id;
+            const empleadoId = contenido.empleado?.id || null;
+
+            const { data: plantilla, error: errorPlantilla } =
+                await supabase
+                    .from("plantillas")
+                    .select("id")
+                    .eq("id", plantillaId)
+                    .maybeSingle();
+
+            if (errorPlantilla) throw errorPlantilla;
+
+            if (!plantilla) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "La plantilla seleccionada no existe"
+                });
+            }
+
+            if (empleadoId) {
+                const { data: empleado, error: errorEmpleado } =
+                    await supabase
+                        .from("empleados")
+                        .select("id")
+                        .eq("id", empleadoId)
+                        .maybeSingle();
+
+                if (errorEmpleado) throw errorEmpleado;
+
+                if (!empleado) {
+                    return res.status(404).json({
+                        ok: false,
+                        mensaje: "El empleado seleccionado no existe"
+                    });
+                }
+            }
+
+            const { data, error } = await supabase
+                .from("planilla_borradores")
+                .insert({
+                    propietario_id: req.usuario.id,
+                    plantilla_id: plantillaId,
+                    empleado_id: empleadoId,
+                    contenido,
+                    estado: "Borrador"
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            return res.status(201).json({
+                ok: true,
+                mensaje: "Borrador guardado correctamente",
+                borrador: data
+            });
+        } catch (error) {
+            console.error("Error al crear borrador:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje: "No se pudo guardar el borrador"
+            });
+        }
+    }
+);
+
+// Listar únicamente los borradores del usuario
+app.get(
+    "/api/borradores",
+    verificarToken,
+    verificarRolNomina,
+    async (req, res) => {
+        try {
+            const { data, error } = await supabase
+                .from("planilla_borradores")
+                .select(
+                    "id, plantilla_id, empleado_id, contenido, estado, creado_en, actualizado_en"
+                )
+                .eq("propietario_id", req.usuario.id)
+                .eq("estado", "Borrador")
+                .order("actualizado_en", { ascending: false });
+
+            if (error) throw error;
+
+            return res.status(200).json({
+                ok: true,
+                borradores: data ?? []
+            });
+        } catch (error) {
+            console.error("Error al listar borradores:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje: "No se pudieron consultar los borradores"
+            });
+        }
+    }
+);
+
+// Recuperar un borrador del usuario
+app.get(
+    "/api/borradores/:id",
+    verificarToken,
+    verificarRolNomina,
+    async (req, res) => {
+        try {
+            if (!esUUIDValido(req.params.id)) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "Identificador de borrador inválido"
+                });
+            }
+
+            const { data, error } = await supabase
+                .from("planilla_borradores")
+                .select("*")
+                .eq("id", req.params.id)
+                .eq("propietario_id", req.usuario.id)
+                .eq("estado", "Borrador")
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!data) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "Borrador no encontrado"
+                });
+            }
+
+            return res.status(200).json({
+                ok: true,
+                borrador: data
+            });
+        } catch (error) {
+            console.error("Error al recuperar borrador:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje: "No se pudo recuperar el borrador"
+            });
+        }
+    }
+);
+
+// Actualizar un borrador existente
+app.put(
+    "/api/borradores/:id",
+    verificarToken,
+    verificarRolNomina,
+    async (req, res) => {
+        try {
+            if (!esUUIDValido(req.params.id)) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "Identificador de borrador inválido"
+                });
+            }
+
+            const contenido = req.body?.contenido;
+            const validacion = validarContenidoBorrador(contenido);
+
+            if (!validacion.valido) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "Corrija los datos del borrador",
+                    errores: validacion.errores
+                });
+            }
+
+            const { data: existente, error: errorConsulta } =
+                await supabase
+                    .from("planilla_borradores")
+                    .select("id")
+                    .eq("id", req.params.id)
+                    .eq("propietario_id", req.usuario.id)
+                    .eq("estado", "Borrador")
+                    .maybeSingle();
+
+            if (errorConsulta) throw errorConsulta;
+
+            if (!existente) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "Borrador no encontrado o finalizado"
+                });
+            }
+
+            const { data, error } = await supabase
+                .from("planilla_borradores")
+                .update({
+                    plantilla_id: contenido.plantilla.id,
+                    empleado_id: contenido.empleado?.id || null,
+                    contenido,
+                    actualizado_en: new Date().toISOString()
+                })
+                .eq("id", req.params.id)
+                .eq("propietario_id", req.usuario.id)
+                .eq("estado", "Borrador")
+                .select()
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!data) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "Borrador no encontrado o finalizado"
+                });
+            }
+
+            return res.status(200).json({
+                ok: true,
+                mensaje: "Borrador actualizado correctamente",
+                borrador: data
+            });
+        } catch (error) {
+            console.error("Error al actualizar borrador:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje: "No se pudo actualizar el borrador"
+            });
+        }
+    }
+);
+
+// HU-23: finalizar un borrador utilizando las validaciones
+// y los cálculos existentes de la planilla definitiva.
+app.post(
+    "/api/borradores/:id/finalizar",
+    verificarToken,
+    verificarRolNomina,
+    async (req, res, next) => {
+        if (!esUUIDValido(req.params.id)) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Identificador de borrador inválido"
+            });
+        }
+
+        if (req.body?.confirmar_revision !== true) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Debe confirmar la revisión de la planilla"
+            });
+        }
+
+        try {
+            const { data: borrador, error } = await supabase
+                .from("planilla_borradores")
+                .select("*")
+                .eq("id", req.params.id)
+                .eq("propietario_id", req.usuario.id)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!borrador) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "Borrador no encontrado"
+                });
+            }
+
+            if (borrador.estado !== "Borrador") {
+                return res.status(409).json({
+                    ok: false,
+                    mensaje: "El borrador ya fue finalizado"
+                });
+            }
+
+            const contenido = borrador.contenido;
+
+            if (!contenido || typeof contenido !== "object" ||
+                Array.isArray(contenido)) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "El contenido del borrador es inválido"
+                });
+            }
+
+            const datos = prepararDatosDesdeBorrador(contenido);
+
+            if (
+                (datos.plantilla_id ?? null) !== (borrador.plantilla_id ?? null) ||
+                (datos.empleado_id ?? null) !== (borrador.empleado_id ?? null)
+            ) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "Los datos no corresponden al borrador"
+                });
+            }
+
+            req.body = datos;
+            req.borradorFinalizacion = borrador;
+            return next();
+        } catch (error) {
+            console.error("Error al recuperar borrador:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje: "No se pudo recuperar el borrador"
+            });
+        }
+    },
+    validarDatosPlanilla,
+    async (req, res) => {
+        try {
+            const datos = req.planillaValidada;
+
+            const referencias = await verificarReferenciasPlanilla(datos);
+
+            if (referencias.error) {
+                const { estado, ...respuesta } = referencias.error;
+
+                return res.status(estado).json({
+                    ok: false,
+                    ...respuesta
+                });
+            }
+
+            const { empleado, plantilla } = referencias;
+
+            const registro = construirRegistroPlanilla(
+                datos,
+                empleado,
+                plantilla
+            );
+
+            const { data: resultado, error } = await supabase.rpc(
+                "finalizar_borrador_validado",
+                {
+                    p_borrador_id: req.borradorFinalizacion.id,
+                    p_propietario_id: req.usuario.id,
+                    p_registro: registro,
+                    p_descuentos: datos.descuentos,
+                    p_novedades: datos.novedades,
+                    p_ingresos: datos.ingresos_detalle ?? []
+                }
+            );
+
+            if (error) throw error;
+
+            const planilla = resultado?.[0];
+
+            if (!planilla?.id) {
+                throw new Error(
+                    "La finalización no devolvió una planilla"
+                );
+            }
+
+            return res.status(201).json({
+                ok: true,
+                mensaje: "Borrador finalizado correctamente",
+                id: planilla.id,
+                borrador_id: req.borradorFinalizacion.id,
+                total_pagar: planilla.total_pagar
+            });
+        } catch (error) {
+            console.error("Error al finalizar borrador:", error);
+
+            return res.status(500).json({
+                ok: false,
+                mensaje: "No se pudo finalizar el borrador"
+            });
+        }
+    }
 );
 
 //
