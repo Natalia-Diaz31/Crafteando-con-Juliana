@@ -132,7 +132,8 @@ window.mostrarDetallePlanilla = function (planilla) {
             columnas: ["Salario registrado", "Salario utilizado", "Motivo"],
             filas: [[
                 dinero(planilla.salario_original),
-                dinero(planilla.salario_base),
+                // En la planilla por días, salario_base es el proporcional.
+                dinero(planilla.salario_base_mensual ?? planilla.salario_base),
                 planilla.motivo_ajuste
             ]]
         });

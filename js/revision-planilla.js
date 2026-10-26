@@ -29,6 +29,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Al abrir la página, el resumen siempre está oculto.
     resumen.hidden = true;
 
+    // HU-18 a HU-21: bloque para novedades, salario por días, bonos y ajuste.
+    // Si la página no lo trae, se crea antes de los descuentos autorizados.
+    if (!document.getElementById("resumen-complementos")) {
+        document.getElementById("resumen-manuales")
+            .closest(".revision-section")
+            .before(Object.assign(document.createElement("div"), {
+                id: "resumen-complementos",
+                className: "revision-section table-responsive",
+                hidden: true
+            }));
+    }
+
     function ocultarResumen() {
         resumen.hidden = true;
         const casilla = document.getElementById("confirmacion-revisado");

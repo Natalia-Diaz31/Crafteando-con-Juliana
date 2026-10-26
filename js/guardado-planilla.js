@@ -15,6 +15,11 @@ import {
 
 import { esPlanillaPorDias } from "./salario-dias.js";
 
+import {
+    finalizarBorrador,
+    obtenerBorradorActual
+} from "./borradores-api.js";
+
 let operacionActual = null;
 let guardando = false;
 let guardadoConfirmado = false;
@@ -177,36 +182,10 @@ datosPlanilla.operacion_id = operacionActual.id;
         }
 
 
-        const respuesta = await fetch(
-            `${API_URL}/api/planillas`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-
-                body: JSON.stringify(datosPlanilla)
-            }
-        );
-
-
-        const resultado =
-            await respuesta.json();
-
-
-        if (!respuesta.ok || !resultado.ok || !resultado.id) {
-
-            // Incluye el motivo de cada campo rechazado por la API.
-            throw new Error(
-                [resultado.mensaje, ...Object.values(resultado.errores ?? {})]
-                    .filter(Boolean)
-                    .join(". ") ||
-                "No se pudo guardar la planilla"
-            );
-
-        }
+        // HU-23: con un borrador abierto, guardar la planilla es finalizar ese borrador.
+        const resultado = obtenerBorradorActual()
+            ? await finalizarBorrador()
+            : await enviarPlanilla(token, datosPlanilla);
 
         guardadoExitoso = true;
         guardadoConfirmado = true;
@@ -264,6 +243,36 @@ function convertirMesANumero(mes) {
 
 }
 
+
+async function enviarPlanilla(token, datosPlanilla) {
+    const respuesta = await fetch(
+        `${API_URL}/api/planillas`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+
+            body: JSON.stringify(datosPlanilla)
+        }
+    );
+
+    const resultado = await respuesta.json();
+
+    if (!respuesta.ok || !resultado.ok || !resultado.id) {
+        // Incluye el motivo de cada campo rechazado por la API.
+        throw new Error(
+            [resultado.mensaje, ...Object.values(resultado.errores ?? {})]
+                .filter(Boolean)
+                .join(". ") ||
+            "No se pudo guardar la planilla"
+        );
+    }
+
+    return resultado;
+}
 
 // HU-17: confirmación con acceso al detalle y a una planilla nueva.
 // «Crear otra planilla» recarga la página: así se reinicia todo el estado,

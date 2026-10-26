@@ -11,6 +11,29 @@ import { reemplazarDescuentosManuales } from "./descuentos-detalle.js";
 
 const TIPOS_INGRESO = { bono: "Bono", incentivo: "Incentivo" };
 
+// Envía las filas leídas por leerArchivoCSV() a la API, que las compara con el empleado
+// y el período del formulario. No modifica la planilla; devuelve
+// { valido, cantidad, filas, total_ingresos, total_descuentos, errores }.
+export async function validarImportacion(filas) {
+    const empleado = JSON.parse(sessionStorage.getItem("empleadoSeleccionado") ?? "null");
+
+    const respuesta = await fetch(`${API_URL}/api/planillas/validar-importacion`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+            empleado_id: empleado?.id,
+            mes: globalThis.ReglasNomina.numeroMes(document.getElementById("mes").value),
+            anio: document.getElementById("anio").value,
+            filas
+        })
+    });
+
+    return respuesta.json();
+}
+
 export function aplicarImportacion(filas) {
     if (obtenerIngresos() === null) {
         throw new Error("El formulario de bonos e incentivos todavía no está integrado");
