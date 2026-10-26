@@ -124,34 +124,91 @@
                     </div>
                 </div>
 
+                <!-- HU-24 - Búsqueda de empleados con sugerencias y filtros -->
                 <section class="mb-4" aria-labelledby="titulo-busqueda">
-                    <h3 id="titulo-busqueda">Buscar empleado</h3>
+                    <h3 id="titulo-busqueda">
+                        <i class="bi bi-search"></i>
+                        Buscar empleado
+                    </h3>
 
                     <form id="form-busqueda-empleado" novalidate>
-                        <label for="buscar-empleado" class="form-label">
-                            Nombre, DUI o código del empleado
-                        </label>
+                        <div class="mb-3">
+                            <label for="buscar-empleado" class="form-label">
+                                Nombre, DUI o código del empleado
+                            </label>
 
-                        <div class="input-group">
-                            <input type="text" id="buscar-empleado" class="form-control"
-                                placeholder="Ingrese nombre, DUI o código" aria-describedby="busqueda-mensaje">
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    id="buscar-empleado"
+                                    class="form-control"
+                                    placeholder="Ingrese nombre, DUI o código"
+                                    autocomplete="off"
+                                    aria-describedby="busqueda-mensaje"
+                                    aria-controls="resultados-empleados">
 
-                            <button type="submit" class="btn btn-primary">
-                                Buscar
-                            </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i>
+                                    Buscar
+                                </button>
+                            </div>
+
+                            <p
+                                id="busqueda-mensaje"
+                                class="mt-2 mb-0"
+                                role="status"
+                                aria-live="polite">
+                            </p>
+                        </div>
+
+                        <div class="row g-3 align-items-end mb-3">
+                            <div class="col-md-5">
+                                <label for="filtro-departamento" class="form-label">
+                                    Departamento
+                                </label>
+
+                                <select
+                                    id="filtro-departamento"
+                                    class="form-select">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-5">
+                                <label for="filtro-sucursal" class="form-label">
+                                    Sucursal
+                                </label>
+
+                                <select
+                                    id="filtro-sucursal"
+                                    class="form-select">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <button
+                                    type="button"
+                                    id="limpiar-filtros"
+                                    class="btn btn-outline-secondary w-100">
+                                    Limpiar filtros
+                                </button>
+                            </div>
                         </div>
                     </form>
 
+                    <div
+                        id="contenedor-sugerencias"
+                        class="table-responsive"
+                        aria-label="Sugerencias de empleados">
 
-                    <p id="busqueda-mensaje" class="mt-2" role="status" aria-live="polite"></p>
-
-                    <div class="table-responsive">
-                        <table class="table table-striped align-middle">
+                        <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
+                                    <th scope="col">Nombre</th>
                                     <th scope="col">Código</th>
-                                    <th scope="col">Nombre completo</th>
-                                    <th scope="col">DUI</th>
+                                    <th scope="col">Departamento</th>
+                                    <th scope="col">Sucursal</th>
                                     <th scope="col">Acción</th>
                                 </tr>
                             </thead>
@@ -160,6 +217,7 @@
                         </table>
                     </div>
                 </section>
+
                 <section class="employee-section">
                     <div class="section-title">
                         <i class="bi bi-person"></i>
