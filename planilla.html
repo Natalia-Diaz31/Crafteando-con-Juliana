@@ -681,6 +681,60 @@
                     </fieldset>
 
                 </form>
+
+                                <!-- HU-23 - Guardado y recuperación de borradores -->
+                <section class="form-section" aria-labelledby="titulo-borradores">
+                    <h3 id="titulo-borradores">
+                        <i class="bi bi-file-earmark-text"></i>
+                        Borradores
+                    </h3>
+
+                    <p class="text-muted">
+                        Guarde la planilla para continuar completándola después.
+                    </p>
+
+                    <button
+                        type="button"
+                        id="guardar-borrador"
+                        class="btn btn-outline-primary">
+                        <i class="bi bi-save"></i>
+                        Guardar borrador
+                    </button>
+
+                    <p
+                        id="borrador-mensaje"
+                        class="mt-2"
+                        role="status"
+                        aria-live="polite">
+                    </p>
+
+                    <div class="mt-4">
+                        <h4>Borradores guardados</h4>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Plantilla</th>
+                                        <th scope="col">Empleado</th>
+                                        <th scope="col">Período</th>
+                                        <th scope="col">Última actualización</th>
+                                        <th scope="col">Acción</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="lista-borradores">
+                                    <tr>
+                                        <td colspan="5" class="text-muted">
+                                            Cargando borradores...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="resumen-planilla"
                         class="revision-card"
                         aria-labelledby="titulo-resumen"
@@ -880,6 +934,7 @@
     <script type="module" src="js/salario-ajuste.js"></script>
     <script type="module" src="js/salario-dias.js"></script>
     <script type="module" src="js/importacion-vista.js"></script>
+    <script type="module" src="js/borradores-vista.js"></script>
 
 </body>
 </html>
