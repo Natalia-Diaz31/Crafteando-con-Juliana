@@ -1,0 +1,31 @@
+# ADR 0016 - Separar la presentación de sugerencias de la lógica de búsqueda de empleados
+
+Estado: Aceptada - 26 de octubre del 2026
+
+# Contexto
+
+La HU-24 requiere permitir que el encargado de nómina busque empleados mediante sugerencias mientras escribe, utilice filtros por departamento y sucursal y pueda seleccionar un empleado mediante ratón o teclado.
+
+El sistema ya cuenta con busqueda-validacion.js, encargado de controlar el tiempo de espera de 300 ms, validar la cantidad mínima de caracteres, realizar la consulta de empleados, aplicar los filtros y evitar que respuestas anteriores sustituyan resultados más recientes.
+
+También existen rutas de API para buscar empleados y consultar los catálogos de departamentos y sucursales.
+
+La interfaz necesitaba incorporar la presentación de las sugerencias, cargar las opciones disponibles de los filtros y permitir la selección mediante ratón, flechas del teclado, Enter y Escape, sin duplicar la lógica de búsqueda existente.
+
+# Decisión
+
+Se ampliará busqueda-vista.js para concentrar únicamente las responsabilidades relacionadas con la presentación e interacción de las sugerencias de empleados.
+
+Los filtros de departamento y sucursal obtendrán sus opciones utilizando los endpoints existentes de empleados, evitando mantener catálogos duplicados en el frontend.
+
+La lógica de debounce, validación de búsqueda, aplicación de filtros y control de respuestas obsoletas continuará en `busqueda-validacion.js`.
+
+# Consecuencias
+
++ Se reutiliza la lógica de búsqueda ya existente y se evita duplicar responsabilidades.
+
++ Los filtros utilizan los catálogos actuales proporcionados por la API.
+
++ La interfaz permite seleccionar empleados mediante ratón y teclado sin trasladar reglas de negocio a la vista.
+
+- La interfaz depende del contrato de los endpoints de empleados para cargar los catálogos de departamento y sucursal.
