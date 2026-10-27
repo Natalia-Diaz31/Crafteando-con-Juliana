@@ -62,7 +62,7 @@ jobs:
       - name: Publicar API de prueba sin cambiar dominio
         id: despliegue
         run: |
-          url=$(vercel deploy --prebuilt --prod --skip-domain --token="$VERCEL_TOKEN")
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
      
@@ -70,11 +70,7 @@ jobs:
         run: |
           vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --fail-with-body
 
-      
-      - name: Promocionar automaticamente API a produccion
-        if: success()
-        run: |
-          vercel promote "${{ steps.despliegue.outputs.url }}" --yes --token="$VERCEL_TOKEN"
+     
 
 
     
