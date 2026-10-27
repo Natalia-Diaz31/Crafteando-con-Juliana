@@ -70,4 +70,11 @@ jobs:
         run: |
           vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --fail-with-body
 
+      
+      - name: Promocionar automaticamente API a produccion
+        if: success()
+        run: |
+          vercel promote "${{ steps.despliegue.outputs.url }}" --yes --token="$VERCEL_TOKEN"
+
+
     
