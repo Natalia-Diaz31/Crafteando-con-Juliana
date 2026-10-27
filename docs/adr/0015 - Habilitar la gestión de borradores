@@ -1,0 +1,33 @@
+# ADR 0015 - Separar la interfaz de gestión de borradores
+
+Estado: Aceptada - 26 de octubre del 2026
+
+# Contexto
+
+La HU-23 requiere permitir que el encargado de nómina guarde una planilla incompleta como borrador, consulte los borradores existentes y continúe posteriormente su edición.
+
+El sistema ya cuenta con responsabilidades separadas para recopilar y recuperar los datos del borrador en borradores.js, y para comunicarse con las rutas de la API en borradores-api.js.
+
+La interfaz necesita utilizar estas capacidades sin duplicar la lógica de validación, persistencia o recuperación existente.
+
+# Decisión
+
+Se implementará borradores-vista.js como módulo responsable únicamente de la interacción de la interfaz de borradores.
+
+Este módulo utilizará las funciones existentes guardarBorrador(), listarBorradores() y abrirBorrador() de borradores-api.js.
+
+La sección de borradores se mantendrá fuera del formulario principal y del fieldset dependiente del empleado, permitiendo acceder al guardado de borradores aun cuando la planilla todavía esté incompleta.
+
+La lógica de validación, captura, recuperación y persistencia continuará en los módulos existentes, evitando trasladar reglas de negocio a la capa de presentación.
+
+# Consecuencias
+
++ Se reutilizan las funciones existentes de captura, recuperación y comunicación con la API.
+
++ Se evita duplicar reglas de negocio o validaciones en la vista.
+
++ Los cambios futuros en la persistencia de borradores pueden realizarse sin modificar directamente la interfaz.
+
+- La funcionalidad depende de que `borradores-api.js` mantenga estable el contrato utilizado por la interfaz.
+
+- Se incorpora un módulo JavaScript adicional que debe cargarse desde `planilla.html`.
