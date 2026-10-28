@@ -95,10 +95,36 @@ function crearServicioPlanillas(supabase) {
         };
     }
 
+    
+    // HU-28: Consultar la última planilla mensual anterior.
+    async function consultarPlanillaAnterior({ empleadoId, anio, mes }) {
+        const { data, error } = await supabase
+            .from("planillas")
+            .select(
+                "id, empleado_id, anio, mes, periodo_pago, fecha_guardado, " +
+                "salario_base, ingresos_adicionales, deducciones_legales, " +
+                "descuentos_totales, total_pagar"
+            )
+            .eq("empleado_id", empleadoId)
+            .eq("periodo_pago", "mensual")
+            .or(`anio.lt.${anio},and(anio.eq.${anio},mes.lt.${mes})`)
+            .order("anio", { ascending: false })
+            .order("mes", { ascending: false })
+            .order("fecha_guardado", { ascending: false })
+            .order("id", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (error) throw error;
+        return data ?? null;
+    }
+
     return {
         consultarHistorial,
-        consultarOrigenDuplicacion
+        consultarOrigenDuplicacion,
+        consultarPlanillaAnterior
     };
+
 }
 
 module.exports = crearServicioPlanillas;
