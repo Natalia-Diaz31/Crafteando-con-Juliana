@@ -36,16 +36,28 @@ function simularSupabase({
             };
 
             return {
-                select(_, opciones = {}) {
+                select(campos, opciones = {}) {
+                    llamadas.push(["select", campos]);
                     if (opciones.count) {
                         llamadas.push(["count", opciones.count]);
                     }
                     return this;
                 },
+
                 eq(campo, valor) {
                     llamadas.push(["eq", campo, valor]);
                     return this;
                 },
+                
+                or(filtro) {
+                    llamadas.push(["or", filtro]);
+                    return this;
+                },
+                limit(cantidad) {
+                    llamadas.push(["limit", cantidad]);
+                    return this;
+                },
+
                 order(campo, { ascending }) {
                     llamadas.push(["order", campo, ascending]);
                     return this;
@@ -299,4 +311,127 @@ test("HU-27: excluye deducciones legales al duplicar", async () => {
     ).consultarOrigenDuplicacion(15);
 
     assert.deepEqual(resultado.descuentos, descuentos.slice(3));
+});
+
+
+// HU-28: Comparación con planilla mensual anterior
+
+test("HU-28: filtra mismo empleado y período anterior", async () => {
+    const anterior = {
+        id: 31,
+        empleado_id: "EMP002",
+        anio: 2026,
+        mes: 9,
+        periodo_pago: "mensual",
+        salario_base: 1000,
+        ingresos_adicionales: 50,
+        deducciones_legales: 100,
+        descuentos_totales: 120,
+        total_pagar: 930
+    };
+
+    const db = simularSupabase({ planilla: anterior });
+
+    const resultado = await crearServicioPlanillas(db)
+        .consultarPlanillaAnterior({
+            empleadoId: "EMP002",
+            anio: 2026,
+            mes: 11
+        });
+
+    assert.deepEqual(resultado, anterior);
+
+    assert.deepEqual(
+        db.llamadas.filter(c => ["eq", "or"].includes(c[0])),
+        [
+            ["eq", "empleado_id", "EMP002"],
+            ["eq", "periodo_pago", "mensual"],
+            ["or", "anio.lt.2026,and(anio.eq.2026,mes.lt.11)"]
+        ]
+    );
+});
+
+test("HU-28: permite consultar años anteriores", async () => {
+    const db = simularSupabase();
+
+    await crearServicioPlanillas(db)
+        .consultarPlanillaAnterior({
+            empleadoId: "EMP001",
+            anio: 2026,
+            mes: 1
+        });
+
+    assert.deepEqual(
+        db.llamadas.find(c => c[0] === "or"),
+        ["or", "anio.lt.2026,and(anio.eq.2026,mes.lt.1)"]
+    );
+});
+
+test("HU-28: ordena y recupera subtotales guardados", async () => {
+    const db = simularSupabase();
+
+    await crearServicioPlanillas(db)
+        .consultarPlanillaAnterior({
+            empleadoId: "EMP002",
+            anio: 2026,
+            mes: 11
+        });
+
+    assert.deepEqual(
+        db.llamadas.filter(c => c[0] === "order"),
+        [
+            ["order", "anio", false],
+            ["order", "mes", false],
+            ["order", "fecha_guardado", false],
+            ["order", "id", false]
+        ]
+    );
+
+    assert.deepEqual(
+        db.llamadas.find(c => c[0] === "limit"),
+        ["limit", 1]
+    );
+
+    const campos = db.llamadas.find(c => c[0] === "select")[1];
+
+    for (const campo of [
+        "salario_base",
+        "ingresos_adicionales",
+        "deducciones_legales",
+        "descuentos_totales",
+        "total_pagar"
+    ]) {
+        assert.ok(campos.split(", ").includes(campo));
+    }
+});
+
+test("HU-28: sin planilla anterior devuelve null", async () => {
+    const db = simularSupabase({ planilla: null });
+
+    const resultado = await crearServicioPlanillas(db)
+        .consultarPlanillaAnterior({
+            empleadoId: "EMP001",
+            anio: 2026,
+            mes: 10
+        });
+
+    assert.equal(resultado, null);
+});
+
+test("HU-28: propaga errores de Supabase", async () => {
+    const error = new Error("Consulta fallida");
+
+    const db = simularSupabase({
+        errores: { planillas: error }
+    });
+
+    await assert.rejects(
+        crearServicioPlanillas(db)
+            .consultarPlanillaAnterior({
+                empleadoId: "EMP001",
+                anio: 2026,
+                mes: 10
+            }),
+        error
+    );
 });
