@@ -88,7 +88,10 @@ function crearServicioPlanillas(supabase) {
                   Number(planilla.ingresos_adicionales) > 0
                     ? null
                     : [],
-            descuentos: descuentos ?? []
+            
+        descuentos: (descuentos ?? []).filter(({ concepto }) =>
+            !["isss", "afp", "renta"].includes(concepto.trim().toLowerCase())
+        )
         };
     }
 
