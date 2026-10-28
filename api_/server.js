@@ -994,7 +994,8 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 "empleado_dui, empleado_cargo, tipo_contrato, salario_base, salario_original, motivo_ajuste, ingresos_adicionales, " +
                 "horas_ordinarias, horas_extras, " +
                 "descuentos_totales, total_pagar, fecha_guardado, periodo_pago, deducciones_legales, " +
-                "dias_remunerados"
+                "dias_remunerados, salario_base_mensual, salario_proporcional"
+
             )
             .eq("id", id)
             .maybeSingle();
