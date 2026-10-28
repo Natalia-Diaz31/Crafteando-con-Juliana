@@ -18,7 +18,8 @@ const EMPLEADO = {
   nombre_completo: 'Empleado de prueba CI',
   dui: '00000001-1',
   cargo: 'Analista',
-  salario_base_mensual: '500.00'
+  salario_base_mensual: '500.00',
+  tipo_contrato: 'Indefinido'
 };
 const PLANTILLA = {
   id: '22222222-2222-4222-8222-222222222222', nombre: 'Planilla básica mensual'
@@ -61,6 +62,7 @@ const PLANILLA_GUARDADA = {
   empleado_nombre: EMPLEADO.nombre_completo,
   empleado_dui: EMPLEADO.dui,
   empleado_cargo: EMPLEADO.cargo,
+  tipo_contrato: 'Plazo fijo',
   salario_base: 500,
   salario_original: 450,
   motivo_ajuste: 'Aumento salarial autorizado',
@@ -390,42 +392,42 @@ function prepararAPI(opciones = {}) {
           };
         }
 
-if (tabla === 'planillas' && !registro) {
-  if (opciones.falloConsulta) {
-    return {
-      data: null,
-      error: { message: 'Fallo simulado de consulta' }
-    };
-  }
+        if (tabla === 'planillas' && !registro) {
+          if (opciones.falloConsulta) {
+            return {
+              data: null,
+              error: { message: 'Fallo simulado de consulta' }
+            };
+          }
 
-  const guardadas = opciones.planillas ?? [{ ...PLANILLA_GUARDADA }];
+          const guardadas = opciones.planillas ?? [{ ...PLANILLA_GUARDADA }];
 
-  const filtradas = guardadas.filter(planilla =>
-    filtros.every(({ campo, valor }) => planilla[campo] === valor)
-  );
+          const filtradas = guardadas.filter(planilla =>
+            filtros.every(({ campo, valor }) => planilla[campo] === valor)
+          );
 
-  if (unico) {
-    return {
-      data: filtradas[0] ?? null,
-      error: null
-    };
-  }
+          if (unico) {
+            return {
+              data: filtradas[0] ?? null,
+              error: null
+            };
+          }
 
-  const ordenadas = [...filtradas].sort((a, b) =>
-    b.anio - a.anio ||
-    b.mes - a.mes ||
-    String(b.fecha_guardado).localeCompare(String(a.fecha_guardado)) ||
-    String(b.id).localeCompare(String(a.id))
-  );
+          const ordenadas = [...filtradas].sort((a, b) =>
+            b.anio - a.anio ||
+            b.mes - a.mes ||
+            String(b.fecha_guardado).localeCompare(String(a.fecha_guardado)) ||
+            String(b.id).localeCompare(String(a.id))
+          );
 
-  return {
-    data: rango
-      ? ordenadas.slice(rango.desde, rango.hasta + 1)
-      : ordenadas,
-    count: filtradas.length,
-    error: null
-  };
-}
+          return {
+            data: rango
+              ? ordenadas.slice(rango.desde, rango.hasta + 1)
+              : ordenadas,
+            count: filtradas.length,
+            error: null
+          };
+        }
 
         if (tabla === 'planillas' && registro) {
           if (opciones.falloGuardado) {
@@ -761,6 +763,8 @@ test('Guardar calcula 468.62 y conserva datos del empleado y plantilla', async t
   assert.equal(Number(r.body.total_pagar), 468.62);
   assert.equal(api.registros.length, 1);
   const p = api.registros[0];
+  // HU-26: conservar el contrato obtenido de la base de datos.
+  assert.equal(p.tipo_contrato, 'Indefinido');
   assert.equal(p.total_pagar, '468.62'); assert.equal(p.salario_base, '500.00');
   assert.equal(p.ingresos_adicionales, '50.00'); assert.equal(p.descuentos_totales, '81.38');
   // HU-13: comprobar que se guardan ambas cantidades de horas.
@@ -917,7 +921,10 @@ test('El detalle devuelve todos los datos guardados', async t => {
   assert.deepEqual(r.body.planilla, {
     id: PLANILLA_GUARDADA.id, plantilla: PLANTILLA.nombre, periodo: 'Octubre 2026',
     fecha_guardado: PLANILLA_GUARDADA.fecha_guardado, codigo: EMPLEADO.codigo,
-    nombre_completo: EMPLEADO.nombre_completo, dui: EMPLEADO.dui, cargo: EMPLEADO.cargo,
+    nombre_completo: EMPLEADO.nombre_completo,
+    dui: EMPLEADO.dui,
+    cargo: EMPLEADO.cargo,
+    tipo_contrato: 'Plazo fijo',
     salario_base: 500,
     // HU-21: verificar los datos del ajuste salarial.
     salario_original: 450,
@@ -941,6 +948,23 @@ test('El detalle devuelve todos los datos guardados', async t => {
       { tipo: 'Permiso', fecha_inicio: '2026-10-05', fecha_fin: '2026-10-06', condicion_pago: 'Sin goce', dias: 2 }
     ]
   });
+});
+
+test('HU-26: una planilla antigua sin contrato devuelve null', async t => {
+  const planillaAntigua = {
+    ...PLANILLA_GUARDADA,
+    tipo_contrato: null
+  };
+
+  const api = await conAPI(t, {
+    planillas: [planillaAntigua]
+  });
+
+  const r = await api.pedir(`/api/planillas/${planillaAntigua.id}`);
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.ok, true);
+  assert.equal(r.body.planilla.tipo_contrato, null);
 });
 
 test('El detalle rechaza un identificador inválido', async t => {
@@ -1651,6 +1675,8 @@ test('HU-23: finaliza un borrador y crea una planilla definitiva', async t => {
 
   const borrador = api.borradores[0];
   const planilla = api.registros[0];
+  // HU-26: conservar el contrato al finalizar un borrador.
+  assert.equal(planilla.tipo_contrato, 'Indefinido');
 
   assert.equal(borrador.estado, 'Finalizado');
   assert.equal(borrador.planilla_final_id, planilla.id);

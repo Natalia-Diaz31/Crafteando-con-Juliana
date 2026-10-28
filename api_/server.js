@@ -306,7 +306,7 @@ app.get("/api/empleados/:id", verificarToken, async (req, res) => {
         // 2. Consultar los datos registrados en Supabase
         const { data: empleado, error } = await supabase
             .from("empleados")
-            .select("codigo, nombre_completo, dui, cargo, salario_base_mensual")
+            .select("codigo, nombre_completo, dui, cargo, salario_base_mensual, tipo_contrato")
             .eq("id", id)
             .maybeSingle();
 
@@ -335,7 +335,8 @@ app.get("/api/empleados/:id", verificarToken, async (req, res) => {
                 nombre_completo: empleado.nombre_completo,
                 dui: empleado.dui,
                 cargo: empleado.cargo,
-                salario_base_mensual: empleado.salario_base_mensual
+                salario_base_mensual: empleado.salario_base_mensual,
+                tipo_contrato: empleado.tipo_contrato ?? null
             }
         });
 
@@ -706,7 +707,7 @@ function prepararDatosDesdeBorrador(contenido) {
 async function verificarReferenciasPlanilla(datos) {
     const { data: empleado, error: errorEmpleado } = await supabase
         .from("empleados")
-        .select("id, codigo, nombre_completo, dui, cargo, salario_base_mensual")
+        .select("id, codigo, nombre_completo, dui, cargo, salario_base_mensual, tipo_contrato")
         .eq("id", datos.empleado_id)
         .maybeSingle();
 
@@ -812,6 +813,7 @@ function construirRegistroPlanilla(datos, empleado, plantilla) {
         empleado_nombre: empleado.nombre_completo,
         empleado_dui: empleado.dui,
         empleado_cargo: empleado.cargo,
+        tipo_contrato: empleado.tipo_contrato ?? null,
         modo_calculo: datos.modo_calculo,
         salario_base_mensual: datos.salario_base_mensual,
         dias_remunerados: datos.dias_remunerados,
@@ -989,7 +991,7 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
             .from("planillas")
             .select(
                 "id, mes, anio, plantilla_nombre, empleado_codigo, empleado_nombre, " +
-                "empleado_dui, empleado_cargo, salario_base, salario_original, motivo_ajuste, ingresos_adicionales, " +
+                "empleado_dui, empleado_cargo, tipo_contrato, salario_base, salario_original, motivo_ajuste, ingresos_adicionales, " +
                 "horas_ordinarias, horas_extras, " +
                 "descuentos_totales, total_pagar, fecha_guardado, periodo_pago, deducciones_legales, " +
                 "dias_remunerados"
@@ -1069,6 +1071,7 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 nombre_completo: planilla.empleado_nombre,
                 dui: planilla.empleado_dui,
                 cargo: planilla.empleado_cargo,
+                tipo_contrato: planilla.tipo_contrato ?? null,
                 salario_base: planilla.salario_base,
                 // HU-21: mostrar los datos del ajuste salarial guardado.
                 salario_original: planilla.salario_original,
