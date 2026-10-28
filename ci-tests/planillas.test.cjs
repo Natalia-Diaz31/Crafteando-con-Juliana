@@ -1,205 +1,100 @@
-
 "use strict";
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
+const crearServicioPlanillas = require("../api_/services/planillas");
 
-const crearServicioPlanillas = require(
-    "../api_/services/planillas"
-);
-
-const EMPLEADO_A = "11111111-1111-4111-8111-111111111111";
-const EMPLEADO_B = "22222222-2222-4222-8222-222222222222";
-
-const PLANILLAS = Array.from({ length: 25 }, (_, i) => ({
-    id: String(i + 1).padStart(3, "0"),
-    empleado_id: i < 23 ? EMPLEADO_A : EMPLEADO_B,
-    anio: i % 2 ? 2025 : 2026,
-    mes: (i % 12) + 1,
-    fecha_guardado: `2026-10-${String((i % 28) + 1).padStart(2, "0")}`,
-    total_pagar: 100 + i
-}));
-
-// Simulador de Supabase para las pruebas unitarias
-function simularSupabase(filas = PLANILLAS, fallo = null) {
-    const registro = {
-        tabla: null,
-        filtros: [],
-        ordenes: [],
-        rango: null,
-        conteo: null
-    };
-
-    const consulta = {
-        select(columnas, opciones) {
-            registro.conteo = opciones.count;
-            return consulta;
-        },
-
-        eq(campo, valor) {
-            registro.filtros.push([campo, valor]);
-            return consulta;
-        },
-
-        order(campo, opciones) {
-            registro.ordenes.push([campo, opciones.ascending]);
-            return consulta;
-        },
-
-        range(desde, hasta) {
-            registro.rango = [desde, hasta];
-            return consulta;
-        },
-
-        then(resolver, rechazar) {
-            let datos = [...filas];
-
-            for (const [campo, valor] of registro.filtros) {
-                datos = datos.filter(
-                    fila => fila[campo] === valor
-                );
-            }
-
-            const total = datos.length;
-
-            datos.sort((a, b) => {
-                for (const [campo, asc] of registro.ordenes) {
-                    const comparacion =
-                        a[campo] < b[campo] ? -1 :
-                        a[campo] > b[campo] ? 1 : 0;
-
-                    if (comparacion !== 0) {
-                        return asc ? comparacion : -comparacion;
-                    }
-                }
-                return 0;
-            });
-
-            if (registro.rango) {
-                datos = datos.slice(
-                    registro.rango[0],
-                    registro.rango[1] + 1
-                );
-            }
-
-            return Promise.resolve({
-                data: fallo ? null : datos,
-                count: fallo ? null : total,
-                error: fallo
-            }).then(resolver, rechazar);
-        }
-    };
+function simularSupabase({ filas = [], total = filas.length, error = null } = {}) {
+    const llamadas = [];
 
     return {
-        registro,
+        llamadas,
         from(tabla) {
-            registro.tabla = tabla;
-            return consulta;
+            llamadas.push(["from", tabla]);
+
+            return {
+                select(_, { count }) {
+                    llamadas.push(["count", count]);
+                    return this;
+                },
+                eq(campo, valor) {
+                    llamadas.push(["eq", campo, valor]);
+                    return this;
+                },
+                order(campo, { ascending }) {
+                    llamadas.push(["order", campo, ascending]);
+                    return this;
+                },
+                range(desde, hasta) {
+                    llamadas.push(["range", desde, hasta]);
+                    return Promise.resolve({ data: filas, count: total, error });
+                }
+            };
         }
     };
 }
 
-// PRUEBA 1: Filtrado por empleado
-test("HU-25: filtrar por empleado", async () => {
-    const db = simularSupabase();
-
+// HU-25: Filtrar por empleado
+test("HU-25: filtra por empleado y cuenta registros", async () => {
+    const db = simularSupabase({ filas: [{ empleado_id: "EMP001" }], total: 23 });
     const resultado = await crearServicioPlanillas(db)
-        .consultarHistorial({ empleadoId: EMPLEADO_A });
+        .consultarHistorial({ empleadoId: "EMP001" });
 
-    assert.equal(db.registro.tabla, "planillas");
-    assert.equal(db.registro.conteo, "exact");
+    assert.ok(db.llamadas.some(c => c[0] === "from" && c[1] === "planillas"));
+    assert.ok(db.llamadas.some(c => c[0] === "count" && c[1] === "exact"));
+    assert.ok(db.llamadas.some(c =>
+        c[0] === "eq" && c[1] === "empleado_id" && c[2] === "EMP001"
+    ));
+
     assert.equal(resultado.totalRegistros, 23);
     assert.equal(resultado.totalPaginas, 3);
-    assert.equal(resultado.planillas.length, 10);
-
-    assert.ok(resultado.planillas.every(
-        p => p.empleado_id === EMPLEADO_A
-    ));
+    assert.equal(resultado.tamanoPagina, 10);
 });
 
-// PRUEBA 2: Paginación
-test("HU-25: paginar diez registros", async () => {
-    const db = simularSupabase();
-    const servicio = crearServicioPlanillas(db);
+// HU-25: Segunda página
+test("HU-25: segunda página consulta registros 11 al 20", async () => {
+    const db = simularSupabase({ total: 23 });
+    const resultado = await crearServicioPlanillas(db)
+        .consultarHistorial({ pagina: 2 });
 
-    const segunda = await servicio.consultarHistorial({
-        empleadoId: EMPLEADO_A,
-        pagina: 2
-    });
-
-    assert.deepEqual(db.registro.rango, [10, 19]);
-    assert.equal(segunda.planillas.length, 10);
-
-    const tercera = await servicio.consultarHistorial({
-        empleadoId: EMPLEADO_A,
-        pagina: 3
-    });
-
-    assert.deepEqual(db.registro.rango, [20, 29]);
-    assert.equal(tercera.planillas.length, 3);
+    assert.deepEqual(db.llamadas.at(-1), ["range", 10, 19]);
+    assert.equal(resultado.pagina, 2);
 });
 
-// PRUEBA 3: Ordenamiento por período
-test("HU-25: ordenar por periodo", async () => {
-    const db = simularSupabase();
+// HU-25: Tercera página
+test("HU-25: tercera página consulta registros 21 al 30", async () => {
+    const db = simularSupabase({
+        filas: [{ id: 21 }, { id: 22 }, { id: 23 }],
+        total: 23
+    });
 
     const resultado = await crearServicioPlanillas(db)
-        .consultarHistorial();
+        .consultarHistorial({ pagina: 3 });
 
-    assert.deepEqual(db.registro.ordenes, [
-        ["anio", false],
-        ["mes", false],
-        ["fecha_guardado", false],
-        ["id", false]
+    assert.deepEqual(db.llamadas.at(-1), ["range", 20, 29]);
+    assert.equal(resultado.planillas.length, 3);
+});
+
+// HU-25: Ordenamiento
+test("HU-25: orden descendente y consulta general", async () => {
+    const db = simularSupabase();
+    await crearServicioPlanillas(db).consultarHistorial();
+
+    assert.deepEqual(db.llamadas.filter(c => c[0] === "order"), [
+        ["order", "anio", false],
+        ["order", "mes", false],
+        ["order", "fecha_guardado", false],
+        ["order", "id", false]
     ]);
 
-    assert.equal(resultado.totalRegistros, 25);
-
-    for (let i = 1; i < resultado.planillas.length; i++) {
-        const anterior = resultado.planillas[i - 1];
-        const actual = resultado.planillas[i];
-
-        assert.ok(
-            anterior.anio > actual.anio ||
-            (
-                anterior.anio === actual.anio &&
-                anterior.mes >= actual.mes
-            )
-        );
-    }
+    assert.equal(db.llamadas.some(c => c[0] === "eq"), false);
+    assert.deepEqual(db.llamadas.at(-1), ["range", 0, 9]);
 });
 
-// PRUEBA 4: Ordenamiento por fecha
-test("HU-25: ordenar por fecha de guardado", async () => {
-    const filas = [
-        {
-            id: "1",
-            anio: 2026,
-            mes: 10,
-            fecha_guardado: "2026-10-01"
-        },
-        {
-            id: "2",
-            anio: 2026,
-            mes: 10,
-            fecha_guardado: "2026-10-27"
-        }
-    ];
-
+// HU-25: Sin registros
+test("HU-25: historial vacío", async () => {
     const resultado = await crearServicioPlanillas(
-        simularSupabase(filas)
-    ).consultarHistorial();
-
-    assert.deepEqual(
-        resultado.planillas.map(p => p.id),
-        ["2", "1"]
-    );
-});
-
-// PRUEBA 5: Historial vacío
-test("HU-25: historial sin registros", async () => {
-    const resultado = await crearServicioPlanillas(
-        simularSupabase([])
+        simularSupabase()
     ).consultarHistorial();
 
     assert.deepEqual(resultado.planillas, []);
@@ -207,14 +102,15 @@ test("HU-25: historial sin registros", async () => {
     assert.equal(resultado.totalPaginas, 0);
 });
 
-// PRUEBA 6: Errores de Supabase
-test("HU-25: manejar errores de Supabase", async () => {
-    const error = new Error("Consulta no disponible");
+// HU-25: Error de Supabase
+test("HU-25: propaga errores de Supabase", async () => {
+    const error = new Error("Consulta fallida");
 
     await assert.rejects(
         crearServicioPlanillas(
-            simularSupabase([], error)
+            simularSupabase({ error })
         ).consultarHistorial(),
         error
     );
 });
+
