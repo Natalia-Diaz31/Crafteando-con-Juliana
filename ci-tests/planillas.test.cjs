@@ -283,3 +283,20 @@ for (const tabla of [
         );
     });
 }
+
+
+test("HU-27: excluye deducciones legales al duplicar", async () => {
+    const descuentos = [
+        { concepto: "ISSS", importe: 10, origen: "Manual" },
+        { concepto: " afp ", importe: 20, origen: "Manual" },
+        { concepto: "Renta", importe: 30, origen: "Manual" },
+        { concepto: "Préstamo", importe: 40, origen: "Manual" },
+        { concepto: "Cuota sindical", importe: 50, origen: "Manual" }
+    ];
+
+    const resultado = await crearServicioPlanillas(
+        simularSupabase({ descuentos })
+    ).consultarOrigenDuplicacion(15);
+
+    assert.deepEqual(resultado.descuentos, descuentos.slice(3));
+});
