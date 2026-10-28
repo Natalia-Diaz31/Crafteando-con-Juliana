@@ -951,38 +951,22 @@ function formatearPeriodo(mes, anio) {
     return `${MESES[mes - 1] || mes} ${anio}`;
 }
 
-// Listado: identificador, período, nombre del empleado y total
-app.get("/api/planillas", verificarToken, verificarRolNomina, async (req, res) => {
-    try {
-        // 1. Consultar las planillas, de la más reciente a la más antigua
-        const { data: planillas, error } = await supabase
-            .from("planillas")
-            .select("id, mes, anio, empleado_nombre, total_pagar, fecha_guardado")
-            .order("fecha_guardado", { ascending: false });
+ // HU-25: Historial de planillas con filtro por empleado y paginación.
+const crearServicioPlanillas = require("./services/planillas");
+const crearRutasPlanillas = require("./routes/historial-planillas");
 
-        if (error) throw error;
+const servicioPlanillas = crearServicioPlanillas(supabase);
 
-        // 2. Devolver los datos con los nombres que usa la pantalla
-        return res.status(200).json({
-            ok: true,
-            planillas: (planillas || []).map((planilla) => ({
-                id: planilla.id,
-                periodo: formatearPeriodo(planilla.mes, planilla.anio),
-                nombre_completo: planilla.empleado_nombre,
-                total_pagar: planilla.total_pagar,
-                fecha_guardado: planilla.fecha_guardado
-            }))
-        });
+app.use(
+    "/api/planillas",
+    crearRutasPlanillas({
+        servicio: servicioPlanillas,
+        verificarToken,
+        verificarRolNomina,
+        formatearPeriodo
+    })
+);
 
-    } catch (error) {
-        console.error("Error al consultar planillas:", error);
-
-        return res.status(500).json({
-            ok: false,
-            mensaje: "No se pudieron consultar las planillas"
-        });
-    }
-});
 
 // Detalle: todos los datos guardados de una planilla
 app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, res) => {

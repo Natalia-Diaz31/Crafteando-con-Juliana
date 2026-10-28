@@ -51,9 +51,16 @@ const DATOS = {
 };
 
 const PLANILLA_GUARDADA = {
-  id: '33333333-3333-4333-8333-333333333333', mes: 10, anio: 2026,
-  plantilla_nombre: PLANTILLA.nombre, empleado_codigo: EMPLEADO.codigo,
-  empleado_nombre: EMPLEADO.nombre_completo, empleado_dui: EMPLEADO.dui, empleado_cargo: EMPLEADO.cargo,
+  id: '33333333-3333-4333-8333-333333333333',
+  empleado_id: EMPLEADO.id,
+  mes: 10,
+  anio: 2026,
+  periodo_pago: 'Mensual',
+  plantilla_nombre: PLANTILLA.nombre,
+  empleado_codigo: EMPLEADO.codigo,
+  empleado_nombre: EMPLEADO.nombre_completo,
+  empleado_dui: EMPLEADO.dui,
+  empleado_cargo: EMPLEADO.cargo,
   salario_base: 500,
   salario_original: 450,
   motivo_ajuste: 'Aumento salarial autorizado',
@@ -239,6 +246,7 @@ function prepararAPI(opciones = {}) {
       const filtros = [];
       let actualizacion = null;
       let operacion = null;
+      let rango = null;
 
       const consulta = {
         select() { return consulta; },
@@ -248,6 +256,10 @@ function prepararAPI(opciones = {}) {
           return consulta;
         },
         order() { return consulta; },
+        range(desde, hasta) {
+          rango = { desde, hasta };
+          return consulta;
+        },
         insert(datos) {
           registro = datos;
           operacion = 'insert';
@@ -378,27 +390,42 @@ function prepararAPI(opciones = {}) {
           };
         }
 
-        if (tabla === 'planillas' && !registro) {
-          if (opciones.falloConsulta) {
-            return {
-              data: null,
-              error: { message: 'Fallo simulado de consulta' }
-            };
-          }
+if (tabla === 'planillas' && !registro) {
+  if (opciones.falloConsulta) {
+    return {
+      data: null,
+      error: { message: 'Fallo simulado de consulta' }
+    };
+  }
 
-          const guardadas = [{ ...PLANILLA_GUARDADA }];
+  const guardadas = opciones.planillas ?? [{ ...PLANILLA_GUARDADA }];
 
-          if (filtro) {
-            return {
-              data: guardadas.find(
-                p => p[filtro.campo] === filtro.valor
-              ) ?? null,
-              error: null
-            };
-          }
+  const filtradas = guardadas.filter(planilla =>
+    filtros.every(({ campo, valor }) => planilla[campo] === valor)
+  );
 
-          return { data: guardadas, error: null };
-        }
+  if (unico) {
+    return {
+      data: filtradas[0] ?? null,
+      error: null
+    };
+  }
+
+  const ordenadas = [...filtradas].sort((a, b) =>
+    b.anio - a.anio ||
+    b.mes - a.mes ||
+    String(b.fecha_guardado).localeCompare(String(a.fecha_guardado)) ||
+    String(b.id).localeCompare(String(a.id))
+  );
+
+  return {
+    data: rango
+      ? ordenadas.slice(rango.desde, rango.hasta + 1)
+      : ordenadas,
+    count: filtradas.length,
+    error: null
+  };
+}
 
         if (tabla === 'planillas' && registro) {
           if (opciones.falloGuardado) {
@@ -788,14 +815,99 @@ for (const ruta of ['/api/planillas', `/api/planillas/${PLANILLA_GUARDADA.id}`])
   });
 }
 
-test('El listado devuelve identificador, período, nombre y total', async t => {
+test('HU-25: El listado devuelve los datos de las planillas y la paginación', async t => {
   const api = await conAPI(t);
   const r = await api.pedir('/api/planillas');
-  assert.equal(r.status, 200); assert.equal(r.body.ok, true);
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.ok, true);
+
   assert.deepEqual(r.body.planillas, [{
-    id: PLANILLA_GUARDADA.id, periodo: 'Octubre 2026', nombre_completo: EMPLEADO.nombre_completo,
-    total_pagar: 525, fecha_guardado: PLANILLA_GUARDADA.fecha_guardado
+    id: PLANILLA_GUARDADA.id,
+    empleado_id: PLANILLA_GUARDADA.empleado_id,
+    periodo: 'Octubre 2026',
+    nombre_completo: EMPLEADO.nombre_completo,
+    frecuencia: PLANILLA_GUARDADA.periodo_pago,
+    fecha_guardado: PLANILLA_GUARDADA.fecha_guardado,
+    total_pagar: '525.00'
   }]);
+
+  assert.equal(r.body.paginacion.pagina, 1);
+  assert.equal(r.body.paginacion.tamanoPagina, 10);
+});
+
+test('HU-25: rechaza un identificador de empleado inválido', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/planillas?empleado_id=invalido');
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.equal(r.body.mensaje, 'Identificador de empleado inválido');
+});
+
+test('HU-25: rechaza números de página inválidos', async t => {
+  const api = await conAPI(t);
+
+  for (const pagina of ['0', '-1', 'abc', '1.5']) {
+    const r = await api.pedir(`/api/planillas?pagina=${pagina}`);
+
+    assert.equal(r.status, 400);
+    assert.equal(r.body.ok, false);
+    assert.equal(r.body.mensaje, 'Número de página inválido');
+  }
+});
+
+test('HU-25: filtra las planillas por empleado', async t => {
+  const empleadoOtro = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+  const api = await conAPI(t, {
+    planillas: [
+      { ...PLANILLA_GUARDADA },
+      {
+        ...PLANILLA_GUARDADA,
+        id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        empleado_id: empleadoOtro,
+        empleado_nombre: 'Otro empleado'
+      }
+    ]
+  });
+
+  const r = await api.pedir(
+    `/api/planillas?empleado_id=${EMPLEADO.id}`
+  );
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.ok, true);
+  assert.equal(r.body.planillas.length, 1);
+  assert.equal(r.body.planillas[0].empleado_id, EMPLEADO.id);
+  assert.equal(r.body.paginacion.totalRegistros, 1);
+});
+
+test('HU-25: muestra 10 planillas por página y ordena de más reciente a más antigua', async t => {
+  const planillas = Array.from({ length: 15 }, (_, i) => ({
+    ...PLANILLA_GUARDADA,
+    id: `33333333-3333-4333-8333-${String(i + 1).padStart(12, '0')}`,
+    mes: i + 1 <= 12 ? i + 1 : i - 11,
+    anio: i + 1 <= 12 ? 2025 : 2026
+  }));
+
+  const api = await conAPI(t, { planillas });
+
+  const primera = await api.pedir('/api/planillas?pagina=1');
+  const segunda = await api.pedir('/api/planillas?pagina=2');
+
+  assert.equal(primera.status, 200);
+  assert.equal(segunda.status, 200);
+
+  assert.equal(primera.body.planillas.length, 10);
+  assert.equal(segunda.body.planillas.length, 5);
+
+  assert.equal(primera.body.paginacion.totalRegistros, 15);
+  assert.equal(primera.body.paginacion.totalPaginas, 2);
+  assert.equal(primera.body.paginacion.tamanoPagina, 10);
+
+  assert.equal(primera.body.planillas[0].id, planillas[14].id);
+  assert.equal(segunda.body.planillas[4].id, planillas[0].id);
 });
 
 test('El detalle devuelve todos los datos guardados', async t => {
@@ -817,6 +929,7 @@ test('El detalle devuelve todos los datos guardados', async t => {
     // HU-13: verificar que las horas se conservan al consultar.
     horas_ordinarias: 160,
     horas_extras: 8,
+    periodo_pago: 'Mensual',
     descuentos_totales: 25,
     descuentos: [
       { concepto: 'Préstamo', importe: 10 },
