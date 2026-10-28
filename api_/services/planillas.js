@@ -1,4 +1,3 @@
-
 "use strict";
 
 // HU-25: Consulta paginada del historial de planillas.
@@ -50,7 +49,53 @@ function crearServicioPlanillas(supabase) {
         };
     }
 
-    return { consultarHistorial };
+    // HU-27: Consultar los datos originales para duplicar.
+    async function consultarOrigenDuplicacion(id) {
+        const { data: planilla, error } = await supabase
+            .from("planillas")
+            .select("id, empleado_id, plantilla_id, periodo_pago, ingresos_adicionales")
+            .eq("id", id)
+            .maybeSingle();
+
+        if (error) throw error;
+        if (!planilla) return null;
+
+        const [
+            { data: ingresos, error: errorIngresos },
+            { data: descuentos, error: errorDescuentos }
+        ] = await Promise.all([
+            supabase
+                .from("planilla_ingresos")
+                .select("tipo, concepto, importe, origen")
+                .eq("planilla_id", id)
+                .order("id", { ascending: true }),
+
+            supabase
+                .from("planilla_descuentos")
+                .select("concepto, importe, origen")
+                .eq("planilla_id", id)
+                .order("id", { ascending: true })
+        ]);
+
+        if (errorIngresos) throw errorIngresos;
+        if (errorDescuentos) throw errorDescuentos;
+
+        return {
+            ...planilla,
+            ingresos_detalle: ingresos?.length
+                ? ingresos
+                : planilla.ingresos_adicionales == null ||
+                  Number(planilla.ingresos_adicionales) > 0
+                    ? null
+                    : [],
+            descuentos: descuentos ?? []
+        };
+    }
+
+    return {
+        consultarHistorial,
+        consultarOrigenDuplicacion
+    };
 }
 
 module.exports = crearServicioPlanillas;
