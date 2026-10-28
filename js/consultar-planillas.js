@@ -57,7 +57,18 @@ window.mostrarPlanillasGuardadas = function (planillas) {
 };
 
 // Este código se ejecuta automáticamente al cargar consultar-planillas.html
-document.addEventListener("DOMContentLoaded", async () => {
+(() => {
+    async function inicializarConsulta() {
+        const pagina = document.querySelector("main");
+
+        if (
+            !pagina ||
+            pagina.dataset.consultaInicializada === "true"
+        ) {
+            return;
+        }
+
+        pagina.dataset.consultaInicializada = "true";
         if (!esEncargadoNomina()) {
         const contenido = document.querySelector("main");
 
@@ -121,4 +132,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.mostrarPlanillasGuardadas([]);
         if (mensaje) mensaje.textContent = "Error de conexión con el servidor";
     }
-});
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            inicializarConsulta,
+            { once: true }
+        );
+    } else {
+        void inicializarConsulta();
+    }
+})();
