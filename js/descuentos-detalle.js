@@ -1,5 +1,16 @@
 let aplicarDetalleDescuentos = null;
 
+
+let leerSubtotalManual = null;
+
+export function obtenerSubtotalDescuentosManuales() {
+    if (!leerSubtotalManual) {
+        throw new Error("El componente de descuentos todavía no está listo");
+    }
+
+    return leerSubtotalManual();
+}
+
 export function reemplazarDescuentosManuales(lista) {
     if (!aplicarDetalleDescuentos) {
         throw new Error(
@@ -124,6 +135,9 @@ document.addEventListener("DOMContentLoaded", () => {
             0
         );
     }
+
+    
+    leerSubtotalManual = () => obtenerSuma(descuentos);
 
     function reiniciarConfirmacion() {
         const casilla =
