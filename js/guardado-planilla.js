@@ -1,4 +1,8 @@
 import {
+    validarResultadoGuardado
+} from "./resultado-guardado.js";
+
+import {
     obtenerNovedades,
     validarNovedadesFormulario
 } from "./novedades.js";
@@ -184,8 +188,10 @@ datosPlanilla.operacion_id = operacionActual.id;
 
         // HU-23: con un borrador abierto, guardar la planilla es finalizar ese borrador.
         const resultado = obtenerBorradorActual()
-            ? await finalizarBorrador()
-            : await enviarPlanilla(token, datosPlanilla);
+        ? await finalizarBorrador()
+        : await enviarPlanilla(token, datosPlanilla);
+
+        validarResultadoGuardado(resultado);
 
         guardadoExitoso = true;
         guardadoConfirmado = true;
@@ -261,7 +267,7 @@ async function enviarPlanilla(token, datosPlanilla) {
 
     const resultado = await respuesta.json();
 
-    if (!respuesta.ok || !resultado.ok || !resultado.id) {
+    if (!respuesta.ok || !resultado.ok) {
         // Incluye el motivo de cada campo rechazado por la API.
         throw new Error(
             [resultado.mensaje, ...Object.values(resultado.errores ?? {})]

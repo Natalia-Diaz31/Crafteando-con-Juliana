@@ -1,3 +1,7 @@
+import {
+    validarResultadoGuardado
+} from "./resultado-guardado.js";
+
 // HU-23: conecta la recopilación y recuperación del borrador (borradores.js)
 // con las rutas /api/borradores. La interfaz solo llama a estas funciones.
 import { capturarBorrador, recuperarBorrador } from "./borradores.js";
@@ -70,6 +74,8 @@ export async function finalizarBorrador() {
         `/api/borradores/${borradorActual}/finalizar`,
         { method: "POST", body: JSON.stringify({ confirmar_revision: true }) }
     );
+
+    validarResultadoGuardado(resultado);
 
     borradorActual = null;
     return resultado;
