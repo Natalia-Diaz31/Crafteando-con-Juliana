@@ -82,7 +82,25 @@
                     <p>Ingrese los datos correspondientes al período y los montos de la planilla.</p>
                 </div>
 
-                <!-- Indicador visual del proceso de creación de planilla -->
+                <div
+                    id="duplicacion-origen"
+                    class="alert alert-info"
+                    role="status"
+                    hidden>
+                    <i class="bi bi-files"></i>
+                    Nueva planilla basada en:
+                    <strong id="duplicacion-origen-identificador"></strong>
+                </div>
+
+                <div
+                    id="duplicacion-mensaje"
+                    class="alert alert-danger"
+                    role="alert"
+                    aria-live="polite"
+                    hidden>
+                </div>
+
+                    <!-- Indicador visual del proceso de creación de planilla -->
                 <div class="steps-bar">
 
                     <div class="step active">
