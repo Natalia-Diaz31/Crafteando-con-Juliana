@@ -9,7 +9,43 @@ const IMPORTES = new Set([
     "total_pagar"
 ]);
 
+const ETIQUETAS = {
+    identificacion: "Información de la planilla",
+    empleado: "Datos del empleado",
+    datos_salariales: "Resumen de montos",
+    observaciones: "Observaciones", 
+
+    id: "Identificador",
+    fecha_guardado: "Fecha de guardado",
+    plantilla: "Plantilla",
+    periodo: "Período",
+    periodo_pago: "Frecuencia",
+
+    codigo: "Código",
+    nombre_completo: "Nombre completo",
+    dui: "DUI",
+    cargo: "Cargo",
+    tipo_contrato: "Tipo de contrato",
+
+    salario_base: "Salario base",
     salario_original: "Salario original",
+    motivo_ajuste: "Motivo del ajuste",
+    salario_base_mensual: "Salario base mensual",
+    salario_proporcional: "Salario proporcional",
+    dias_remunerados: "Días remunerados",
+    horas_ordinarias: "Horas ordinarias",
+    horas_extras: "Horas extras",
+    ingresos_adicionales: "Ingresos adicionales",
+    total_ingresos: "Total ingresos",
+    descuentos_totales: "Total descuentos",
+    total_pagar: "Total a pagar"
+};
+
+function etiqueta(campo) {
+    return ETIQUETAS[campo]
+        ?? campo.replaceAll("_", " ");
+}
+
 export function generarPDFPlanilla(
     generales,
     movimientos,
