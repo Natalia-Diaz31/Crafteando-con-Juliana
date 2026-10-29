@@ -234,6 +234,10 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarDato("resumen-nombre", empleado.nombre_completo);
         mostrarDato("resumen-dui", empleado.dui);
         mostrarDato("resumen-cargo", empleado.cargo);
+        mostrarDato(
+            "resumen-contrato",
+            empleado.tipo_contrato || "No registrado"
+        );
 
         // HU-13: horas del mismo empleado y período.
         mostrarDato(

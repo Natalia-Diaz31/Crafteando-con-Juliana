@@ -779,6 +779,85 @@ test('Guardar calcula 468.62 y conserva datos del empleado y plantilla', async t
   assert.equal(r.body.id, p.id); assert.equal(r.body.fecha_guardado, p.fecha_guardado);
 });
 
+//
+// HU-29: PRUEBAS DE OBSERVACIONES EN PLANILLAS
+//
+
+test('HU-29: permite guardar una planilla sin observaciones', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    observaciones: ''
+  });
+
+  assert.equal(r.status, 201);
+  assert.equal(r.body.observaciones, '');
+  assert.equal(api.registros[0].observaciones, '');
+});
+
+test('HU-29: elimina espacios iniciales y finales', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    observaciones: '   Pago correspondiente a octubre   '
+  });
+
+  assert.equal(r.status, 201);
+  assert.equal(r.body.observaciones, 'Pago correspondiente a octubre');
+  assert.equal(
+    api.registros[0].observaciones,
+    'Pago correspondiente a octubre'
+  );
+});
+
+test('HU-29: permite observaciones de exactamente 500 caracteres', async t => {
+  const api = await conAPI(t);
+  const observaciones = 'A'.repeat(500);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    observaciones
+  });
+
+  assert.equal(r.status, 201);
+  assert.equal(r.body.observaciones, observaciones);
+  assert.equal(api.registros[0].observaciones.length, 500);
+});
+
+test('HU-29: rechaza observaciones de más de 500 caracteres', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    observaciones: 'A'.repeat(501)
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(
+    r.body.errores.observaciones,
+    'La observación no puede superar 500 caracteres'
+  );
+  assert.equal(api.registros.length, 0);
+});
+
+test('HU-29: rechaza observaciones que no sean texto', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/planillas', {
+    ...DATOS,
+    observaciones: { texto: 'Observación inválida' }
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(
+    r.body.errores.observaciones,
+    'La observación debe ser texto'
+  );
+  assert.equal(api.registros.length, 0);
+});
+
 test('Montos cero y mes doce son válidos', async t => {
   const api = await conAPI(t);
 
@@ -932,6 +1011,7 @@ test('El detalle devuelve todos los datos guardados', async t => {
     // HU-21: verificar los datos del ajuste salarial.
     salario_original: 450,
     motivo_ajuste: 'Aumento salarial autorizado',
+    observaciones: "",
     ingresos_adicionales: 50,
     ingresos_detalle: [],
     detalle_ingresos_registrado: false,
@@ -1353,7 +1433,8 @@ const CONTENIDO_BORRADOR = {
   horas_extras: '',
   ingresos: [],
   descuentos: [],
-  novedades: []
+  novedades: [],
+  observaciones: ''
 };
 
 const CONTENIDO_BORRADOR_COMPLETO = {
@@ -1445,6 +1526,82 @@ test('HU-23: actualiza el borrador sin cambiar su ID', async t => {
   assert.equal(r.body.borrador.id, id);
   assert.equal(r.body.borrador.contenido.mes, '10');
   assert.equal(api.borradores.length, 1);
+});
+
+//
+// HU-29: PRUEBAS DE OBSERVACIONES EN BORRADORES
+//
+
+test('HU-29: guarda y recupera observaciones en un borrador', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: {
+      ...CONTENIDO_BORRADOR,
+      observaciones: '  Revisar pago de octubre  '
+    }
+  });
+
+  assert.equal(creado.status, 201);
+  assert.equal(
+    creado.body.borrador.contenido.observaciones,
+    'Revisar pago de octubre'
+  );
+
+  const id = creado.body.borrador.id;
+  const recuperado = await api.pedir(`/api/borradores/${id}`);
+
+  assert.equal(recuperado.status, 200);
+  assert.equal(
+    recuperado.body.borrador.contenido.observaciones,
+    'Revisar pago de octubre'
+  );
+});
+
+test('HU-29: permite actualizar las observaciones de un borrador', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: CONTENIDO_BORRADOR
+  });
+
+  const id = creado.body.borrador.id;
+
+  const actualizado = await api.pedir(
+    `/api/borradores/${id}`,
+    {
+      contenido: {
+        ...CONTENIDO_BORRADOR,
+        observaciones: '  Observación actualizada  '
+      }
+    },
+    TOKEN,
+    'PUT'
+  );
+
+  assert.equal(actualizado.status, 200);
+  assert.equal(
+    actualizado.body.borrador.contenido.observaciones,
+    'Observación actualizada'
+  );
+});
+
+test('HU-29: rechaza borradores con observaciones mayores a 500 caracteres', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir('/api/borradores', {
+    contenido: {
+      ...CONTENIDO_BORRADOR,
+      observaciones: 'A'.repeat(501)
+    }
+  });
+
+  assert.equal(r.status, 400);
+  assert.equal(
+    r.body.errores.observaciones,
+    'La observación no puede superar 500 caracteres'
+  );
+  assert.equal(api.borradores.length, 0);
 });
 
 test('HU-23: rechaza crear borradores sin plantilla', async t => {
@@ -1684,6 +1841,43 @@ test('HU-23: finaliza un borrador y crea una planilla definitiva', async t => {
   assert.equal(borrador.estado, 'Finalizado');
   assert.equal(borrador.planilla_final_id, planilla.id);
   assert.equal(respuesta.body.id, planilla.id);
+  assert.equal(planilla.borrador_origen_id, idBorrador);
+});
+
+test('HU-29: conserva las observaciones al finalizar un borrador', async t => {
+  const api = await conAPI(t);
+
+  const creado = await api.pedir('/api/borradores', {
+    contenido: {
+      ...CONTENIDO_BORRADOR_COMPLETO,
+      observaciones: '  Pago revisado y autorizado  '
+    }
+  });
+
+  assert.equal(creado.status, 201);
+
+  const idBorrador = creado.body.borrador.id;
+
+  const respuesta = await api.pedir(
+    `/api/borradores/${idBorrador}/finalizar`,
+    { confirmar_revision: true }
+  );
+
+  assert.equal(
+    respuesta.status,
+    201,
+    `Respuesta inesperada: ${JSON.stringify(respuesta.body)}`
+  );
+
+  assert.equal(api.registros.length, 1);
+
+  const planilla = api.registros[0];
+
+  assert.equal(
+    planilla.observaciones,
+    'Pago revisado y autorizado'
+  );
+
   assert.equal(planilla.borrador_origen_id, idBorrador);
 });
 

@@ -51,6 +51,10 @@ window.mostrarDetallePlanilla = function (planilla) {
     mostrar("detalle-nombre", planilla.nombre_completo);
     mostrar("detalle-dui", planilla.dui);
     mostrar("detalle-cargo", planilla.cargo);
+    mostrar(
+        "detalle-contrato",
+        planilla.tipo_contrato ?? "No registrado"
+    );
 
     mostrar("detalle-salario", dinero(planilla.salario_base));
     mostrar("detalle-ingresos", dinero(planilla.ingresos_adicionales));
