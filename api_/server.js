@@ -353,10 +353,42 @@ app.get("/api/empleados/:id", verificarToken, async (req, res) => {
 //
 // HU-08: VALIDAR DATOS ANTES DE GUARDAR UNA PLANILLA
 //
+// HU-29: Normalizar y validar las observaciones.
+function normalizarObservacion(valor) {
+    if (valor === undefined || valor === null) {
+        return { valor: "", error: null };
+    }
+
+    if (typeof valor !== "string") {
+        return {
+            valor: "",
+            error: "La observación debe ser texto"
+        };
+    }
+
+    const observacion = valor.trim();
+
+    if (observacion.length > 500) {
+        return {
+            valor: observacion,
+            error: "La observación no puede superar 500 caracteres"
+        };
+    }
+
+    return { valor: observacion, error: null };
+}
 
 function validarDatosPlanilla(req, res, next) {
     const datos = req.body || {};
     const errores = {};
+    // HU-29: Validar y normalizar la observación.
+    const resultadoObservacion = normalizarObservacion(datos.observaciones);
+
+    if (resultadoObservacion.error) {
+        errores.observaciones = resultadoObservacion.error;
+    } else {
+        datos.observaciones = resultadoObservacion.valor;
+    }
     const esPlanillaPorDias = datos.modo_calculo === "dias"; // HU-19: identificar las nuevas planillas calculadas por días.
 
     const formatoUUID =
@@ -646,6 +678,9 @@ function validarDatosPlanilla(req, res, next) {
         // HU-21: conservar el motivo para validarlo contra Supabase.
         motivo_ajuste: datos.motivo_ajuste,
 
+        // HU-29: conservar las observaciones validadas.
+        observaciones: datos.observaciones,
+
         // Mantener salario_base como importe utilizado para el pago.
         salario_base: aDecimal(salarioCalculado),
         ingresos_adicionales: aDecimal(ingresos),
@@ -699,6 +734,8 @@ function prepararDatosDesdeBorrador(contenido) {
         novedades: contenido.novedades,
         ingresos_detalle: contenido.ingresos,
 
+        // HU-29: Conservar las observaciones al finalizar el borrador.
+        observaciones: contenido.observaciones ?? "",
         motivo_ajuste: contenido.motivo_ajuste
     };
 }
@@ -820,6 +857,7 @@ function construirRegistroPlanilla(datos, empleado, plantilla) {
         salario_proporcional: datos.salario_proporcional,
         salario_original: salarioOriginal ?? null,
         motivo_ajuste: ajustado ? motivo : null,
+        observaciones: datos.observaciones ?? "",
         salario_base: datos.salario_base,
         ingresos_adicionales: datos.ingresos_adicionales,
         horas_ordinarias: datos.horas_ordinarias,
@@ -925,7 +963,8 @@ app.post(
                 ingresos_adicionales: datos.ingresos_adicionales,
                 total_ingresos: datos.total_ingresos,
                 descuentos_totales: datos.descuentos_totales,
-                total_pagar: planilla.total_pagar
+                total_pagar: planilla.total_pagar,
+                observaciones: datos.observaciones
             });
         } catch (error) {
             console.error("Error al guardar planilla:", error);
@@ -1016,7 +1055,7 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
             .from("planillas")
             .select(
                 "id, mes, anio, plantilla_nombre, empleado_codigo, empleado_nombre, " +
-                "empleado_dui, empleado_cargo, tipo_contrato, salario_base, salario_original, motivo_ajuste, ingresos_adicionales, " +
+                "empleado_dui, empleado_cargo, tipo_contrato, salario_base, salario_original, motivo_ajuste, observaciones, ingresos_adicionales, " +
                 "horas_ordinarias, horas_extras, " +
                 "descuentos_totales, total_pagar, fecha_guardado, periodo_pago, deducciones_legales, " +
                 "dias_remunerados, salario_base_mensual, salario_proporcional, modo_calculo"
@@ -1103,6 +1142,10 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                 // HU-21: mostrar los datos del ajuste salarial guardado.
                 salario_original: planilla.salario_original,
                 motivo_ajuste: planilla.motivo_ajuste,
+
+                // HU-29: devolver las observaciones de la planilla.
+                observaciones: planilla.observaciones ?? "",
+
                 ingresos_adicionales: planilla.ingresos_adicionales,
                 ingresos_detalle: detalleIngresos || [],
                 detalle_ingresos_registrado: (detalleIngresos || []).length > 0,
@@ -1166,6 +1209,17 @@ function validarContenidoBorrador(contenido) {
                 contenido: "El contenido del borrador debe ser un objeto"
             }
         };
+    }
+
+    // HU-29: Validar y normalizar las observaciones del borrador.
+    const resultadoObservacion = normalizarObservacion(
+        contenido.observaciones
+    );
+
+    if (resultadoObservacion.error) {
+        errores.observaciones = resultadoObservacion.error;
+    } else {
+        contenido.observaciones = resultadoObservacion.valor;
     }
 
     if (
