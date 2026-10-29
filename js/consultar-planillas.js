@@ -203,26 +203,136 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
     }
 
     // 2. Pedimos las planillas a la API de Vercel
-    try {
-        cuerpo.innerHTML = '<tr><td colspan="7" class="text-center">Cargando planillas...</td></tr>';
-          
-        const { respuesta, resultado } = await consultarPlanillas(
-            `${API_URL}/api/planillas`,
-            token
+        const direccion = new URL(window.location.href);
+
+    const empleadoId =
+        direccion.searchParams.get("empleado_id")?.trim() || "";
+
+    const paginaTexto =
+        direccion.searchParams.get("pagina") ?? "1";
+
+    const paginaActual = Number(paginaTexto);
+
+    if (
+        !/^[1-9]\d*$/.test(paginaTexto) ||
+        !Number.isSafeInteger(paginaActual)
+    ) {
+        mensaje.textContent = "Número de página inválido";
+        return;
+    }
+
+    function navegar(paginaDestino, quitarFiltro = false) {
+        const destino = new URL(window.location.href);
+
+        destino.searchParams.set(
+            "pagina",
+            String(paginaDestino)
         );
 
-        // 3. Pasamos los datos a la función visual (la que ya tienes arriba)
-        if (respuesta.ok && resultado.ok) {
-            window.mostrarPlanillasGuardadas(resultado.planillas);
-        } else {
-            window.mostrarPlanillasGuardadas([]); // Array vacío para que muestre "No hay planillas"
-            if (mensaje) mensaje.textContent = resultado.mensaje || "Error al cargar las planillas";
+        if (quitarFiltro) {
+            destino.searchParams.delete("empleado_id");
         }
 
+        window.location.assign(destino.href);
+    }
+
+    const anterior =
+        document.getElementById("pagina-anterior");
+
+    const siguiente =
+        document.getElementById("pagina-siguiente");
+
+    const quitar =
+        document.getElementById("quitar-filtro-empleado");
+
+    anterior.disabled = true;
+    siguiente.disabled = true;
+
+    anterior.addEventListener(
+        "click",
+        () => navegar(paginaActual - 1)
+    );
+
+    siguiente.addEventListener(
+        "click",
+        () => navegar(paginaActual + 1)
+    );
+
+    quitar.addEventListener(
+        "click",
+        () => navegar(1, true)
+    );
+
+    const url = new URL(
+        `${API_URL}/api/planillas`,
+        window.location.href
+    );
+
+    url.searchParams.set(
+        "pagina",
+        String(paginaActual)
+    );
+
+    if (empleadoId) {
+        url.searchParams.set("empleado_id", empleadoId);
+    }
+
+    try {
+        mensaje.textContent = "Cargando planillas...";
+        cuerpo.replaceChildren();
+
+        const { respuesta, resultado } =
+            await consultarPlanillas(url.href, token);
+
+        if (!respuesta.ok || !resultado.ok) {
+            throw new Error(
+                resultado.mensaje ||
+                "No se pudo cargar el historial. Intente nuevamente"
+            );
+        }
+
+        const paginacion = resultado.paginacion;
+
+        if (
+            !Array.isArray(resultado.planillas) ||
+            !Number.isInteger(paginacion?.pagina) ||
+            !Number.isInteger(paginacion?.totalPaginas)
+        ) {
+            throw new Error(
+                "La respuesta del historial está incompleta"
+            );
+        }
+
+        window.mostrarPlanillasGuardadas(
+            resultado.planillas,
+            Boolean(empleadoId)
+        );
+
+        window.mostrarEmpleadoFiltrado(
+            empleadoId
+                ? resultado.planillas[0]?.nombre_completo ||
+                    empleadoId
+                : null
+        );
+
+        window.mostrarPaginacionPlanillas(
+            paginacion.pagina,
+            paginacion.totalPaginas
+        );
+
+        direccion.searchParams.set(
+            "pagina",
+            String(paginacion.pagina)
+        );
+
+        window.history.replaceState(
+            null,
+            "",
+            direccion.href
+        );
     } catch (error) {
-        console.error("Error al consultar:", error);
-        window.mostrarPlanillasGuardadas([]);
-        if (mensaje) mensaje.textContent = "Error de conexión con el servidor";
+        cuerpo.replaceChildren();
+        mensaje.textContent = error.message;
     }
     }
 
