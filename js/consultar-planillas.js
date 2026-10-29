@@ -1,9 +1,7 @@
-
 //
 // HU-08: MOSTRAR PLANILLAS GUARDADAS
 //
-
-window.mostrarPlanillasGuardadas = function (planillas) {
+window.mostrarPlanillasGuardadas = function (planillas, empleadoFiltrado = false) {
     const cuerpo = document.getElementById("lista-planillas");
     const mensaje = document.getElementById("consulta-mensaje");
 
@@ -15,7 +13,9 @@ window.mostrarPlanillasGuardadas = function (planillas) {
     }
 
     if (planillas.length === 0) {
-        mensaje.textContent = "No hay planillas guardadas";
+        mensaje.textContent = empleadoFiltrado
+        ? "Este empleado no tiene planillas guardadas"
+        :"No hay planillas guardadas";
         return;
     }
 
@@ -33,6 +33,10 @@ window.mostrarPlanillasGuardadas = function (planillas) {
             planilla.id,
             planilla.periodo,
             planilla.nombre_completo,
+            planilla.frecuencia,
+            planilla.fecha_guardado
+                ? new Date(planilla.fecha_guardado).toLocaleString("es-SV")
+                : "—",
             formatoUSD.format(planilla.total_pagar)
         ];
 
@@ -54,6 +58,51 @@ window.mostrarPlanillasGuardadas = function (planillas) {
         fila.appendChild(celdaAccion);
         cuerpo.appendChild(fila);
     });
+};
+
+window.mostrarEmpleadoFiltrado = function (empleado) {
+    const contenedor = document.getElementById("filtro-empleado-activo");
+    const textoEmpleado = document.getElementById("empleado-filtrado");
+
+    if (!contenedor || !textoEmpleado) {
+        return;
+    }
+
+    if (!empleado) {
+        contenedor.hidden = true;
+        textoEmpleado.textContent = "—";
+        return;
+    }
+
+    textoEmpleado.textContent = empleado;
+    contenedor.hidden = false;
+};
+
+window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
+    const paginacion = document.getElementById("paginacion-planillas");
+    const estado = document.getElementById("estado-paginacion");
+    const anterior = document.getElementById("pagina-anterior");
+    const siguiente = document.getElementById("pagina-siguiente");
+
+    if (!paginacion || !estado || !anterior || !siguiente) {
+        return;
+    }
+
+    if (
+        !Number.isInteger(paginaActual) ||
+        !Number.isInteger(totalPaginas) ||
+        totalPaginas <= 1
+    ) {
+        paginacion.hidden = true;
+        return;
+    }
+
+    estado.textContent = `Página ${paginaActual} de ${totalPaginas}`;
+
+    anterior.disabled = paginaActual <= 1;
+    siguiente.disabled = paginaActual >= totalPaginas;
+
+    paginacion.hidden = false;
 };
 
 // Este código se ejecuta automáticamente al cargar consultar-planillas.html
@@ -108,7 +157,7 @@ window.mostrarPlanillasGuardadas = function (planillas) {
 
     // 2. Pedimos las planillas a la API de Vercel
     try {
-        cuerpo.innerHTML = '<tr><td colspan="4" class="text-center">Cargando planillas...</td></tr>';
+        cuerpo.innerHTML = '<tr><td colspan="7" class="text-center">Cargando planillas...</td></tr>';
         
         const respuesta = await fetch(`${API_URL}/api/planillas`, {
             method: "GET",
