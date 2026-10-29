@@ -945,7 +945,42 @@
                             <strong id="resumen-total"></strong>
                         </div>
                     </div>
+                    <div
+                        id="comparacion-planilla"
+                        class="revision-section"
+                        hidden>
 
+                        <h3>
+                            <i class="bi bi-arrow-left-right"></i>
+                            Comparación con planilla anterior
+                        </h3>
+
+                        <p id="comparacion-periodo" class="text-muted"></p>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Concepto</th>
+                                        <th scope="col">Importe anterior</th>
+                                        <th scope="col">Importe actual</th>
+                                        <th scope="col">Diferencia</th>
+                                        <th scope="col">Cambio</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="comparacion-resultados"></tbody>
+                            </table>
+                        </div>
+
+                        <p
+                            id="comparacion-mensaje"
+                            class="text-muted mb-0"
+                            role="status"
+                            aria-live="polite">
+                        </p>
+                    </div>
+                    
                     <div class="revision-section">
                         <h3>
                             <i class="bi bi-list-ul"></i>
