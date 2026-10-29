@@ -360,19 +360,22 @@ function prepararAPI(opciones = {}) {
           return {
             data: !opciones.sinPlantilla &&
               filtro?.valor === PLANTILLA.id
-              ? { ...PLANTILLA }
+              ? { ...PLANTILLA, ...(opciones.plantillaPersonalizada ?? {}) }
               : null,
             error: null
           };
         }
 
         if (tabla === 'planilla_ingresos') {
-          return { data: [], error: null };
+          return {
+            data: opciones.ingresosDetalle ?? [],
+            error: null
+          };
         }
 
         if (tabla === 'planilla_descuentos') {
           return {
-            data: [
+            data: opciones.descuentosDetalle ?? [
               { concepto: 'Préstamo', importe: 10 },
               { concepto: 'Anticipo', importe: 15 }
             ],
@@ -1719,4 +1722,391 @@ test('HU-23: no duplica la planilla al finalizar dos veces', async t => {
     api.borradores[0].planilla_final_id,
     primera.body.id
   );
+});
+
+// HU-27: preparar una nueva planilla sin modificar la original.
+test('HU-27: duplica una planilla mensual con el salario actual', async t => {
+  const origen = {
+    ...PLANILLA_GUARDADA,
+    empleado_id: EMPLEADO.id,
+    plantilla_id: PLANTILLA.id,
+    periodo_pago: 'mensual',
+    ingresos_adicionales: 50
+  };
+
+  const api = await conAPI(t, {
+    planillas: [origen],
+    ingresosDetalle: [
+      {
+        tipo: 'Bono',
+        concepto: 'Bono de productividad',
+        importe: 50,
+        origen: 'Manual'
+      }
+    ],
+    descuentosDetalle: [
+      {
+        concepto: 'Préstamo',
+        importe: 10,
+        origen: 'Manual'
+      }
+    ]
+  });
+
+  const respuesta = await api.pedir(
+    `/api/planillas/${origen.id}/duplicar`
+  );
+
+  assert.equal(respuesta.status, 200);
+  assert.equal(respuesta.body.ok, true);
+
+  const duplicacion = respuesta.body.duplicacion;
+
+  assert.equal(duplicacion.empleado_id, EMPLEADO.id);
+  assert.equal(duplicacion.plantilla_id, PLANTILLA.id);
+
+  // Debe recuperar el salario actual del empleado.
+  assert.equal(
+    duplicacion.empleado.salario_base_mensual,
+    EMPLEADO.salario_base_mensual
+  );
+
+  // El nuevo período queda pendiente.
+  assert.equal(duplicacion.mes, null);
+  assert.equal(duplicacion.anio, null);
+  assert.equal(duplicacion.dias_remunerados, 30);
+
+  // Debe conservar los conceptos manuales.
+  assert.equal(duplicacion.ingresos_detalle.length, 1);
+  assert.equal(duplicacion.descuentos.length, 1);
+
+  // No debe copiar datos exclusivos de la planilla anterior.
+  assert.equal(duplicacion.novedades, undefined);
+  assert.equal(duplicacion.motivo_ajuste, undefined);
+  assert.equal(duplicacion.operacion_id, undefined);
+
+  // Preparar una duplicación NO debe guardar una planilla.
+  assert.equal(api.registros.length, 0);
+});
+
+// HU-27: rechazar identificadores de planilla inválidos.
+test('HU-27: rechaza un identificador inválido', async t => {
+  const api = await conAPI(t);
+
+  const respuesta = await api.pedir(
+    '/api/planillas/identificador-invalido/duplicar'
+  );
+
+  assert.equal(respuesta.status, 400);
+  assert.equal(respuesta.body.ok, false);
+
+  assert.match(
+    respuesta.body.mensaje,
+    /identificador/i
+  );
+
+  // Una solicitud inválida no debe guardar registros.
+  assert.equal(api.registros.length, 0);
+});
+
+// HU-27: impedir duplicar una planilla inexistente.
+test('HU-27: rechaza una planilla inexistente', async t => {
+  const api = await conAPI(t, {
+    planillas: []
+  });
+
+  const respuesta = await api.pedir(
+    '/api/planillas/33333333-3333-4333-8333-333333333333/duplicar'
+  );
+
+  assert.equal(respuesta.status, 404);
+  assert.equal(respuesta.body.ok, false);
+
+  assert.match(
+    respuesta.body.mensaje,
+    /no existe/i
+  );
+
+  // No debe crear registros.
+  assert.equal(api.registros.length, 0);
+});
+
+// HU-27: impedir duplicar planillas que no sean mensuales.
+test('HU-27: rechaza una planilla no mensual', async t => {
+  const origen = {
+    ...PLANILLA_GUARDADA,
+    empleado_id: EMPLEADO.id,
+    plantilla_id: PLANTILLA.id,
+    periodo_pago: 'quincenal'
+  };
+
+  const api = await conAPI(t, {
+    planillas: [origen]
+  });
+
+  const respuesta = await api.pedir(
+    `/api/planillas/${origen.id}/duplicar`
+  );
+
+  assert.equal(respuesta.status, 400);
+  assert.equal(respuesta.body.ok, false);
+
+  assert.match(
+    respuesta.body.mensaje,
+    /mensuales/i
+  );
+
+  // No debe guardar una nueva planilla.
+  assert.equal(api.registros.length, 0);
+});
+
+// HU-27: impedir duplicar cuando el empleado ya no existe.
+test('HU-27: rechaza una planilla cuyo empleado ya no existe', async t => {
+  const origen = {
+    ...PLANILLA_GUARDADA,
+    empleado_id: EMPLEADO.id,
+    plantilla_id: PLANTILLA.id,
+    periodo_pago: 'mensual',
+    ingresos_adicionales: 0
+  };
+
+  const api = await conAPI(t, {
+    planillas: [origen],
+    sinEmpleado: true
+  });
+
+  const respuesta = await api.pedir(
+    `/api/planillas/${origen.id}/duplicar`
+  );
+
+  assert.equal(respuesta.status, 400);
+  assert.equal(respuesta.body.ok, false);
+
+  assert.match(
+    respuesta.body.mensaje,
+    /empleado original ya no existe/i
+  );
+
+  // No debe crear una nueva planilla.
+  assert.equal(api.registros.length, 0);
+});
+
+// HU-27: impedir duplicar cuando la plantilla ya no existe.
+test('HU-27: rechaza una planilla cuya plantilla ya no existe', async t => {
+  const origen = {
+    ...PLANILLA_GUARDADA,
+    empleado_id: EMPLEADO.id,
+    plantilla_id: PLANTILLA.id,
+    periodo_pago: 'mensual',
+    ingresos_adicionales: 0
+  };
+
+  const api = await conAPI(t, {
+    planillas: [origen],
+    sinPlantilla: true
+  });
+
+  const respuesta = await api.pedir(
+    `/api/planillas/${origen.id}/duplicar`
+  );
+
+  assert.equal(respuesta.status, 400);
+  assert.equal(respuesta.body.ok, false);
+
+  assert.match(
+    respuesta.body.mensaje,
+    /plantilla original ya no existe/i
+  );
+
+  // No debe crear una nueva planilla.
+  assert.equal(api.registros.length, 0);
+});
+
+
+const RUTA_HU27 = `/api/planillas/${PLANILLA_GUARDADA.id}/duplicar`;
+
+function origenHU27(cambios = {}) {
+  return {
+    ...PLANILLA_GUARDADA,
+    empleado_id: EMPLEADO.id,
+    plantilla_id: PLANTILLA.id,
+    periodo_pago: 'mensual',
+    ingresos_adicionales: 0,
+    ...cambios
+  };
+}
+
+// 1. Ingresos adicionales positivos sin desglose.
+test('HU-27: rechaza ingresos adicionales sin desglose', async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27({ ingresos_adicionales: 50 })],
+    ingresosDetalle: []
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+  assert.match(r.body.mensaje, /no tienen desglose/i);
+  assert.equal(api.registros.length, 0);
+});
+
+// 2. Planilla sin empleado asociado.
+test('HU-27: rechaza una planilla sin empleado asociado', async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27({ empleado_id: null })]
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 400);
+  assert.match(r.body.mensaje, /empleado o plantilla/i);
+  assert.equal(api.registros.length, 0);
+});
+
+// 3. Planilla sin plantilla asociada.
+test('HU-27: rechaza una planilla sin plantilla asociada', async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27({ plantilla_id: null })]
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 400);
+  assert.match(r.body.mensaje, /empleado o plantilla/i);
+  assert.equal(api.registros.length, 0);
+});
+
+// 4. Desglose vacío cuando no existen ingresos adicionales.
+test('HU-27: permite duplicar sin ingresos adicionales', async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27()],
+    ingresosDetalle: [],
+    descuentosDetalle: []
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.ok, true);
+  assert.deepEqual(r.body.duplicacion.ingresos_detalle, []);
+  assert.deepEqual(r.body.duplicacion.descuentos, []);
+  assert.equal(api.registros.length, 0);
+});
+
+// 5. No reutilizar descuentos legales automáticos.
+test('HU-27: excluye descuentos legales automáticos', async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27()],
+    descuentosDetalle: [
+      { concepto: 'ISSS', importe: 15, origen: 'Automatico' },
+      { concepto: 'AFP', importe: 36, origen: 'Automatico' },
+      { concepto: 'Renta', importe: 20, origen: 'Automatico' },
+      { concepto: 'Préstamo', importe: 10, origen: 'Manual' }
+    ]
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 200);
+  assert.deepEqual(
+    r.body.duplicacion.descuentos.map(d => d.concepto),
+    ['Préstamo']
+  );
+});
+
+// 6. No reutilizar ingresos automáticos.
+test('HU-27: reutiliza solamente ingresos manuales', async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27({ ingresos_adicionales: 50 })],
+    ingresosDetalle: [
+      {
+        tipo: 'Bono',
+        concepto: 'Bono de productividad',
+        importe: 50,
+        origen: 'Manual'
+      },
+      {
+        tipo: 'Otro',
+        concepto: 'Ingreso automático',
+        importe: 20,
+        origen: 'Automatico'
+      }
+    ]
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 200);
+  assert.deepEqual(
+    r.body.duplicacion.ingresos_detalle.map(i => i.concepto),
+    ['Bono de productividad']
+  );
+});
+
+// 7. Exigir autenticación.
+test('HU-27: exige autenticación', async t => {
+  const api = await conAPI(t);
+
+  const r = await api.pedir(RUTA_HU27, undefined, null);
+
+  assert.equal(r.status, 401);
+  assert.equal(r.body.ok, false);
+  assert.equal(api.registros.length, 0);
+});
+
+// 8. Rechazar cuentas sin el rol autorizado.
+test('HU-27: rechaza cuentas sin rol de nómina', async t => {
+  const api = await conAPI(t, {
+    rolCuenta: 'Empleado'
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 403);
+  assert.equal(r.body.ok, false);
+  assert.equal(api.registros.length, 0);
+});
+
+// 9. No modificar los datos de la planilla original.
+test('HU-27: preparar duplicación no modifica la planilla original', async t => {
+  const origen = origenHU27();
+  const copiaOriginal = structuredClone(origen);
+
+  const api = await conAPI(t, {
+    planillas: [origen]
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 200);
+  assert.deepEqual(origen, copiaOriginal);
+  assert.equal(api.registros.length, 0);
+  assert.equal(api.borradores.length, 0);
+});
+
+test('HU-27: rechaza una plantilla incompatible', async () => {
+  // Pendiente de adaptar al mock existente.
+});
+
+test('HU-27: rechaza una plantilla incompatible', async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27()],
+    plantillaPersonalizada: {
+      nombre: 'Planilla quincenal'
+    }
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.ok, false);
+
+  assert.match(
+    r.body.mensaje,
+    /plantilla original no es compatible/i
+  );
+
+  // La duplicación no debe guardar una nueva planilla.
+  assert.equal(api.registros.length, 0);
 });

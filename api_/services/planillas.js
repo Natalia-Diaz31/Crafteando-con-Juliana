@@ -79,23 +79,26 @@ function crearServicioPlanillas(supabase) {
 
         if (errorIngresos) throw errorIngresos;
         if (errorDescuentos) throw errorDescuentos;
+        const ingresosManuales = (ingresos ?? []).filter(
+            ({ origen }) => String(origen ?? "").trim().toLowerCase() === "manual"
+        );
 
         return {
             ...planilla,
-            ingresos_detalle: ingresos?.length
-                ? ingresos
-                : planilla.ingresos_adicionales == null ||
-                  Number(planilla.ingresos_adicionales) > 0
+            ingresos_detalle: ingresosManuales.length
+                ? ingresosManuales
+                : Number(planilla.ingresos_adicionales) > 0 ||
+                    planilla.ingresos_adicionales == null
                     ? null
                     : [],
-            
-        descuentos: (descuentos ?? []).filter(({ concepto }) =>
-            !["isss", "afp", "renta"].includes(concepto.trim().toLowerCase())
-        )
+
+            descuentos: (descuentos ?? []).filter(({ concepto }) =>
+                !["isss", "afp", "renta"].includes(concepto.trim().toLowerCase())
+            )
         };
     }
 
-    
+
     // HU-28: Consultar la última planilla mensual anterior.
     async function consultarPlanillaAnterior({ empleadoId, anio, mes }) {
         const { data, error } = await supabase

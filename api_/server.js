@@ -407,13 +407,13 @@ function validarDatosPlanilla(req, res, next) {
     }
 
     const {
-    salario,
-    ingresos,
-    ingresosDetalle,
-    errores: erroresIngresos
-} = validarSalarioEIngresos(datos);
+        salario,
+        ingresos,
+        ingresosDetalle,
+        errores: erroresIngresos
+    } = validarSalarioEIngresos(datos);
 
-Object.assign(errores, erroresIngresos);
+    Object.assign(errores, erroresIngresos);
 
     // HU-13: validar cantidades de horas sin modificar los montos monetarios.
     function obtenerHoras(campo) {
@@ -953,11 +953,23 @@ function formatearPeriodo(mes, anio) {
     return `${MESES[mes - 1] || mes} ${anio}`;
 }
 
- // HU-25: Historial de planillas con filtro por empleado y paginación.
+// HU-25: Historial de planillas con filtro por empleado y paginación.
 const crearServicioPlanillas = require("./services/planillas");
 const crearRutasPlanillas = require("./routes/historial-planillas");
 
 const servicioPlanillas = crearServicioPlanillas(supabase);
+// HU-27: preparar la duplicación de una planilla guardada.
+const crearRutasDuplicacion = require("./routes/duplicar-planilla");
+
+app.use(
+    "/api/planillas",
+    crearRutasDuplicacion({
+        servicio: servicioPlanillas,
+        supabase,
+        verificarToken,
+        verificarRolNomina
+    })
+);
 
 app.use(
     "/api/planillas",
