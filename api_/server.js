@@ -958,6 +958,19 @@ const crearServicioPlanillas = require("./services/planillas");
 const crearRutasPlanillas = require("./routes/historial-planillas");
 
 const servicioPlanillas = crearServicioPlanillas(supabase);
+// HU-28: consulta de la planilla mensual anterior para comparación.
+const crearRutasComparacion = require("./routes/comparacion-planillas");
+
+app.use(
+    "/api/planillas",
+    crearRutasComparacion({
+        servicio: servicioPlanillas,
+        verificarToken,
+        verificarRolNomina,
+        formatearPeriodo
+    })
+);
+
 // HU-27: preparar la duplicación de una planilla guardada.
 const crearRutasDuplicacion = require("./routes/duplicar-planilla");
 
