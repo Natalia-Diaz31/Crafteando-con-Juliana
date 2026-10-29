@@ -747,6 +747,37 @@
                             </p>
                         </div>
 
+                        <div class="form-section">
+                            <h3>Observaciones</h3>
+
+                            <label for="observaciones" class="form-label">
+                                Observación de la planilla
+                            </label>
+
+                            <textarea
+                                id="observaciones"
+                                class="form-control"
+                                rows="4"
+                                maxlength="500"
+                                placeholder="Ingrese una observación si es necesario"
+                                aria-describedby="observaciones-contador observaciones-error"></textarea>
+
+                            <div class="d-flex justify-content-between mt-1">
+                                <p
+                                    id="observaciones-error"
+                                    class="text-danger mb-0"
+                                    role="alert"
+                                    aria-live="polite">
+                                </p>
+
+                                <small
+                                    id="observaciones-contador"
+                                    class="text-muted">
+                                    0 / 500
+                                </small>
+                            </div>
+                        </div>
+
                         <div class="revision-total">
                             <div>
                                 <span>Total líquido a pagar</span>
@@ -999,6 +1030,20 @@
                             Descuentos totales = descuentos autorizados + deducciones legales.
                         </p>
                     </div>
+                    
+                    <div class="revision-section">
+                        <h3>
+                            <i class="bi bi-chat-left-text"></i>
+                            Observaciones
+                        </h3>
+
+                        <p
+                            id="resumen-observaciones"
+                            class="mb-0">
+                            Sin observaciones
+                        </p>
+                    </div>
+
                     <div class="revision-actions">
                         <button type="button"
                                 id="editar-datos"
