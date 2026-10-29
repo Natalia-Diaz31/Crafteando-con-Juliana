@@ -106,7 +106,54 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
 };
 
 // Este código se ejecuta automáticamente al cargar consultar-planillas.html
+
 (() => {
+    // HU-36: evitar solicitudes idénticas simultáneas.
+    const solicitudesActivas = new Map();
+
+    function consultarPlanillas(url, token) {
+        // Normalizar la URL para identificar los mismos parámetros.
+        const urlNormalizada = new URL(url, window.location.href);
+        urlNormalizada.searchParams.sort();
+
+        const clave = JSON.stringify({
+            metodo: "GET",
+            url: urlNormalizada.href,
+            token
+        });
+
+        // Si ya existe la misma solicitud, reutilizarla.
+        const solicitudExistente = solicitudesActivas.get(clave);
+
+        if (solicitudExistente) {
+            return solicitudExistente;
+        }
+
+        // Crear una sola solicitud para esta combinación.
+        const solicitud = fetch(url, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+            .then(async (respuesta) => {
+                const resultado = await respuesta.json();
+
+                return {
+                    respuesta,
+                    resultado
+                };
+            })
+            .finally(() => {
+                // Permitir una nueva consulta cuando termine.
+                solicitudesActivas.delete(clave);
+            });
+
+        solicitudesActivas.set(clave, solicitud);
+
+        return solicitud;
+    }
+
     async function inicializarConsulta() {
         const pagina = document.querySelector("main");
 
@@ -158,15 +205,11 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
     // 2. Pedimos las planillas a la API de Vercel
     try {
         cuerpo.innerHTML = '<tr><td colspan="7" class="text-center">Cargando planillas...</td></tr>';
-        
-        const respuesta = await fetch(`${API_URL}/api/planillas`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        const resultado = await respuesta.json();
+          
+        const { respuesta, resultado } = await consultarPlanillas(
+            `${API_URL}/api/planillas`,
+            token
+        );
 
         // 3. Pasamos los datos a la función visual (la que ya tienes arriba)
         if (respuesta.ok && resultado.ok) {
