@@ -13,12 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const nombre = document.getElementById("empleado-nombre");
         const dui = document.getElementById("empleado-dui");
         const cargo = document.getElementById("empleado-cargo");
+        const contrato = document.getElementById("empleado-contrato");
 
         if (codigo) codigo.textContent = empleado?.codigo || "---";
         if (nombre) nombre.textContent = empleado?.nombre_completo || "---";
         if (dui) dui.textContent = empleado?.dui || "---";
         if (cargo) cargo.textContent = empleado?.cargo || "---";
-
+        if (contrato) { 
+            contrato.textContent = empleado?.tipo_contrato || "No registrado";
+        }
         if (mensaje) {
             mensaje.textContent = empleado ? "" : "No hay un empleado seleccionado.";
         }
