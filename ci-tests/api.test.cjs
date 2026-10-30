@@ -1020,6 +1020,13 @@ test('El detalle devuelve todos los datos guardados', async t => {
     horas_ordinarias: 160,
     horas_extras: 8,
     periodo_pago: 'Mensual',
+
+    // HU-32: los registros históricos conservan los campos ausentes como null.
+    modo_calculo: null,
+    salario_base_mensual: null,
+    dias_remunerados: null,
+    salario_proporcional: null,
+
     descuentos_totales: 25,
     descuentos: [
       { concepto: 'Préstamo', importe: 10 },
@@ -1032,6 +1039,79 @@ test('El detalle devuelve todos los datos guardados', async t => {
     ]
   });
 });
+
+test('HU-32: el detalle conserva los valores guardados del cálculo por días', async t => {
+  const planillaPorDias = {
+    ...PLANILLA_GUARDADA,
+    modo_calculo: 'dias',
+    salario_base: 250,
+    salario_base_mensual: '500.00',
+    dias_remunerados: 15,
+    salario_proporcional: '250.00'
+  };
+
+  const api = await conAPI(t, {
+    planillas: [planillaPorDias]
+  });
+
+  const r = await api.pedir(
+    `/api/planillas/${planillaPorDias.id}`
+  );
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.ok, true);
+
+  const detalle = r.body.planilla;
+
+  assert.equal(detalle.modo_calculo, 'dias');
+  assert.equal(detalle.salario_base_mensual, '500.00');
+  assert.equal(detalle.dias_remunerados, 15);
+  assert.equal(detalle.salario_proporcional, '250.00');
+
+  // El salario mensual y el proporcional son datos distintos.
+  assert.notEqual(
+    detalle.salario_base_mensual,
+    detalle.salario_proporcional
+  );
+
+  // La API conserva el salario base guardado.
+  assert.equal(detalle.salario_base, 250);
+});
+
+
+test('HU-32: una planilla histórica por horas conserva sus datos', async t => {
+  const planillaHistorica = {
+    ...PLANILLA_GUARDADA,
+    horas_ordinarias: 160,
+    horas_extras: 8,
+    salario_base: 500
+  };
+
+  const api = await conAPI(t, {
+    planillas: [planillaHistorica]
+  });
+
+  const r = await api.pedir(
+    `/api/planillas/${planillaHistorica.id}`
+  );
+
+  assert.equal(r.status, 200);
+  assert.equal(r.body.ok, true);
+
+  const detalle = r.body.planilla;
+
+  // Los datos históricos por horas permanecen intactos.
+  assert.equal(detalle.horas_ordinarias, 160);
+  assert.equal(detalle.horas_extras, 8);
+  assert.equal(detalle.salario_base, 500);
+
+  // Los campos que no existían se mantienen como null.
+  assert.equal(detalle.modo_calculo, null);
+  assert.equal(detalle.salario_base_mensual, null);
+  assert.equal(detalle.dias_remunerados, null);
+  assert.equal(detalle.salario_proporcional, null);
+});
+
 
 test('HU-26: una planilla antigua sin contrato devuelve null', async t => {
   const planillaAntigua = {

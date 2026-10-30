@@ -1165,7 +1165,14 @@ app.get("/api/planillas/:id", verificarToken, verificarRolNomina, async (req, re
                     ...novedad,
                     dias: contarDias(novedad.fecha_inicio, novedad.fecha_fin)
                 })),
-                dias_remunerados: planilla.dias_remunerados
+
+                // HU-32: devolver los valores guardados del cálculo por días.
+                // Mantener null cuando el registro histórico no tenga estos campos.
+                modo_calculo: planilla.modo_calculo ?? null,
+                salario_base_mensual: planilla.salario_base_mensual ?? null,
+                dias_remunerados: planilla.dias_remunerados ?? null,
+                salario_proporcional: planilla.salario_proporcional ?? null
+
             }
         });
 
