@@ -99,8 +99,25 @@
                         Descargar PDF
                     </button>
 
+                    <button
+                        type="button"
+                        id="descargar-excel"
+                        class="btn btn-outline-success btn-sm mb-4">
+                        aria-describedby="excel-mensaje">
+                        <i class="bi bi-file-earmark-excel"></i>
+                        Descargar Excel
+                    </button>
+
                     <p
                         id="pdf-mensaje"
+                        class="mb-4"
+                        role="status"
+                        aria-live="polite"
+                        hidden>
+                    </p>
+
+                    <p
+                        id="excel-mensaje"
                         class="mb-4"
                         role="status"
                         aria-live="polite"
