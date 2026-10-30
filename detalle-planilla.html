@@ -102,7 +102,7 @@
                     <button
                         type="button"
                         id="descargar-excel"
-                        class="btn btn-outline-success btn-sm mb-4">
+                        class="btn btn-outline-success btn-sm mb-4"
                         aria-describedby="excel-mensaje">
                         <i class="bi bi-file-earmark-excel"></i>
                         Descargar Excel
@@ -247,6 +247,16 @@
     <script src="js/config.js"></script>
     <script type="module" src="js/deducciones-legales.js"></script>
     <script src="js/desglose-planilla.js"></script>
+    <!-- HU-30: generación del PDF en el navegador -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"
+            integrity="sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js"
+            integrity="sha384-5jk55M0XWoAw7LyhlXJe19ErOr3doBAPzxw9vahPFbvolqWa2yDk4fhHa2zuYeOa"
+            crossorigin="anonymous"></script>
+    <script src="js/reglas-nomina.js"></script>
+    <script src="js/exportacion-datos-generales.js"></script>
+    <script src="js/exportacion-movimientos-pdf.js"></script>
     <script src="js/detalle-planilla.js"></script>
 </body>
 </html>

@@ -280,6 +280,16 @@
                         Cambiar empleado
                     </button>
 
+                    <!-- HU-25: historial del empleado seleccionado -->
+                    <a id="ver-historial-empleado"
+                       class="btn btn-outline-secondary btn-sm mt-2 ms-2"
+                       target="_blank"
+                       rel="noopener"
+                       hidden>
+                        <i class="bi bi-clock-history"></i>
+                        Ver historial
+                    </a>
+
                 </section>
                 <form id="form-planilla" novalidate>
                     <fieldset id="datos-pago" disabled>
@@ -1100,6 +1110,7 @@
     <script type="module" src="js/salario-dias.js"></script>
     <script type="module" src="js/importacion-vista.js"></script>
     <script type="module" src="js/borradores-vista.js"></script>
+    <script type="module" src="js/duplicacion-formulario.js"></script>
 
 </body>
 </html>

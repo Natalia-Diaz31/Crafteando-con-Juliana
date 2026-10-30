@@ -111,7 +111,7 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
     // HU-36: evitar solicitudes idénticas simultáneas.
     const solicitudesActivas = new Map();
 
-    function consultarPlanillas(url, token) {
+    function consultarPlanillas(url, token, signal) {
         // Normalizar la URL para identificar los mismos parámetros.
         const urlNormalizada = new URL(url, window.location.href);
         urlNormalizada.searchParams.sort();
@@ -132,6 +132,7 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
         // Crear una sola solicitud para esta combinación.
         const solicitud = fetch(url, {
             method: "GET",
+            signal,
             headers: {
                 "Authorization": `Bearer ${token}`
             }
@@ -277,12 +278,29 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
         url.searchParams.set("empleado_id", empleadoId);
     }
 
+    // HU-36: la consulta se cancela al salir y solo la vigente actualiza la tabla.
+    const { crearControlVigenciaConsultas } =
+        await import("./control-vigencia-consultas.js");
+
+    const control = crearControlVigenciaConsultas();
+    const consulta = control.iniciarConsulta(url.href);
+
+    window.addEventListener(
+        "pagehide",
+        () => control.cancelarConsultaActual(),
+        { once: true }
+    );
+
     try {
         mensaje.textContent = "Cargando planillas...";
         cuerpo.replaceChildren();
 
         const { respuesta, resultado } =
-            await consultarPlanillas(url.href, token);
+            await consultarPlanillas(url.href, token, consulta.controlador.signal);
+
+        if (!control.estaVigente(consulta)) return;
+
+        window.verificarAccesoApi(respuesta); // HU-32
 
         if (!respuesta.ok || !resultado.ok) {
             throw new Error(
@@ -331,8 +349,12 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
             direccion.href
         );
     } catch (error) {
+        if (!control.estaVigente(consulta)) return;
+
         cuerpo.replaceChildren();
         mensaje.textContent = error.message;
+    } finally {
+        control.finalizarConsulta(consulta);
     }
     }
 

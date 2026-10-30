@@ -1,19 +1,43 @@
-import {
-    obtenerEstadoNovedades,
-    validarNovedadesFormulario
-} from "./novedades.js";
-
-import {
-    obtenerIngresos,
-    validarIngresosPendientes
-} from "./ingresos-detalle.js";
-
-import {
-    obtenerAjusteSalario,
-    validarAjusteFormulario
-} from "./salario-ajuste.js";
-
+import { obtenerEstadoNovedades } from "./novedades.js";
+import { obtenerIngresos } from "./ingresos-detalle.js";
+import { obtenerAjusteSalario } from "./salario-ajuste.js";
 import { esPlanillaPorDias } from "./salario-dias.js";
+
+// HU-35: coordinador de revisión y validaciones exportadas por cada componente.
+import { validarRevision } from "./validacion-revision.js";
+import { VALIDACIONES_REVISION_COMPONENTES } from "./validaciones-revision-componentes.js";
+import { validarMontosPlanilla } from "./validar-montos.js";
+import {
+    validarDetalleDescuentos,
+    obtenerSubtotalDescuentosManuales
+} from "./descuentos-detalle.js";
+
+// HU-34: totales compartidos. HU-28: comparación con la planilla anterior.
+import { obtenerDeduccionesLegales } from "./deducciones-legales.js";
+import { prepararEntradasTotales } from "./entradas-totales-planilla.js";
+import { calcularTotales } from "./totales-planilla.js";
+import { compararImportes } from "./comparacion-planillas.js";
+
+const VALIDACIONES_REVISION = [
+    ...VALIDACIONES_REVISION_COMPONENTES,
+    {
+        campo: "salario",
+        mensaje: "Corrija los montos de la planilla",
+        validar: validarMontosPlanilla
+    },
+    {
+        campo: "descuento-concepto",
+        mensaje: "Corrija el detalle de descuentos",
+        validar: validarDetalleDescuentos
+    }
+];
+
+const CONCEPTOS_COMPARACION = {
+    totalIngresos: "Total de ingresos",
+    deduccionesLegales: "Deducciones legales",
+    descuentosManuales: "Descuentos manuales",
+    totalPagar: "Total a pagar"
+};
 
 document.addEventListener("DOMContentLoaded", () => {
     const formulario = document.getElementById("form-planilla");
@@ -41,52 +65,107 @@ document.addEventListener("DOMContentLoaded", () => {
             }));
     }
 
+    // HU-28: cada revisión invalida la comparación y las respuestas pendientes.
+    const comparacion = document.getElementById("comparacion-planilla");
+    const mensajeComparacion = document.getElementById("comparacion-mensaje");
+    let versionComparacion = 0;
+
+    function retirarComparacion() {
+        versionComparacion++;
+        comparacion.hidden = true;
+        document.getElementById("comparacion-periodo").textContent = "";
+        document.getElementById("comparacion-resultados").replaceChildren();
+        mensajeComparacion.replaceChildren();
+    }
+
+    async function compararConAnterior(consulta, actuales) {
+        const version = ++versionComparacion;
+
+        comparacion.hidden = false;
+        mensajeComparacion.textContent = "Consultando la planilla anterior...";
+
+        try {
+            const respuesta = await fetch(
+                `${API_URL}/api/planillas/comparacion-anterior?${new URLSearchParams(consulta)}`,
+                { headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } }
+            );
+
+            window.verificarAccesoApi(respuesta);
+
+            const resultado = await respuesta.json();
+
+            if (version !== versionComparacion) return;
+
+            if (!respuesta.ok || !resultado.ok) {
+                throw new Error(resultado.mensaje || "No se pudo consultar la planilla anterior. Intente nuevamente");
+            }
+
+            if (!resultado.comparable) {
+                mensajeComparacion.textContent = `${resultado.mensaje}: ${resultado.motivo}`;
+                return;
+            }
+
+            const { anterior } = resultado;
+
+            document.getElementById("comparacion-periodo").textContent =
+                `Planilla anterior: ${anterior.periodo} · ${anterior.id}`;
+
+            document.getElementById("comparacion-resultados").replaceChildren(
+                ...compararImportes(actuales, anterior.importes, window.ReglasNomina)
+                    .map((fila) => {
+                        const tr = document.createElement("tr");
+
+                        [
+                            CONCEPTOS_COMPARACION[fila.campo],
+                            formatoUSD.format(fila.anterior),
+                            formatoUSD.format(fila.actual),
+                            fila.diferencia,
+                            fila.estado
+                        ].forEach((texto) => tr.append(
+                            Object.assign(document.createElement("td"), { textContent: texto })
+                        ));
+
+                        return tr;
+                    })
+            );
+
+            mensajeComparacion.textContent = "";
+        } catch (error) {
+            if (version !== versionComparacion) return;
+
+            const reintentar = Object.assign(document.createElement("button"), {
+                type: "button",
+                className: "btn btn-link btn-sm p-0 ms-1",
+                textContent: "Reintentar"
+            });
+
+            reintentar.addEventListener("click", () => compararConAnterior(consulta, actuales));
+            mensajeComparacion.replaceChildren(error.message, reintentar);
+        }
+    }
+
     function ocultarResumen() {
         resumen.hidden = true;
         const casilla = document.getElementById("confirmacion-revisado");
         if (casilla) casilla.checked = false;
         document.getElementById("btn-guardar-planilla").disabled = true;
         boton.setAttribute("aria-expanded", "false");
+        retirarComparacion();
     }
 
     function mostrarDato(id, valor) {
         document.getElementById(id).textContent = valor;
     }
 
-    // Convierte montos validados a centavos para calcular.
-    function aCentavos(valor) {
-        const [entero, decimales = ""] = valor.trim().split(".");
-        return Number(entero) * 100 +
-            Number(decimales.padEnd(2, "0"));
-    }
-
     formulario.addEventListener("submit", (evento) => {
         evento.preventDefault();
         ocultarResumen();
-        if (
-    !validarNovedadesFormulario() ||
-    !validarIngresosPendientes() ||
-    !validarAjusteFormulario()
-    ) {
-    return;
-    }
 
-        const legalesValidos = window.validarDeduccionesLegales();
+        // Recalcula «Descuentos totales» antes de validar los montos.
         window.actualizarDescuentosTotales();
-        // HU-19: la planilla por días no usa horas.
-        const horasValidas = esPlanillaPorDias() || window.validarHorasPlanilla();
-        const empleadoValido = window.actualizarBloqueoEmpleado();
-        const obligatoriosValidos =
-            window.validarObligatoriosPlanilla();
-        const montosValidos = window.validarMontosPlanilla();
-        const detalleValido = window.validarDetalleDescuentos();
 
-        if (
-            !empleadoValido ||
-            !obligatoriosValidos ||
-            !montosValidos ||
-            !detalleValido || !legalesValidos || !horasValidas
-        ) {
+        // HU-35: el coordinador ejecuta todas las validaciones, sin detenerse en la primera.
+        if (!validarRevision(VALIDACIONES_REVISION).valido) {
             formulario.querySelector(".is-invalid")?.focus();
             return;
         }
@@ -107,34 +186,39 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // HU-34: totales con la función compartida.
         // HU-19: en la planilla por días se usa el salario proporcional.
-        const salario = aCentavos(
-            (document.getElementById("salario-proporcional") ??
-                document.getElementById("salario")).value
-        );
-        const ingresos = aCentavos(
-            document.getElementById("ingresos").value
-        );
-        const descuentos = aCentavos(
-            document.getElementById("descuentos").value
-        );
+        const entradas = prepararEntradasTotales({
+            salarioAplicable: (document.getElementById("salario-proporcional") ??
+                document.getElementById("salario")).value,
+            ingresosAdicionales: document.getElementById("ingresos").value,
+            deduccionesLegales: obtenerDeduccionesLegales()
+        }, window.ReglasNomina);
 
-        if (descuentos > salario + ingresos) {
+        const descuentosManuales = obtenerSubtotalDescuentosManuales();
+        let totales;
+
+        try {
+            totales = calcularTotales({ ...entradas, descuentosManuales });
+        } catch (error) {
             const campo = document.getElementById("descuentos");
-            const error = document.getElementById("descuentos-error");
+            const mensajeError = document.getElementById("descuentos-error");
 
             campo.classList.add("is-invalid");
             campo.setAttribute("aria-invalid", "true");
-            error.textContent =
-                "Los descuentos no pueden superar los ingresos";
-            error.classList.add("d-block");
+            mensajeError.textContent = error.message;
+            mensajeError.classList.add("d-block");
             campo.focus();
             return;
         }
 
+        const salario = entradas.salario;
+        const ingresos = entradas.ingresosAdicionales;
+        const descuentos = totales.totalDescuentos;
+        const totalIngresos = totales.totalIngresos;
+        const total = totales.totalPagar;
+
         const empleado = window.obtenerEmpleadoSeleccionado();
-        const totalIngresos = salario + ingresos;
-        const total = totalIngresos - descuentos;
 
         // Obtener la plantilla elegida en la HU-03.
         let plantilla = null;
@@ -165,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.pintarDeduccionesLegales(
             document.getElementById("resumen-legales"),
-            window.obtenerDeduccionesLegales()
+            obtenerDeduccionesLegales()
         );
 
         // HU-12: cada concepto, su importe y la suma del detalle.
@@ -262,6 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
             formatoUSD.format(totalIngresos / 100)
         );
 
+        // HU-29: textContent evita interpretar HTML dentro de la observación.
+        mostrarDato(
+            "resumen-observaciones",
+            document.getElementById("observaciones").value.trim() || "Sin observaciones"
+        );
+
         // Si el equipo agrega una casilla de confirmación,
         // debe confirmarse nuevamente en cada revisión.
         resumen.querySelectorAll('input[type="checkbox"]')
@@ -276,6 +366,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         resumen.hidden = false;
         boton.setAttribute("aria-expanded", "true");
+
+        // HU-28: solo las planillas mensuales se comparan con un período anterior.
+        if (document.getElementById("periodo-pago").value === "mensual") {
+            const motor = window.ReglasNomina;
+
+            compararConAnterior(
+                { empleado_id: empleado.id, anio, mes: motor.numeroMes(mes) },
+                {
+                    totalIngresos: motor.decimal(totalIngresos),
+                    deduccionesLegales: motor.decimal(entradas.deduccionesLegales),
+                    descuentosManuales: motor.decimal(descuentosManuales),
+                    totalPagar: motor.decimal(total)
+                }
+            );
+        }
         resumen.scrollIntoView({
             behavior: "smooth",
             block: "start"

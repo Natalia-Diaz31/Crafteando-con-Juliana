@@ -19,6 +19,7 @@ async function pedir(ruta, opciones = {}) {
             Authorization: `Bearer ${sessionStorage.getItem("token")}`
         }
     });
+    window.verificarAccesoApi(respuesta); // HU-32
     const resultado = await respuesta.json();
 
     if (!respuesta.ok || !resultado.ok) {

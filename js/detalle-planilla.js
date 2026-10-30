@@ -56,6 +56,9 @@ window.mostrarDetallePlanilla = function (planilla) {
         planilla.tipo_contrato ?? "No registrado"
     );
 
+    // HU-29: textContent evita interpretar HTML dentro de la observación
+    mostrar("detalle-observaciones", planilla.observaciones?.trim() || "Sin observaciones");
+
     mostrar("detalle-salario", dinero(planilla.salario_base));
     mostrar("detalle-ingresos", dinero(planilla.ingresos_adicionales));
     // HU-16: lo calcula la API a partir de los montos guardados (muestra «—» si no lo envía)
@@ -185,7 +188,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    const mensajeError = document.getElementById("detalle-mensaje"); 
+    const mensajeError = document.getElementById("detalle-mensaje");
+
+    // HU-25: «Volver al listado» regresa al mismo empleado y página del historial.
+    const volver = document.querySelector('main a[href="consultar-planillas.html"]');
+    const anterior = document.referrer ? new URL(document.referrer) : null;
+
+    if (
+        volver &&
+        anterior?.origin === window.location.origin &&
+        anterior.pathname.endsWith("/consultar-planillas.html")
+    ) {
+        volver.href = anterior.href;
+    }
+
+    // Duplicar y exportar solo se habilitan con un detalle cargado y autorizado.
+    const botonDuplicar = document.getElementById("duplicar-planilla");
+    const botonPdf = document.getElementById("descargar-pdf");
+    botonDuplicar.disabled = true;
+    botonPdf.disabled = true;
 
     // 2. Extraemos el ID de la URL (ej: detalle-planilla.html?id=3)
     const parametros = new URLSearchParams(window.location.search);
@@ -197,6 +218,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
+    let planilla;
+
     try {
         // 3. Consultamos el endpoint de Sara para traer los detalles
         const respuesta = await fetch(`${API_URL}/api/planillas/${idPlanilla}`, {
@@ -206,21 +229,99 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
 
+        window.verificarAccesoApi(respuesta); // HU-32
+
         const resultado = await respuesta.json();
 
-        // 4. Se lo pasamos a la función de tu compañera
-        if (respuesta.ok && resultado.ok) {
-            window.mostrarDetallePlanilla(resultado.planilla);
-        } else {
-            window.mostrarDetallePlanilla(null);
-            if (mensajeError) mensajeError.textContent = resultado.mensaje || "Error al obtener el detalle de la planilla.";
+        if (!respuesta.ok || !resultado.ok) {
+            throw new Error(resultado.mensaje || "Error al obtener el detalle de la planilla.");
         }
 
+        // 4. Se lo pasamos a la función de tu compañera
+        planilla = resultado.planilla;
+        window.mostrarDetallePlanilla(planilla);
     } catch (error) {
         console.error("Error al consultar el detalle:", error);
         window.mostrarDetallePlanilla(null);
-        if (mensajeError) mensajeError.textContent = "Error de conexión con el servidor.";
+        if (mensajeError) {
+            mensajeError.textContent = error instanceof TypeError
+                ? "Error de conexión con el servidor."
+                : error.message;
+        }
+        return;
     }
+
+    botonDuplicar.disabled = false;
+    botonPdf.disabled = false;
+
+    // HU-27: la API comprueba si se puede duplicar; el formulario recupera los datos.
+    botonDuplicar.addEventListener("click", async () => {
+        const aviso = document.getElementById("duplicacion-detalle-mensaje");
+
+        botonDuplicar.disabled = true;
+        aviso.hidden = true;
+
+        try {
+            const respuesta = await fetch(
+                `${API_URL}/api/planillas/${encodeURIComponent(idPlanilla)}/duplicar`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            window.verificarAccesoApi(respuesta);
+
+            const resultado = await respuesta.json();
+
+            if (!respuesta.ok || !resultado.ok) {
+                throw new Error(resultado.mensaje || "No se pudo preparar la duplicación de la planilla");
+            }
+
+            sessionStorage.setItem("planillaDuplicada", JSON.stringify({
+                origen: idPlanilla,
+                datos: resultado.duplicacion
+            }));
+
+            window.location.href = "planilla.html";
+        } catch (error) {
+            aviso.textContent = error.message;
+            aviso.hidden = false;
+            botonDuplicar.disabled = false;
+        }
+    });
+
+    // HU-30: el PDF se genera con el detalle ya cargado, sin otra consulta.
+    botonPdf.addEventListener("click", async () => {
+        const aviso = document.getElementById("pdf-mensaje");
+
+        botonPdf.disabled = true;
+        aviso.textContent = "Generando PDF...";
+        aviso.hidden = false;
+
+        try {
+            const { generarPDFPlanilla } = await import("./exportacion-pdf.js");
+
+            const documento = generarPDFPlanilla(
+                window.prepararDatosGeneralesExportacion(planilla),
+                window.prepararMovimientosPDF(planilla, window.separarDescuentosAutorizados),
+                { jsPDF: window.jspdf.jsPDF, autoTable: window.autoTable }
+            );
+
+            documento.save(nombreExportacion(planilla, "pdf"));
+            aviso.hidden = true;
+        } catch (error) {
+            console.error("Error al generar el PDF:", error);
+            aviso.textContent = "No se pudo generar el PDF. Intente nuevamente";
+        } finally {
+            botonPdf.disabled = false;
+        }
+    });
 });
+
+// HU-30 y HU-31: planilla_CODIGO_AAAA-MM_ID.extensión
+function nombreExportacion(planilla, extension) {
+    const [mes, anio] = String(planilla.periodo).split(" ");
+    const numeroMes = String(window.ReglasNomina.numeroMes(mes)).padStart(2, "0");
+
+    return `planilla_${planilla.codigo}_${anio}-${numeroMes}_${planilla.id}.${extension}`;
+}
 
 // --- FIN CÓDIGO DE VÍCTOR ---

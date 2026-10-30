@@ -32,7 +32,8 @@ const CAMPOS = {
     salario_base: "salario",
     ingresos_adicionales: "ingresos",
     horas_ordinarias: "horas-ordinarias",
-    horas_extras: "horas-extras"
+    horas_extras: "horas-extras",
+    observaciones: "observaciones" // HU-29
 };
 
 function leerSeleccion(clave) {

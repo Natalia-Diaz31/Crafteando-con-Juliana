@@ -140,6 +140,9 @@ async function guardarPlanilla() {
         salario_original: ajuste?.salario_original,
         motivo_ajuste: ajuste?.motivo_ajuste,
 
+        // HU-29: la API recorta espacios y valida el límite de 500 caracteres.
+        observaciones: document.getElementById("observaciones").value,
+
         // HU-19: la API recalcula días y salario proporcional a partir de las novedades.
         ...(esPlanillaPorDias() && {
             modo_calculo: "dias",
@@ -264,6 +267,8 @@ async function enviarPlanilla(token, datosPlanilla) {
             body: JSON.stringify(datosPlanilla)
         }
     );
+
+    window.verificarAccesoApi(respuesta); // HU-32
 
     const resultado = await respuesta.json();
 

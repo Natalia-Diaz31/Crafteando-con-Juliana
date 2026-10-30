@@ -29,6 +29,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (botonCambiarEmpleado) {
             botonCambiarEmpleado.hidden = !empleado;
         }
+
+        // HU-25: abre el historial filtrado por el empleado seleccionado
+        const historial = document.getElementById("ver-historial-empleado");
+
+        if (historial) {
+            historial.hidden = !empleado?.id;
+            historial.href = empleado?.id
+                ? `consultar-planillas.html?empleado_id=${encodeURIComponent(empleado.id)}`
+                : "#";
+        }
     }
 
     function guardarEmpleadoSeleccionado(empleado) {
@@ -60,6 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         );
+
+        window.verificarAccesoApi(respuesta); // HU-32
 
         const resultado = await respuesta.json();
 

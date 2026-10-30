@@ -4,7 +4,7 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const { esUUIDValido } = require("./utils/validar-uuid");
-const { validarNovedades, contarDias } = require("./utils/validar-novedades");
+const { contarDias } = require("./utils/validar-novedades");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const { respuestaExitosa, respuestaError } = require("./utils/respuestas");
@@ -13,9 +13,10 @@ const ReglasNomina = require("./utils/reglas-nomina.js");
 
 const app = express();
 
+// HU-33: validación de entrada del guardado, separada de Express.
 const {
-    validarSalarioEIngresos
-} = require("./utils/validar-ingresos");
+    validarPlanillaDefinitiva
+} = require("./utils/validar-planilla-definitiva");
 
 
 app.use(cors({
@@ -378,270 +379,13 @@ function normalizarObservacion(valor) {
     return { valor: observacion, error: null };
 }
 
+// HU-33: la ruta de guardado y la finalización de borradores usan la misma
+// validación definitiva; aquí solo se traduce su resultado a HTTP.
 function validarDatosPlanilla(req, res, next) {
-    const datos = req.body || {};
-    const errores = {};
-    // HU-29: Validar y normalizar la observación.
-    const resultadoObservacion = normalizarObservacion(datos.observaciones);
+    const { valido, errores, planillaValidada } =
+        validarPlanillaDefinitiva(req.body);
 
-    if (resultadoObservacion.error) {
-        errores.observaciones = resultadoObservacion.error;
-    } else {
-        datos.observaciones = resultadoObservacion.valor;
-    }
-    const esPlanillaPorDias = datos.modo_calculo === "dias"; // HU-19: identificar las nuevas planillas calculadas por días.
-
-    const formatoUUID =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-    // Identificadores del empleado y de la plantilla.
-    for (const campo of ["empleado_id", "plantilla_id"]) {
-        if (
-            typeof datos[campo] !== "string" ||
-            !formatoUUID.test(datos[campo])
-        ) {
-            errores[campo] =
-                "Debe seleccionar un registro con identificador válido";
-        }
-    }
-
-    // Aceptar únicamente texto o números; rechazar objetos y booleanos.
-    function obtenerTexto(valor) {
-        if (typeof valor === "string") {
-            return valor.trim();
-        }
-
-        if (typeof valor === "number" && Number.isFinite(valor)) {
-            return String(valor);
-        }
-
-        return "";
-    }
-
-    const mesTexto = obtenerTexto(datos.mes);
-    const anioTexto = obtenerTexto(datos.anio);
-
-    // El mes debe recibirse como número: 1 hasta 12.
-    if (
-        !/^\d{1,2}$/.test(mesTexto) ||
-        Number(mesTexto) < 1 ||
-        Number(mesTexto) > 12
-    ) {
-        errores.mes = "Seleccione un mes entre 1 y 12";
-    }
-
-    // Año de cuatro cifras, distinto de 0000.
-    if (
-        !/^\d{4}$/.test(anioTexto) ||
-        Number(anioTexto) === 0
-    ) {
-        errores.anio = "Ingrese un año válido de cuatro cifras";
-    }
-
-    const {
-        salario,
-        ingresos,
-        ingresosDetalle,
-        errores: erroresIngresos
-    } = validarSalarioEIngresos(datos);
-
-    Object.assign(errores, erroresIngresos);
-
-    // HU-13: validar cantidades de horas sin modificar los montos monetarios.
-    function obtenerHoras(campo) {
-        const texto = obtenerTexto(datos[campo]);
-
-        if (!texto) {
-            errores[campo] = "Este campo es obligatorio";
-            return null;
-        }
-
-        if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) {
-            errores[campo] =
-                "Ingrese una cantidad mayor o igual a cero, con máximo dos decimales";
-            return null;
-        }
-
-        const [entero, decimal = ""] = texto.split(".");
-        const centesimas =
-            Number(entero) * 100 +
-            Number(decimal.padEnd(2, "0"));
-
-        if (!Number.isSafeInteger(centesimas) || centesimas > 9999999999) {
-            errores[campo] = "Las horas no pueden superar 99999999.99";
-            return null;
-        }
-
-        return (centesimas / 100).toFixed(2);
-    }
-
-    // HU-19: las nuevas planillas por días no requieren horas.
-    const horasOrdinarias = esPlanillaPorDias
-        ? null
-        : obtenerHoras("horas_ordinarias");
-
-    const horasExtras = esPlanillaPorDias
-        ? null
-        : obtenerHoras("horas_extras");
-
-    // HU-12: validar el detalle y calcular los descuentos en la API.
-    const detalleDescuentos = [];
-    let descuentos = 0;
-
-    if (!Array.isArray(datos.descuentos)) {
-        errores.descuentos = "Debe enviar una lista de descuentos";
-        descuentos = null;
-    } else {
-        datos.descuentos.forEach((descuento, indice) => {
-            const concepto =
-                typeof descuento?.concepto === "string"
-                    ? descuento.concepto.trim()
-                    : "";
-
-            const importeTexto = obtenerTexto(descuento?.importe);
-
-            if (["isss", "afp", "renta"].includes(concepto.toLowerCase())) {
-                errores[`descuentos[${indice}].concepto`] = "ISSS, AFP y Renta son deducciones automáticas; no las registre manualmente";
-            } else if (!concepto) {
-                errores[`descuentos[${indice}].concepto`] =
-                    "El concepto es obligatorio";
-            }
-
-            if (!/^\d+(?:\.\d{1,2})?$/.test(importeTexto)) {
-                errores[`descuentos[${indice}].importe`] =
-                    "Ingrese un importe válido con máximo dos decimales";
-                return;
-            }
-
-            const [entero, decimal = ""] = importeTexto.split(".");
-
-            const importeCentavos =
-                Number(entero) * 100 +
-                Number(decimal.padEnd(2, "0"));
-
-            if (
-                !Number.isSafeInteger(importeCentavos) ||
-                importeCentavos <= 0 ||
-                importeCentavos > 999999999999
-            ) {
-                errores[`descuentos[${indice}].importe`] =
-                    "El importe debe ser mayor que cero y no superar 9999999999.99";
-                return;
-            }
-
-            descuentos += importeCentavos;
-
-            if (concepto) {
-                detalleDescuentos.push({
-                    concepto,
-                    importe: (importeCentavos / 100).toFixed(2)
-                });
-            }
-        });
-
-        if (
-            !Number.isSafeInteger(descuentos) ||
-            descuentos > 999999999999
-        ) {
-            errores.descuentos =
-                "La suma de descuentos supera el monto permitido";
-            descuentos = null;
-        }
-    }
-
-    // HU-19: calcular los días remunerados antes de aplicar las deducciones.
-    const resultadoNovedades = validarNovedades(
-        datos.novedades,
-        {
-            mes: Number(mesTexto),
-            anio: Number(anioTexto),
-            frecuencia: datos.periodo_pago
-        }
-    );
-
-    if (!resultadoNovedades.valido) {
-        errores.novedades = resultadoNovedades.errores.join(". ");
-    }
-
-    // HU-14: la API recalcula. Nunca acepta importes legales enviados por el navegador.
-    let deduccionesLegales = null;
-    if (datos.version_regla !== ReglasNomina.VERSION) {
-        errores.version_regla = "Las reglas cambiaron. Recargue y revise nuevamente la planilla";
-    }
-    if (salario !== null && ingresos !== null) {
-        try {
-            deduccionesLegales = esPlanillaPorDias
-                ? ReglasNomina.calcularPorDias({
-                    salario_base_mensual: datos.salario_base_mensual,
-                    dias_remunerados: resultadoNovedades.diasRemunerados,
-                    ingresos_adicionales: ingresos === null
-                        ? null
-                        : (ingresos / 100).toFixed(2),
-                    periodo_pago: datos.periodo_pago,
-                    mes: datos.mes,
-                    anio: datos.anio
-                })
-                : ReglasNomina.calcular({
-                    salario_base: datos.salario_base,
-                    ingresos_adicionales: ingresos === null
-                        ? null
-                        : (ingresos / 100).toFixed(2),
-                    periodo_pago: datos.periodo_pago,
-                    mes: datos.mes,
-                    anio: datos.anio
-                });
-            if (descuentos !== null) {
-                descuentos += ReglasNomina.centavos(deduccionesLegales.total);
-                // La función SQL ya suma el detalle: incluir cada importe legal una vez.
-                for (const item of deduccionesLegales.detalle) {
-                    if (ReglasNomina.centavos(item.importe) > 0) {
-                        detalleDescuentos.push({ concepto: item.nombre, importe: item.importe });
-                    }
-                }
-                if (descuentos > 999999999999) errores.descuentos_totales = "La suma de descuentos supera el monto permitido";
-            }
-        } catch (error) {
-            errores.deducciones_legales = error.message;
-        }
-    }
-
-    let total = null;
-    let totalIngresos = null;
-
-    // HU-19: utilizar el salario proporcional para calcular los importes.
-    const salarioCalculado = esPlanillaPorDias
-        ? (
-            deduccionesLegales?.salario_proporcional !== undefined
-                ? ReglasNomina.centavos(deduccionesLegales.salario_proporcional)
-                : null
-        )
-        : salario;
-
-    if (
-        salarioCalculado !== null &&
-        ingresos !== null &&
-        descuentos !== null
-    ) {
-        const sumaIngresos = salarioCalculado + ingresos;
-        totalIngresos = sumaIngresos;
-
-        if (!Number.isSafeInteger(sumaIngresos)) {
-            errores.ingresos_adicionales =
-                "La suma de ingresos supera el valor que el sistema puede procesar";
-        } else if (descuentos > sumaIngresos) {
-            errores.descuentos_totales =
-                "Los descuentos no pueden superar los ingresos";
-        } else {
-            total = sumaIngresos - descuentos;
-
-            if (total > 999999999999) {
-                errores.total_pagar =
-                    "El total a pagar no puede superar 9999999999.99";
-            }
-        }
-    }
-
-    if (Object.keys(errores).length > 0) {
+    if (!valido) {
         return res.status(400).json({
             ok: false,
             mensaje: "Corrija los datos de la planilla",
@@ -649,55 +393,7 @@ function validarDatosPlanilla(req, res, next) {
         });
     }
 
-    // Convertir centavos a texto decimal sin redondear los datos.
-    function aDecimal(centavos) {
-        const entero = Math.floor(centavos / 100);
-        const decimal = String(centavos % 100).padStart(2, "0");
-
-        return `${entero}.${decimal}`;
-    }
-
-    // La ruta de guardado utilizará estos datos ya validados.
-    req.planillaValidada = {
-        periodo_pago: datos.periodo_pago,
-        deducciones_legales: deduccionesLegales,
-        empleado_id: datos.empleado_id,
-        plantilla_id: datos.plantilla_id,
-        mes: Number(mesTexto),
-        anio: Number(anioTexto),
-        // HU-18: novedades validadas y días calculados por la API.
-        novedades: resultadoNovedades.novedades,
-
-        dias_remunerados: resultadoNovedades.diasRemunerados,
-
-        // HU-19: conservar el salario mensual y el proporcional.
-        modo_calculo: esPlanillaPorDias ? "dias" : "horas",
-        salario_base_mensual: esPlanillaPorDias ? aDecimal(salario) : null,
-        salario_proporcional: esPlanillaPorDias ? aDecimal(salarioCalculado) : null,
-
-        // HU-21: conservar el motivo para validarlo contra Supabase.
-        motivo_ajuste: datos.motivo_ajuste,
-
-        // HU-29: conservar las observaciones validadas.
-        observaciones: datos.observaciones,
-
-        // Mantener salario_base como importe utilizado para el pago.
-        salario_base: aDecimal(salarioCalculado),
-        ingresos_adicionales: aDecimal(ingresos),
-        ingresos_detalle: ingresosDetalle,
-        total_ingresos: aDecimal(totalIngresos),
-
-        // HU-13: cantidades de horas trabajadas.
-        horas_ordinarias: horasOrdinarias,
-        horas_extras: horasExtras,
-
-        // HU-12: total calculado por la API y detalle validado.
-        descuentos_totales: aDecimal(descuentos),
-        descuentos: detalleDescuentos,
-
-        total_pagar: aDecimal(total)
-    };
-
+    req.planillaValidada = planillaValidada;
     return next();
 }
 
