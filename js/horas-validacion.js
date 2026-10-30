@@ -1,3 +1,21 @@
+
+"use strict";
+
+// HU-35: interfaz exportada para validar las horas.
+// Las reglas originales permanecen en este componente.
+
+let validarHorasInterno = null;
+
+export function validarHorasPlanilla() {
+    if (!validarHorasInterno) {
+        throw new Error(
+            "El componente de horas todavía no está listo"
+        );
+    }
+
+    return validarHorasInterno();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const identificadores = [
         "horas-ordinarias",
@@ -80,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
-    window.validarHorasPlanilla = function () {
+    function validarTodasLasHoras() {
         let valido = true;
 
         campos.forEach(campo => {
@@ -90,5 +108,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         return valido;
-    };
+    }
+
+    validarHorasInterno = validarTodasLasHoras;
+
+    // Compatibilidad con guardado-planilla.js.
+    window.validarHorasPlanilla = validarHorasPlanilla;
 });
