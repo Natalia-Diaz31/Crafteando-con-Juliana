@@ -1,4 +1,8 @@
 import {
+    validarObservacionesFormulario
+} from "./observaciones.js";
+
+import {
     validarResultadoGuardado
 } from "./resultado-guardado.js";
 
@@ -41,6 +45,11 @@ document.addEventListener("planilla:nueva", () => {
 
 async function guardarPlanilla() {
     if (guardando) return;
+
+        if (!validarObservacionesFormulario()) {
+        document.getElementById("observaciones").focus();
+        return;
+    }
 
     if (guardadoConfirmado) {
         mostrarMensajeGuardado(

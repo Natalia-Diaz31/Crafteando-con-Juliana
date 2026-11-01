@@ -1,4 +1,8 @@
 import {
+    validarObservacionesFormulario
+} from "./observaciones.js";
+
+import {
     validarNovedadesFormulario
 } from "./novedades.js";
 
@@ -25,6 +29,11 @@ const VALIDACIONES_COMPONENTES = [
         campo: "salario",
         mensaje: "Corrija el salario o el motivo de ajuste",
         validar: validarAjusteFormulario
+    },
+    {
+    campo: "observaciones",
+    mensaje: "La observación no puede superar 500 caracteres",
+    validar: validarObservacionesFormulario
     }
 ];
 

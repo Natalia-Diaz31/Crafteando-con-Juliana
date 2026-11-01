@@ -1,4 +1,8 @@
 import {
+    validarObservacionesFormulario
+} from "./observaciones.js";
+
+import {
     obtenerNovedades,
     reemplazarNovedades,
     validarNovedadesFormulario
@@ -182,6 +186,16 @@ function validarDatosBorrador(datos) {
 }
 
 export function capturarBorrador() {
+        if (!validarObservacionesFormulario()) {
+        return {
+            valido: false,
+            errores: {
+                observaciones:
+                    "La observación no puede superar 500 caracteres"
+            },
+            contenido: null
+        };
+    }
     if (
         !validarNovedadesFormulario() ||
         !validarIngresosPendientes() ||
