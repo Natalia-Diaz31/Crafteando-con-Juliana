@@ -97,18 +97,28 @@ window.mostrarDetallePlanilla = function (planilla) {
     // HU-19: las planillas por días muestran su cálculo en lugar de las horas;
     // las anteriores conservan sus horas tal como se guardaron.
     const porDias = planilla.salario_proporcional != null;
-    document.getElementById("detalle-horas-ordinarias").closest(".detalle-bloque").hidden = porDias;
+
+    const bloqueHoras = document.getElementById("detalle-calculo-horas");
+    const bloqueDias = document.getElementById("detalle-calculo-dias");
+
+    bloqueHoras.hidden = porDias;
+    bloqueDias.hidden = !porDias;
 
     if (porDias) {
-        window.pintarSeccion(complementos, {
-            titulo: "Salario por días remunerados",
-            columnas: ["Salario base mensual", "Días remunerados", "Salario proporcional"],
-            filas: [[
-                dinero(planilla.salario_base_mensual),
-                planilla.dias_remunerados ?? "—",
-                dinero(planilla.salario_proporcional)
-            ]]
-        });
+        mostrar(
+            "detalle-salario-base-mensual",
+            dinero(planilla.salario_base_mensual)
+        );
+
+        mostrar(
+            "detalle-dias-remunerados",
+            planilla.dias_remunerados ?? "No registrado"
+        );
+
+        mostrar(
+            "detalle-salario-proporcional",
+            dinero(planilla.salario_proporcional)
+        );
     }
 
     if (planilla.novedades?.length) {
