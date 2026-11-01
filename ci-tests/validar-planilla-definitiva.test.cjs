@@ -17,6 +17,7 @@ function crearPlanilla(cambios = {}) {
     return {
         novedades: [],
         periodo_pago: "mensual",
+        modo_calculo: "horas",
         version_regla: ReglasNomina.VERSION,
         empleado_id: EMPLEADO_ID,
         plantilla_id: PLANTILLA_ID,
@@ -50,6 +51,31 @@ test("HU-33: valida una planilla por horas", () => {
     assert.equal(planilla.salario_base_mensual, null);
     assert.equal(planilla.salario_proporcional, null);
 });
+
+test("HU-33: rechaza un modo de cálculo inválido", () => {
+    const resultado = validarPlanillaDefinitiva(
+        crearPlanilla({
+            modo_calculo: "invalido"
+        })
+    );
+
+    assert.equal(resultado.valido, false);
+    assert.equal(resultado.planillaValidada, null);
+    assert.ok(resultado.errores.modo_calculo);
+});
+
+test("HU-33: rechaza una frecuencia de pago inválida", () => {
+    const resultado = validarPlanillaDefinitiva(
+        crearPlanilla({
+            periodo_pago: "invalido"
+        })
+    );
+
+    assert.equal(resultado.valido, false);
+    assert.equal(resultado.planillaValidada, null);
+    assert.ok(resultado.errores.periodo_pago);
+});
+
 
 test("HU-33: valida una planilla por días", () => {
     const datos = crearPlanilla({

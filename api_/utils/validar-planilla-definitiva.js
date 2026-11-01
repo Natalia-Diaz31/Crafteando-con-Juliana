@@ -84,6 +84,12 @@ function validarPlanillaDefinitiva(datosEntrada) {
     const datos = { ...(datosEntrada || {}) };
     const errores = {};
 
+    // Validación del modo de cálculo.
+    if (!["horas", "dias"].includes(datos.modo_calculo)) {
+        errores.modo_calculo =
+            "Seleccione un modo de cálculo válido";
+    }
+    
     const esPlanillaPorDias = datos.modo_calculo === "dias";
 
     // HU-29: observaciones.
@@ -102,6 +108,11 @@ function validarPlanillaDefinitiva(datosEntrada) {
             errores[campo] =
                 "Debe seleccionar un registro con identificador válido";
         }
+    }
+    // Validación de la frecuencia de pago.
+    if (!["mensual", "quincenal", "semanal"].includes(datos.periodo_pago)) {
+        errores.periodo_pago =
+            "Seleccione una frecuencia válida";
     }
 
     // Validación del período.
