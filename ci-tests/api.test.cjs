@@ -29,6 +29,7 @@ const DATOS = {
   operacion_id: '44444444-4444-4444-8444-444444444444', // HU-17: identificador de la operación de guardado.
   novedades: [],
   periodo_pago: 'mensual',
+  modo_calculo: 'horas',
   version_regla: require('../api_/utils/reglas-nomina.js').VERSION,
   empleado_id: EMPLEADO.id,
   plantilla_id: PLANTILLA.id,
