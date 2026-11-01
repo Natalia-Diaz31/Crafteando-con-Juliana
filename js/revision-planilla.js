@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const resumen = document.getElementById("resumen-planilla");
     const boton = document.getElementById("revisar-planilla");
     const editar = document.getElementById("editar-datos");
+    const erroresRevision = document.getElementById("errores-revision");
 
     const formatoUSD = new Intl.NumberFormat("en-US", {
         style: "currency",
@@ -157,6 +158,33 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById(id).textContent = valor;
     }
 
+    function mostrarErroresRevision(errores) {
+        erroresRevision.replaceChildren();
+
+        if (!errores.length) {
+            erroresRevision.hidden = true;
+            return;
+        }
+
+        const lista = document.createElement("ul");
+        lista.className = "mb-0";
+
+        errores.forEach(error => {
+            const item = document.createElement("li");
+            item.textContent = error.mensaje;
+            lista.appendChild(item);
+        });
+
+        erroresRevision.appendChild(lista);
+        erroresRevision.hidden = false;
+
+        const primerCampo = errores
+            .map(error => document.getElementById(error.campo))
+            .find(campo => campo && !campo.disabled && !campo.hidden);
+
+        primerCampo?.focus();
+    }
+
     formulario.addEventListener("submit", (evento) => {
         evento.preventDefault();
         ocultarResumen();
@@ -164,9 +192,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Recalcula «Descuentos totales» antes de validar los montos.
         window.actualizarDescuentosTotales();
 
-        // HU-35: el coordinador ejecuta todas las validaciones, sin detenerse en la primera.
-        if (!validarRevision(VALIDACIONES_REVISION).valido) {
-            formulario.querySelector(".is-invalid")?.focus();
+        // HU-35: presentar todos los errores devueltos por el coordinador.
+        const resultadoRevision = validarRevision(VALIDACIONES_REVISION);
+
+        mostrarErroresRevision(resultadoRevision.errores);
+
+        if (!resultadoRevision.valido) {
             return;
         }
 
