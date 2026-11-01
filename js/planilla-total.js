@@ -1,3 +1,7 @@
+import { calcularTotales } from "./totales-planilla.js";
+import { prepararEntradasTotales } from "./entradas-totales-planilla.js";
+import { obtenerDeduccionesLegales } from "./deducciones-legales.js";
+import { obtenerSubtotalDescuentosManuales } from "./descuentos-detalle.js";
 document.addEventListener("DOMContentLoaded", () => {
     // HU-19: en la planilla por días se usa el salario proporcional.
     const salario = document.getElementById("salario-proporcional") ?? document.getElementById("salario");
@@ -5,43 +9,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const descuentos = document.getElementById("descuentos");
     const total = document.getElementById("total-calculado");
 
-    // Solo se calculan montos válidos, con máximo dos decimales.
-    const formatoMonetario = /^\d+(?:\.\d{1,2})?$/;
-
-    function convertirACentavos(valor) {
-        const [entero, decimales = ""] = valor.split(".");
-
-        return Number(entero) * 100 +
-            Number(decimales.padEnd(2, "0"));
-    }
-
     function actualizarTotal() {
-        const valores = [
-            salario.value.trim(),
-            ingresos.value.trim(),
-            descuentos.value.trim()
-        ];
+        try {
+            const entradas = prepararEntradasTotales({
+                salarioAplicable: salario.value,
+                ingresosAdicionales: ingresos.value,
+                deduccionesLegales: obtenerDeduccionesLegales()
+            }, window.ReglasNomina);
 
-        // No calcular con campos vacíos o montos inválidos.
-        if (valores.some(valor => !formatoMonetario.test(valor))) {
+            const descuentosManuales = obtenerSubtotalDescuentosManuales();
+
+            const totales = calcularTotales({
+                ...entradas,
+                descuentosManuales
+            });
+
+            total.textContent = (totales.totalPagar / 100).toFixed(2);
+        } catch {
             total.textContent = "—";
-            return;
         }
-
-        const salarioCentavos = convertirACentavos(valores[0]);
-        const ingresosCentavos = convertirACentavos(valores[1]);
-        const descuentosCentavos = convertirACentavos(valores[2]);
-
-        // No mostrar un total válido si los descuentos son excesivos.
-        if (descuentosCentavos > salarioCentavos + ingresosCentavos) {
-            total.textContent = "—";
-            return;
-        }
-
-        const resultado =
-            salarioCentavos + ingresosCentavos - descuentosCentavos;
-
-        total.textContent = (resultado / 100).toFixed(2);
     }
 
     [salario, ingresos, descuentos].forEach(campo => {
