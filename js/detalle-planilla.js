@@ -215,8 +215,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Duplicar y exportar solo se habilitan con un detalle cargado y autorizado.
     const botonDuplicar = document.getElementById("duplicar-planilla");
     const botonPdf = document.getElementById("descargar-pdf");
+    const botonExcel = document.getElementById("descargar-excel");
     botonDuplicar.disabled = true;
     botonPdf.disabled = true;
+    botonExcel.disabled = true;
 
     // 2. Extraemos el ID de la URL (ej: detalle-planilla.html?id=3)
     const parametros = new URLSearchParams(window.location.search);
@@ -263,6 +265,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     botonDuplicar.disabled = false;
     botonPdf.disabled = false;
+    botonExcel.disabled = false;
 
     // HU-27: la API comprueba si se puede duplicar; el formulario recupera los datos.
     botonDuplicar.addEventListener("click", async () => {
@@ -322,6 +325,53 @@ document.addEventListener("DOMContentLoaded", async () => {
             aviso.textContent = "No se pudo generar el PDF. Intente nuevamente";
         } finally {
             botonPdf.disabled = false;
+        }
+    });
+
+    // HU-31: el Excel se arma con el detalle ya cargado, sin otra consulta.
+    botonExcel.addEventListener("click", async () => {
+        const aviso = document.getElementById("excel-mensaje");
+
+        botonExcel.disabled = true;
+        aviso.textContent = "Preparando Excel...";
+        aviso.hidden = false;
+
+        try {
+            const [XLSX, { crearLibroPlanilla }] = await Promise.all([
+                import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs"),
+                import("./exportacion-excel.js"),
+                // Scripts clásicos: al cargarse publican sus funciones en window.
+                import("./exportacion-movimientos.js"),
+                import("./exportacion-legales-novedades.js")
+            ]);
+
+            const libro = crearLibroPlanilla(
+                window.prepararDatosGeneralesExportacion(planilla),
+                XLSX
+            );
+
+            // Hojas de ingresos y descuentos manuales; los importes, con dos decimales.
+            for (const hoja of window.prepararMovimientosExcel(planilla, window.separarDescuentosAutorizados)) {
+                const filas = hoja.filas.map(fila => fila.map(valor =>
+                    typeof valor === "number" ? { t: "n", v: valor, z: "0.00" } : valor
+                ));
+
+                XLSX.utils.book_append_sheet(
+                    libro,
+                    XLSX.utils.aoa_to_sheet([hoja.encabezados, ...filas]),
+                    hoja.nombre
+                );
+            }
+
+            window.agregarLegalesNovedadesAlLibro(libro, planilla, XLSX);
+
+            XLSX.writeFile(libro, nombreExportacion(planilla, "xlsx"));
+            aviso.hidden = true;
+        } catch (error) {
+            console.error("Error al generar el Excel:", error);
+            aviso.textContent = "No se pudo generar el Excel. Intente nuevamente";
+        } finally {
+            botonExcel.disabled = false;
         }
     });
 });
