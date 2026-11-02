@@ -1,4 +1,5 @@
-const IMPORTES = new Set([
+// HU-31: el Excel reutiliza estos importes y etiquetas para mostrar los mismos títulos que el PDF.
+export const IMPORTES = new Set([
     "salario_base",
     "salario_original",
     "salario_base_mensual",
@@ -41,7 +42,7 @@ const ETIQUETAS = {
     total_pagar: "Total a pagar"
 };
 
-function etiqueta(campo) {
+export function etiqueta(campo) {
     return ETIQUETAS[campo]
         ?? campo.replaceAll("_", " ");
 }

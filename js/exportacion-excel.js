@@ -1,13 +1,5 @@
-const IMPORTES = new Set([
-    "salario_base",
-    "salario_original",
-    "salario_base_mensual",
-    "salario_proporcional",
-    "ingresos_adicionales",
-    "total_ingresos",
-    "descuentos_totales",
-    "total_pagar"
-]);
+// Mismos títulos e importes que el PDF.
+import { IMPORTES, etiqueta } from "./exportacion-pdf.js";
 
 export function crearLibroPlanilla(
     generales,
@@ -20,31 +12,27 @@ export function crearLibroPlanilla(
         v: String(valor ?? "No registrado")
     });
 
+    // Encabezado y secciones como en el PDF: título de la sección en mayúsculas
+    // y una tabla «Campo / Valor» debajo de cada una.
     const filas = [
-        [
-            texto("Campo"),
-            texto("Valor")
-        ]
+        [texto("BANCO HIPOTECARIO"), texto("DETALLE DE PLANILLA")],
+        [texto("Sistema de Gestión de Planillas")]
     ];
 
     for (
         const [grupo, valores]
         of Object.entries(generales)
     ) {
-        filas.push([
-            texto(grupo.replaceAll("_", " ")),
-            texto("")
-        ]);
+        filas.push([], [texto(etiqueta(grupo).toUpperCase())]);
 
-        const campos =
-            typeof valores === "object" &&
-            valores !== null
+        if (typeof valores !== "object" || valores === null) {
+            filas.push([texto("Detalle")], [texto(valores)]);
+            continue;
+        }
 
-                ? Object.entries(valores)
+        filas.push([texto("Campo"), texto("Valor")]);
 
-                : [["Texto", valores]];
-
-        for (const [campo, valor] of campos) {
+        for (const [campo, valor] of Object.entries(valores)) {
             const numero = Number(valor);
 
             const esNumero =
@@ -60,15 +48,17 @@ export function crearLibroPlanilla(
                 ? {
                     t: "n",
                     v: numero,
+                    // «* » rellena con espacios a la derecha: el número queda a la izquierda,
+                    // alineado con los textos, sin dejar de ser numérico.
                     z: campo === "dias_remunerados"
-                        ? "0"
-                        : "0.00"
+                        ? "0* "
+                        : '"$ "0.00* '
                 }
 
                 : texto(valor);
 
             filas.push([
-                texto(campo.replaceAll("_", " ")),
+                texto(etiqueta(campo)),
                 celda
             ]);
         }
