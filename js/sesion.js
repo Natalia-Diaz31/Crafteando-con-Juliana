@@ -23,3 +23,12 @@ window.verificarAccesoApi = function (respuesta) {
         throw new Error("El servidor no pudo completar la solicitud. Intente nuevamente");
     }
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+    const botonCerrarSesion = document.getElementById("cerrar-sesion");
+
+    botonCerrarSesion?.addEventListener("click", () => {
+        sessionStorage.clear();
+        window.location.replace("index.html");
+    });
+});

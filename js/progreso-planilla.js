@@ -4,7 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Secciones reales del formulario
     const seccionDatos = document.getElementById("titulo-busqueda")?.closest("section");
     const seccionMontos = document.getElementById("salario")?.closest(".form-section");
-    const seccionDescuentos = document.querySelector(".descuentos-card");
+    const seccionDescuentos = document.getElementById("titulo-legales")?.closest(".descuentos-card");
+    const seccionNovedades = document.getElementById("titulo-importacion-csv")?.closest(".form-section");
     const seccionRevision = document.getElementById("resumen-planilla");
 
     // Campos
@@ -45,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function actualizarProgreso() {
         // Si la revisión está visible, siempre es paso 4
         if (seccionRevision && !seccionRevision.hidden) {
-            activarPaso(4);
+            activarPaso(5);
             return;
         }
 
@@ -76,6 +77,47 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function actualizarPasoPorScroll() {
+    // Si la revisión está abierta y llegamos a ella, es paso 5
+        if (
+            seccionRevision &&
+            !seccionRevision.hidden &&
+            seccionRevision.getBoundingClientRect().top <= 220
+        ) {
+            activarPaso(5);
+            return;
+        }
+
+        // Novedades y observaciones
+        if (
+            seccionNovedades &&
+            seccionNovedades.getBoundingClientRect().top <= 220
+        ) {
+            activarPaso(4);
+            return;
+        }
+
+        // Deducciones legales y descuentos
+        if (
+            seccionDescuentos &&
+            seccionDescuentos.getBoundingClientRect().top <= 220
+        ) {
+            activarPaso(3);
+            return;
+        }
+
+        // Salario, bonos e ingresos
+        if (
+            seccionMontos &&
+            seccionMontos.getBoundingClientRect().top <= 220
+        ) {
+            activarPaso(2);
+            return;
+        }
+
+        activarPaso(1);
+    }
+
     // Navegación al hacer clic en la barra
     pasos[0]?.addEventListener("click", () => {
         activarPaso(1);
@@ -93,9 +135,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     pasos[3]?.addEventListener("click", () => {
+        activarPaso(4);
+        irASeccion(seccionNovedades, 120);
+    });
+
+    pasos[4]?.addEventListener("click", () => {
         // Solo puede ir a revisión si ya está abierta
         if (seccionRevision && !seccionRevision.hidden) {
-            activarPaso(4);
+            activarPaso(5);
             const posicion =
                 seccionRevision.getBoundingClientRect().top +
                 window.scrollY -
@@ -124,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (seccionRevision) {
         const observadorRevision = new MutationObserver(() => {
             if (!seccionRevision.hidden) {
-                activarPaso(4);
+                activarPaso(5);
             } else {
                 actualizarProgreso();
             }
@@ -141,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
             actualizarProgreso();
             // Solo baja a Revisión si las validaciones permitieron abrirla
             if (seccionRevision && !seccionRevision.hidden) {
-                activarPaso(4);
+                activarPaso(5);
                 const posicion =
                     seccionRevision.getBoundingClientRect().top +
                     window.scrollY -
@@ -159,5 +206,8 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(actualizarProgreso, 50);
     });
 
+    window.addEventListener("scroll", actualizarPasoPorScroll, {
+        passive: true
+    });
     actualizarProgreso();
 });
