@@ -74,6 +74,22 @@ function crearServicioEmpleados(supabase) {
         return data || [];
     }
 
+    async function listar({ departamentoId, sucursalId }) {
+        const consulta = aplicarFiltros(
+            supabase.from("empleados")
+                .select("id, codigo, nombre_completo, departamentos(nombre), sucursales(nombre)"),
+            departamentoId,
+            sucursalId
+        );
+        const { data, error } = await consulta
+            .order("nombre_completo", { ascending: true })
+            .order("codigo", { ascending: true })
+            .limit(10);
+
+        if (error) throw error;
+        return data ?? [];
+    }
+
     async function listarCatalogo(tabla) {
         const { data, error } = await supabase
             .from(tabla)
@@ -87,6 +103,7 @@ function crearServicioEmpleados(supabase) {
 
     return {
         buscar,
+        listar,
         listarDepartamentos: () => listarCatalogo("departamentos"),
         listarSucursales: () => listarCatalogo("sucursales")
     };

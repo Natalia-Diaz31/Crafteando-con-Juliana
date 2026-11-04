@@ -1,7 +1,7 @@
 
 const express = require("express");
 
-function crearRutasEmpleados({ servicio, verificarToken }) {
+function crearRutasEmpleados({ servicio, verificarToken, verificarRolNomina }) {
     const router = express.Router();
 
     router.get("/buscar", verificarToken, async (req, res) => {
@@ -34,6 +34,22 @@ function crearRutasEmpleados({ servicio, verificarToken }) {
             return res.json({ ok: true, empleados });
         } catch (error) {
             console.error("Error al buscar empleados:", error);
+            return res.status(500).json({
+                ok: false,
+                mensaje: "No se pudo consultar empleados. Intente nuevamente"
+            });
+        }
+    });
+
+    router.get("/lista", verificarToken, verificarRolNomina, async (req, res) => {
+        try {
+            const empleados = await servicio.listar({
+                departamentoId: String(req.query.departamento_id ?? "").trim(),
+                sucursalId: String(req.query.sucursal_id ?? "").trim()
+            });
+            return res.json({ ok: true, empleados });
+        } catch (error) {
+            console.error("Error al listar empleados:", error);
             return res.status(500).json({
                 ok: false,
                 mensaje: "No se pudo consultar empleados. Intente nuevamente"

@@ -202,3 +202,11 @@ test('HU-24: consulta los catálogos de departamentos y sucursales', async () =>
     assert.ok(departamentos.some(item => item.nombre === 'Contabilidad'));
     assert.ok(sucursales.some(item => item.nombre === 'Sucursal Norte'));
 });
+
+test("el listado reutiliza los filtros de empleados", async () => {
+    const servicio = crearServicioEmpleados(crearSupabaseFalso());
+    const empleados = await servicio.listar({
+        departamentoId: EMPLEADOS[1].departamento_id
+    });
+    assert.deepEqual(empleados.map(empleado => empleado.id), [EMPLEADOS[1].id]);
+});

@@ -79,18 +79,17 @@ function crearServicioPlanillas(supabase) {
 
         if (errorIngresos) throw errorIngresos;
         if (errorDescuentos) throw errorDescuentos;
-        const ingresosManuales = (ingresos ?? []).filter(
-            ({ origen }) => String(origen ?? "").trim().toLowerCase() === "manual"
-        );
+        const detalleIngresos = ingresos ?? [];
+        const ingresosManuales = detalleIngresos
+            .filter(({ origen }) => String(origen ?? "").trim().toLowerCase() === "manual")
+            .map(ingreso => ({ ...ingreso, origen: "Manual" }));
+        const sinDesglose = detalleIngresos.length === 0 &&
+            (planilla.ingresos_adicionales == null ||
+                Number(planilla.ingresos_adicionales) > 0);
 
         return {
             ...planilla,
-            ingresos_detalle: ingresosManuales.length
-                ? ingresosManuales
-                : Number(planilla.ingresos_adicionales) > 0 ||
-                    planilla.ingresos_adicionales == null
-                    ? null
-                    : [],
+            ingresos_detalle: sinDesglose ? null : ingresosManuales,
 
             descuentos: (descuentos ?? []).filter(({ concepto }) =>
                 !["isss", "afp", "renta"].includes(concepto.trim().toLowerCase())

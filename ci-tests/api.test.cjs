@@ -2319,6 +2319,24 @@ test('HU-27: reutiliza solamente ingresos manuales', async t => {
   );
 });
 
+test("HU-27: un desglose solo CSV no impide duplicar ni copia sus ingresos", async t => {
+  const api = await conAPI(t, {
+    planillas: [origenHU27({ ingresos_adicionales: 50 })],
+    ingresosDetalle: [{ tipo: "Bono", concepto: "Bono CSV", importe: 50, origen: "CSV" }]
+  });
+
+  const r = await api.pedir(RUTA_HU27);
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body.duplicacion.ingresos_detalle, []);
+  assert.equal(api.registros.length, 0);
+});
+
+test("El listado de empleados exige el rol de nómina", async t => {
+  const api = await conAPI(t, { rolCuenta: "Empleado" });
+  assert.equal((await api.pedir("/api/empleados/lista")).status, 403);
+  assert.equal((await api.pedir("/api/empleados/lista", undefined, null)).status, 401);
+});
+
 // 7. Exigir autenticación.
 test('HU-27: exige autenticación', async t => {
   const api = await conAPI(t);

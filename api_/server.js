@@ -280,7 +280,8 @@ app.use(
     "/api/empleados",
     crearRutasEmpleados({
         servicio: servicioEmpleados,
-        verificarToken
+        verificarToken,
+        verificarRolNomina
     })
 );
 

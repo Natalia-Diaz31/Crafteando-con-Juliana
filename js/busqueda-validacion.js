@@ -40,15 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    async function consultar(termino, filtros, version) {
+    async function consultar(termino, filtros, version, listar = false) {
         const solicitud = new AbortController();
         controlador = solicitud;
 
         mensaje.textContent = "Consultando base de datos...";
 
-        const parametros = new URLSearchParams({
-            q: termino
-        });
+        const parametros = new URLSearchParams();
+        if (!listar) parametros.set("q", termino);
+        const ruta = listar ? "lista" : "buscar";
 
         if (filtros.departamento) {
             parametros.set(
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             const respuesta = await fetch(
-                `${API_URL}/api/empleados/buscar?${parametros}`,
+                `${API_URL}/api/empleados/${ruta}?${parametros}`,
                 {
                     signal: solicitud.signal,
                     headers: {
@@ -88,15 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error("La consulta falló");
             }
 
-            const empleados = [...resultado.empleados]
-                .sort((a, b) =>
-                    a.nombre_completo.localeCompare(
-                        b.nombre_completo,
-                        "es"
-                    ) ||
-                    a.codigo.localeCompare(b.codigo, "es")
-                )
-                .slice(0, 10);
+            const empleados = resultado.empleados;
 
             window.mostrarResultadosEmpleados(empleados);
 
@@ -115,6 +107,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             mensaje.textContent =
                 "No se pudo consultar empleados. Intente nuevamente";
+        } finally {
+            if (version === versionBusqueda) controlador = null;
         }
     }
 
@@ -152,6 +146,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 300);
         }
     }
+
+    document.getElementById("listar-empleados").addEventListener("click", () => {
+        cancelarBusqueda();
+        campo.value = "";
+        window.mostrarResultadosEmpleados([]);
+        consultar("", obtenerFiltros(), versionBusqueda, true);
+    });
 
     campo.addEventListener("input", () => buscar());
 
