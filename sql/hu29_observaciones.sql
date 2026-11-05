@@ -1,8 +1,15 @@
+-- ARCHIVO: Observaciones en planillas y en la función de guardado
+-- Buscar: observaciones, HU-29
+
 -- HU-29: Almacenamiento de observaciones.
 
+-- Qué hace: Agrega la columna observaciones a planillas
+-- Buscar: ALTER planillas, observaciones
 ALTER TABLE public.planillas
 ADD COLUMN IF NOT EXISTS observaciones TEXT;
 
+-- Qué hace: Limita las observaciones a 500 caracteres
+-- Buscar: CHECK, 500 caracteres
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -20,6 +27,8 @@ BEGIN
     END IF;
 END $$;
 
+-- Qué hace: Función que guarda la planilla y sus descuentos en una sola transacción (con observaciones)
+-- Buscar: guardar_planilla_con_descuentos
 CREATE OR REPLACE FUNCTION public.guardar_planilla_con_descuentos(p_registro jsonb, p_descuentos jsonb)
  RETURNS TABLE(id uuid, fecha_guardado timestamp with time zone, total_pagar numeric)
  LANGUAGE plpgsql
@@ -206,6 +215,8 @@ BEGIN
         END IF;
     END IF;
 
+    -- Qué hace: Inserta la fila de la planilla
+    -- Buscar: INSERT planillas
     INSERT INTO public.planillas (
         plantilla_id,
         empleado_id,
@@ -261,6 +272,8 @@ BEGIN
         SELECT value
         FROM jsonb_array_elements(p_descuentos)
     LOOP
+        -- Qué hace: Inserta cada descuento de la planilla
+        -- Buscar: INSERT planilla_descuentos
         INSERT INTO public.planilla_descuentos (
             planilla_id,
             concepto,

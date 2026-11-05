@@ -1,3 +1,6 @@
+// ARCHIVO: Conexión del formulario con las rutas /api/borradores
+// Buscar: borradores api, HU-23
+
 import {
     validarResultadoGuardado
 } from "./resultado-guardado.js";
@@ -9,8 +12,12 @@ import { capturarBorrador, recuperarBorrador } from "./borradores.js";
 // Borrador abierto en el formulario; al guardar la planilla se finaliza este borrador.
 let borradorActual = null;
 
+// Qué hace: Devuelve el id del borrador abierto (o null)
+// Buscar: obtenerBorradorActual, borrador abierto
 export const obtenerBorradorActual = () => borradorActual;
 
+// Qué hace: Hace una solicitud a la API de borradores con el token y revisa la respuesta
+// Buscar: pedir, fetch borradores
 async function pedir(ruta, opciones = {}) {
     const respuesta = await fetch(`${API_URL}${ruta}`, {
         ...opciones,
@@ -34,6 +41,8 @@ async function pedir(ruta, opciones = {}) {
 }
 
 // Guarda un borrador nuevo o actualiza el abierto, sin crear otro.
+// Qué hace: Guarda un borrador nuevo o actualiza el que está abierto
+// Buscar: guardarBorrador, POST, PUT
 export async function guardarBorrador() {
     const { valido, errores, contenido } = capturarBorrador();
 
@@ -55,10 +64,14 @@ export async function guardarBorrador() {
 }
 
 // Borradores de la cuenta: [{ id, contenido, estado, creado_en, actualizado_en, ... }].
+// Qué hace: Trae la lista de borradores de la cuenta
+// Buscar: listarBorradores
 export async function listarBorradores() {
     return (await pedir("/api/borradores")).borradores;
 }
 
+// Qué hace: Abre un borrador y lo carga en el formulario
+// Buscar: abrirBorrador, recuperar
 export async function abrirBorrador(id) {
     const { borrador } = await pedir(`/api/borradores/${encodeURIComponent(id)}`);
 
@@ -68,6 +81,8 @@ export async function abrirBorrador(id) {
 
 // Paso final: guarda lo revisado en el borrador y lo convierte en una sola planilla.
 // Devuelve { id, borrador_id, total_pagar } igual que el guardado normal.
+// Qué hace: Guarda los últimos cambios y convierte el borrador en planilla
+// Buscar: finalizarBorrador, finalizar
 export async function finalizarBorrador() {
     await guardarBorrador();
 

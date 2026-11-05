@@ -1,3 +1,8 @@
+-- ARCHIVO: Versión de guardado con operación, novedades y días remunerados
+-- Buscar: guardado, novedades, operacion_id, HU-17, HU-19
+
+-- Qué hace: Guarda la planilla evitando duplicados por operacion_id y registra sus novedades
+-- Buscar: guardar_planilla_con_descuentos, p_operacion_id, p_novedades
 CREATE OR REPLACE FUNCTION public.guardar_planilla_con_descuentos(p_registro jsonb, p_descuentos jsonb, p_operacion_id uuid, p_novedades jsonb)
  RETURNS TABLE(id uuid, fecha_guardado timestamp with time zone, total_pagar numeric, creada_nueva boolean)
  LANGUAGE plpgsql
@@ -181,10 +186,14 @@ END IF;
     IF v_creada THEN
 
         -- HU-18: guardar los dias remunerados calculados
+        -- Qué hace: Marca la operación en la planilla guardada
+        -- Buscar: UPDATE planillas, operacion_id
         UPDATE public.planillas
         SET dias_remunerados = 30 - v_dias_sin_goce
         WHERE id = v_id;
 
+        -- Qué hace: Inserta cada novedad de la planilla
+        -- Buscar: INSERT planilla_novedades
         INSERT INTO public.planilla_novedades (
             planilla_id,
             tipo,

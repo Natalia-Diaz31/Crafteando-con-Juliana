@@ -1,4 +1,8 @@
+// ARCHIVO: Consultas a Supabase sobre empleados
+// Buscar: servicio empleados, supabase
 
+// Qué hace: Crea el servicio con el cliente de Supabase
+// Buscar: crearServicioEmpleados
 function crearServicioEmpleados(supabase) {
     const columnas = `
         id,
@@ -13,6 +17,8 @@ function crearServicioEmpleados(supabase) {
         sucursales(nombre)
     `;
 
+    // Qué hace: Agrega los filtros de departamento y sucursal a una consulta
+    // Buscar: filtros, departamento, sucursal
     function aplicarFiltros(consulta, departamentoId, sucursalId) {
         if (departamentoId) {
             consulta = consulta.eq("departamento_id", departamentoId);
@@ -25,6 +31,8 @@ function crearServicioEmpleados(supabase) {
         return consulta;
     }
 
+    // Qué hace: Busca por código o DUI exacto y, si no hay, por nombre parcial
+    // Buscar: buscar, ilike, código, DUI, nombre
     async function buscar({ termino = "", departamentoId, sucursalId }) {
         termino = String(termino).trim();
 
@@ -74,6 +82,8 @@ function crearServicioEmpleados(supabase) {
         return data || [];
     }
 
+    // Qué hace: Lista hasta 10 empleados ordenados por nombre
+    // Buscar: listar, primeros 10
     async function listar({ departamentoId, sucursalId }) {
         const consulta = aplicarFiltros(
             supabase.from("empleados")
@@ -90,6 +100,8 @@ function crearServicioEmpleados(supabase) {
         return data ?? [];
     }
 
+    // Qué hace: Lee una tabla de catálogo ordenada por nombre
+    // Buscar: catálogo, departamentos, sucursales
     async function listarCatalogo(tabla) {
         const { data, error } = await supabase
             .from(tabla)

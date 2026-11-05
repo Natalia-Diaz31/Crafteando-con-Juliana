@@ -1,4 +1,6 @@
+/* ARCHIVO: Estilos del historial y del detalle de planillas | Buscar: estilos consulta, historial, detalle */
 
+/* Qué hace: Tabla del historial de planillas | Buscar: consulta-card, tabla historial */
 /* HU-08: Consulta de planillas */
 
 .consulta-card .table {
@@ -23,6 +25,7 @@
 }
 
 #consulta-mensaje,
+/* Qué hace: Mensajes y secciones del detalle | Buscar: detalle-mensaje, consulta-seccion */
 #detalle-mensaje {
     color: #657187;
     font-size: 12px;
@@ -41,6 +44,7 @@
     font-weight: 600;
 }
 
+/* Qué hace: Grilla de datos del detalle y total | Buscar: detalle-grid, detalle-total */
 .detalle-grid {
     margin: 0;
 }
@@ -91,6 +95,7 @@
     font-size: 19px;
 }
 
+/* Qué hace: Ajustes de la tabla en pantallas pequeñas | Buscar: responsive, media */
 @media (max-width: 650px) {
     .detalle-item {
         grid-template-columns: 1fr;

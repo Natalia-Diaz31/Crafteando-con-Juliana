@@ -1,5 +1,7 @@
 <!DOCTYPE html>
+<!-- ARCHIVO: Pantalla «Plantillas»: vista previa y selección de la plantilla | Buscar: plantilla, HU-03 -->
 <html lang="es">
+<!-- Qué hace: Título, estilos y protección de sesión | Buscar: head, sesion.js -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +15,7 @@
 
 <body>
     <div class="app">
+        <!-- Qué hace: Menú lateral con el logo, las opciones y el rol de la cuenta | Buscar: sidebar, menú -->
         <aside class="sidebar">
             <div class="sidebar-top">
                 <div class="brand">
@@ -23,6 +26,7 @@
                     </div>
                 </div>
 
+                <!-- Qué hace: Opciones de navegación entre pantallas | Buscar: menu, Inicio, Plantillas, Crear planilla, Consultar -->
                 <nav class="menu">
 
                     <a href="#" class="menu-item">
@@ -47,6 +51,7 @@
                 </nav>
             </div>
 
+            <!-- Qué hace: Usuario y botón para cerrar sesión | Buscar: cerrar-sesion, sidebar-user -->
             <div class="sidebar-user">
                 <div class="user-info">
                     <div class="user-avatar">N</div>
@@ -64,7 +69,9 @@
             </div>
         </aside>
 
+        <!-- Qué hace: Contenido principal de la pantalla | Buscar: main-content -->
         <main class="main-content">
+            <!-- Qué hace: Encabezado con el título de la pantalla | Buscar: top-header -->
             <header class="top-header">
                 <div>
                     <h1>Planilla básica</h1>
@@ -72,6 +79,7 @@
                 </div>
             </header>
 
+            <!-- Qué hace: Tarjeta con la plantilla, su descripción y el botón para usarla | Buscar: plantilla-card, usar-plantilla -->
             <section class="plantilla-card">
 
                 <div class="plantilla-header">
@@ -99,6 +107,7 @@
                     </label>
                 </div>
                 <div class="tabla-container">
+                    <!-- Qué hace: Tabla de vista previa con los campos de la plantilla | Buscar: vista previa, tabla planilla -->
                     <table class="planilla">
                         <thead>
                             <tr>
@@ -146,6 +155,7 @@
             </section>
         </main>
     </div>
+    <!-- Qué hace: Scripts de la pantalla | Buscar: scripts, plantilla.js -->
     <script src="js/config.js"></script>
     <script src="js/plantilla.js"></script>
 </body>

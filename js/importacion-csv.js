@@ -1,3 +1,6 @@
+// ARCHIVO: Lectura del archivo CSV de importación
+// Buscar: leer CSV, HU-22
+
 const ENCABEZADOS = [
     "codigo_empleado",
     "mes",
@@ -9,6 +12,8 @@ const ENCABEZADOS = [
 
 const MAXIMO_BYTES = 1000000;
 
+// Qué hace: Separa el texto del CSV en filas y columnas
+// Buscar: analizarCSV, comillas
 export function analizarCSV(contenido) {
     const texto = contenido.replace(/^\uFEFF/, "");
 
@@ -21,12 +26,16 @@ export function analizarCSV(contenido) {
     let inicioFila = 1;
     let pendiente = false;
 
+    // Qué hace: Agrega la celda leída a la fila actual
+    // Buscar: agregarCelda
     function agregarCelda() {
         valores.push(celda);
         celda = "";
         estado = "inicio";
     }
 
+    // Qué hace: Agrega la fila leída a la lista
+    // Buscar: agregarFila
     function agregarFila() {
         agregarCelda();
 
@@ -180,6 +189,8 @@ export function analizarCSV(contenido) {
     };
 }
 
+// Qué hace: Lee el archivo, comprueba extensión y tamaño, y lo analiza
+// Buscar: leerArchivoCSV, 1 MB, .csv
 export async function leerArchivoCSV(archivo) {
     if (!archivo || !/\.csv$/i.test(archivo.name)) {
         throw new Error("Seleccione un archivo .csv");

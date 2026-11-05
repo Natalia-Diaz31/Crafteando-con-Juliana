@@ -1,3 +1,6 @@
+// ARCHIVO: Funciones compartidas para mostrar horas, descuentos y secciones
+// Buscar: desglose, pintarSeccion, HU-12, HU-13
+
 //
 // HU-12 y HU-13: PRESENTACIÓN COMPARTIDA DEL RESUMEN Y DEL DETALLE
 //
@@ -8,6 +11,8 @@
         currency: "USD"
     });
 
+    // Qué hace: Convierte un importe a centavos
+    // Buscar: aCentavos
     function aCentavos(valor) {
         const numero = Number(valor);
         return Number.isFinite(numero) ? Math.round(numero * 100) : 0;
@@ -15,6 +20,8 @@
 
     // HU-13: cantidad de horas con dos decimales.
     // Los registros anteriores a la HU-13 no tienen horas: no se presentan como 0.00.
+    // Qué hace: Muestra una cantidad de horas con «h»
+    // Buscar: formatoHoras, horas
     window.formatoHoras = function (valor) {
         if (valor === null || valor === undefined || valor === "") {
             return "No registradas";
@@ -29,6 +36,8 @@
 
     // HU-12: la API guarda las deducciones legales junto al detalle de descuentos.
     // Para presentar solo los descuentos autorizados, se quita una vez cada deducción legal.
+    // Qué hace: Separa los descuentos autorizados de ISSS, AFP y Renta
+    // Buscar: separarDescuentosAutorizados
     window.separarDescuentosAutorizados = function (descuentos, deduccionesLegales) {
         const pendientes = (deduccionesLegales?.detalle || [])
             .filter(item => aCentavos(item.importe) > 0)
@@ -52,6 +61,8 @@
 
     // HU-12: tabla con cada concepto, su importe y la suma del detalle.
     // Con null (planillas anteriores a la HU-12) indica que no hay detalle guardado.
+    // Qué hace: Dibuja la tabla de descuentos autorizados con su suma
+    // Buscar: pintarDescuentosAutorizados
     window.pintarDescuentosAutorizados = function (contenedor, descuentos) {
         contenedor.replaceChildren();
 
@@ -110,6 +121,8 @@
 
     // HU-18, HU-20 y HU-21: bloque con título, tabla y nota final.
     // Se agrega al contenedor; quien lo llama lo vacía y lo oculta antes de pintar.
+    // Qué hace: Dibuja una sección con título y tabla (resumen y detalle)
+    // Buscar: pintarSeccion, tabla
     window.pintarSeccion = function (contenedor, { titulo, columnas, filas, vacio, nota }) {
         const crear = (etiqueta, propiedades) =>
             Object.assign(document.createElement(etiqueta), propiedades);

@@ -1,9 +1,14 @@
+// ARCHIVO: Detalle de descuentos manuales (agregar, editar, eliminar)
+// Buscar: descuentos manuales, HU-12
+
 let aplicarDetalleDescuentos = null;
 
 let leerSubtotalManual = null;
 
 let validarDetalleInterno = null;
 
+// Qué hace: Indica si el detalle de descuentos es válido
+// Buscar: validarDetalleDescuentos
 export function validarDetalleDescuentos() {
     if (!validarDetalleInterno) {
         throw new Error(
@@ -14,6 +19,8 @@ export function validarDetalleDescuentos() {
     return validarDetalleInterno();
 }
 
+// Qué hace: Devuelve la suma de descuentos manuales en centavos
+// Buscar: obtenerSubtotalDescuentosManuales
 export function obtenerSubtotalDescuentosManuales() {
     if (!leerSubtotalManual) {
         throw new Error("El componente de descuentos todavía no está listo");
@@ -22,6 +29,8 @@ export function obtenerSubtotalDescuentosManuales() {
     return leerSubtotalManual();
 }
 
+// Qué hace: Reemplaza todos los descuentos (lo usa la importación CSV)
+// Buscar: reemplazarDescuentosManuales, csv
 export function reemplazarDescuentosManuales(lista) {
     if (!aplicarDetalleDescuentos) {
         throw new Error(
@@ -31,6 +40,8 @@ export function reemplazarDescuentosManuales(lista) {
 
     aplicarDetalleDescuentos(lista);
 }
+// Qué hace: Prepara la sección de descuentos cuando carga la página
+// Buscar: inicio descuentos
 document.addEventListener("DOMContentLoaded", () => {
     const conceptoInput =
         document.getElementById("descuento-concepto");
@@ -52,6 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const MAXIMO_CENTAVOS = 999999999999;
 
+    // Qué hace: Crea el mensaje de error bajo un campo
+    // Buscar: crearError
     function crearError(input) {
         let error = document.getElementById(`${input.id}-error`);
 
@@ -72,6 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const conceptoError = crearError(conceptoInput);
     const importeError = crearError(importeInput);
 
+    // Qué hace: Muestra u oculta el error de un campo
+    // Buscar: mostrarError
     function mostrarError(input, error, mensaje) {
         input.classList.toggle("is-invalid", Boolean(mensaje));
         input.setAttribute("aria-invalid", String(Boolean(mensaje)));
@@ -80,6 +95,8 @@ document.addEventListener("DOMContentLoaded", () => {
         error.classList.toggle("d-block", Boolean(mensaje));
     }
 
+    // Qué hace: Convierte un importe a centavos
+    // Buscar: aCentavos
     function aCentavos(texto) {
         const [entero, decimal = ""] = texto.split(".");
 
@@ -87,6 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
             Number(decimal.padEnd(2, "0"));
     }
 
+    // Qué hace: Convierte centavos a texto con dos decimales
+    // Buscar: aDecimal
     function aDecimal(centavos) {
         const entero = Math.floor(centavos / 100);
         const decimal = String(centavos % 100).padStart(2, "0");
@@ -94,6 +113,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${entero}.${decimal}`;
     }
 
+    // Qué hace: Valida concepto e importe antes de agregar
+    // Buscar: validarComponente, ISSS, AFP, Renta
     function validarComponente() {
         const concepto = conceptoInput.value.trim();
         const importe = importeInput.value.trim();
@@ -140,6 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    // Qué hace: Suma los importes de la lista
+    // Buscar: obtenerSuma
     function obtenerSuma(lista) {
         return lista.reduce(
             (suma, descuento) => suma + aCentavos(descuento.importe),
@@ -150,6 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     leerSubtotalManual = () => obtenerSuma(descuentos);
 
+    // Qué hace: Quita la confirmación del resumen al cambiar descuentos
+    // Buscar: reiniciarConfirmacion
     function reiniciarConfirmacion() {
         const casilla =
             document.getElementById("confirmacion-revisado");
@@ -167,6 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (guardar) guardar.disabled = true;
     }
 
+    // Qué hace: Actualiza el campo «Descuentos totales»
+    // Buscar: actualizarTotal, descuentos totales
     function actualizarTotal() {
         const legales = window.obtenerDeduccionesLegales?.();
         totalInput.value = legales
@@ -180,6 +207,8 @@ document.addEventListener("DOMContentLoaded", () => {
         reiniciarConfirmacion();
     }
 
+    // Qué hace: Sale del modo edición de un descuento
+    // Buscar: terminarEdicion
     function terminarEdicion() {
         indiceEdicion = null;
         conceptoInput.value = "";
@@ -190,6 +219,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarError(importeInput, importeError, "");
     }
 
+    // Qué hace: Crea un botón Editar o Eliminar
+    // Buscar: crearBoton
     function crearBoton(texto, clase, indice) {
         const boton = document.createElement("button");
 
@@ -201,6 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return boton;
     }
 
+    // Qué hace: Dibuja la tabla de descuentos
+    // Buscar: mostrarDescuentos, tabla
     function mostrarDescuentos() {
         detalle.replaceChildren();
 
@@ -238,6 +271,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Qué hace: Agrega o actualiza un descuento
+    // Buscar: agregar descuento
     agregarBtn.addEventListener("click", () => {
         const componente = validarComponente();
         if (!componente) return;
@@ -271,6 +306,8 @@ document.addEventListener("DOMContentLoaded", () => {
         actualizarTotal();
     });
 
+    // Qué hace: Edita o elimina el descuento de la fila elegida
+    // Buscar: editar descuento, eliminar descuento
     detalle.addEventListener("click", (evento) => {
         const editar =
             evento.target.closest(".editar-descuento");
@@ -303,6 +340,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Punto de conexión para quien integre el guardado.
+    // Qué hace: Devuelve la lista de descuentos para guardar
+    // Buscar: obtenerDetalleDescuentos
     window.obtenerDetalleDescuentos = function () {
         return descuentos.map(item => ({ ...item }));
     };

@@ -1,3 +1,8 @@
+// ARCHIVO: Búsqueda de empleados: consulta a la API y control de solicitudes
+// Buscar: buscar empleado, HU-24
+
+// Qué hace: Prepara la búsqueda cuando carga la página
+// Buscar: búsqueda, inicio
 document.addEventListener("DOMContentLoaded", () => {
     const formulario =
         document.getElementById("form-busqueda-empleado");
@@ -12,6 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let controlador = null;
     let versionBusqueda = 0;
 
+    // Qué hace: Cancela la búsqueda en curso
+    // Buscar: cancelarBusqueda, AbortController
     function cancelarBusqueda() {
         versionBusqueda++;
 
@@ -22,12 +29,16 @@ document.addEventListener("DOMContentLoaded", () => {
         controlador = null;
     }
 
+    // Qué hace: Quita el empleado seleccionado
+    // Buscar: limpiarSeleccion
     function limpiarSeleccion() {
         document.dispatchEvent(
             new CustomEvent("empleado:limpiar")
         );
     }
 
+    // Qué hace: Lee los filtros de departamento y sucursal
+    // Buscar: obtenerFiltros
     function obtenerFiltros() {
         return {
             departamento:
@@ -40,6 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    // Qué hace: Consulta /buscar o /lista y muestra los resultados
+    // Buscar: consultar, listar empleados, fetch
     async function consultar(termino, filtros, version, listar = false) {
         const solicitud = new AbortController();
         controlador = solicitud;
@@ -112,6 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Qué hace: Valida el término y lanza la búsqueda (con espera al escribir)
+    // Buscar: buscar, debounce
     function buscar(inmediata = false) {
         cancelarBusqueda();
         limpiarSeleccion();
@@ -154,8 +169,12 @@ document.addEventListener("DOMContentLoaded", () => {
         consultar("", obtenerFiltros(), versionBusqueda, true);
     });
 
+    // Qué hace: Busca mientras el usuario escribe
+    // Buscar: input búsqueda
     campo.addEventListener("input", () => buscar());
 
+    // Qué hace: Busca al presionar Buscar
+    // Buscar: submit búsqueda
     formulario.addEventListener("submit", evento => {
         evento.preventDefault();
         buscar(true);
@@ -185,6 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
             buscar();
         });
 
+    // Qué hace: Reinicia la búsqueda cuando se pide limpiar el empleado
+    // Buscar: empleado:limpiar
     document.addEventListener(
         "empleado:seleccionar",
         cancelarBusqueda

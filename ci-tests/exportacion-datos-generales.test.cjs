@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas de los datos generales para exportar
+// Buscar: pruebas exportación, HU-30
+
 "use strict";
 
 const { test } = require("node:test");

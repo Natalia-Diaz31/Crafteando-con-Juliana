@@ -1,3 +1,5 @@
+// ARCHIVO: Validación completa de una planilla antes de guardarla
+// Buscar: validación definitiva, HU-33
 
 "use strict";
 
@@ -6,24 +8,14 @@
 
 const { esUUIDValido } = require("./validar-uuid");
 const { validarNovedades } = require("./validar-novedades");
-const { validarSalarioEIngresos } = require("./validar-ingresos");
+const { validarSalarioEIngresos, obtenerTexto } = require("./validar-ingresos");
 const { validarDescuentosManuales } = require("./validar-descuentos-manuales");
 const ReglasNomina = require("./reglas-nomina");
 
 const MAXIMO_CENTAVOS = 999999999999;
 
-function obtenerTexto(valor) {
-    if (typeof valor === "string") {
-        return valor.trim();
-    }
-
-    if (typeof valor === "number" && Number.isFinite(valor)) {
-        return String(valor);
-    }
-
-    return "";
-}
-
+// Qué hace: Recorta la observación y rechaza más de 500 caracteres
+// Buscar: normalizarObservacion, observaciones, HU-29
 function normalizarObservacion(valor) {
     if (valor === undefined || valor === null) {
         return { valor: "", error: null };
@@ -48,6 +40,8 @@ function normalizarObservacion(valor) {
     return { valor: observacion, error: null };
 }
 
+// Qué hace: Valida una cantidad de horas con hasta dos decimales
+// Buscar: validarHoras, horas
 function validarHoras(datos, campo, errores) {
     const texto = obtenerTexto(datos[campo]);
 
@@ -80,6 +74,8 @@ function validarHoras(datos, campo, errores) {
     return (centesimas / 100).toFixed(2);
 }
 
+// Qué hace: Valida todos los campos, calcula deducciones y totales, y devuelve la planilla lista
+// Buscar: validarPlanillaDefinitiva, total, deducciones
 function validarPlanillaDefinitiva(datosEntrada) {
     const datos = { ...(datosEntrada || {}) };
     const errores = {};
@@ -344,4 +340,4 @@ function validarPlanillaDefinitiva(datosEntrada) {
     };
 }
 
-module.exports = { validarPlanillaDefinitiva };
+module.exports = { validarPlanillaDefinitiva, normalizarObservacion };

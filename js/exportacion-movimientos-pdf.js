@@ -1,19 +1,27 @@
+// ARCHIVO: Secciones de ingresos, descuentos y novedades del PDF
+// Buscar: PDF, movimientos, HU-30
 
 "use strict";
 
 // HU-30: Preparar los movimientos históricos para exportarlos a PDF.
 // No consulta la API, no recalcula importes y no modifica la planilla.
+// Qué hace: Prepara las tablas de movimientos para el PDF
+// Buscar: prepararMovimientosPDF
 function prepararMovimientosPDF(planilla, separarDescuentos) {
     if (!planilla || typeof planilla !== "object" ||
         Array.isArray(planilla) || typeof separarDescuentos !== "function") {
         throw new TypeError("Datos de exportación inválidos");
     }
 
+    // Qué hace: Devuelve el valor o «No registrado»
+    // Buscar: dato
     const dato = valor =>
         valor == null || (typeof valor === "string" && !valor.trim())
             ? "No registrado"
             : valor;
 
+    // Qué hace: Formatea un importe en dólares
+    // Buscar: dinero
     const dinero = valor => {
         if (valor == null || valor === "") return "No registrado";
 
@@ -23,6 +31,8 @@ function prepararMovimientosPDF(planilla, separarDescuentos) {
             : "No registrado";
     };
 
+    // Qué hace: Crea la estructura de una sección del PDF
+    // Buscar: seccion
     const seccion = (nombre, encabezados, filas, sinDetalle = false) => ({
         nombre,
         encabezados,
@@ -59,6 +69,8 @@ function prepararMovimientosPDF(planilla, separarDescuentos) {
         ? legales.detalle
         : [];
 
+    // Qué hace: Describe la tasa o tramo aplicado de una deducción
+    // Buscar: reglaLegal
     const reglaLegal = item => {
         const partes = [];
 

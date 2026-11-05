@@ -1,6 +1,9 @@
+// ARCHIVO: Motor de reglas de nómina compartido por el navegador y la API (copias idénticas)
+// Buscar: reglas nómina, ISSS, AFP, Renta, HU-14, HU-19
+
 /* HU-14. Reglas del proyecto v1. Un mismo motor para navegador y API.
  * Importes en centavos. Porcentajes con BigInt y redondeo half-up por deducción.
- * Tablas: Decreto Ejecutivo 10 (2025), art. 1 a-c. Ver docs/HU14_IMPLEMENTACION.md.
+ * Tablas: Decreto Ejecutivo 10 (2025), art. 1 a-c.
  */
 (function (root, factory) {
     const motor = factory();
@@ -16,6 +19,8 @@
         quincenal: { nombre: 'Quincenal', tope: 1500, limites: [27500, 44762, 101905], cuotas: [0, 883, 3000, 14428] },
         semanal: { nombre: 'Semanal', tope: 750, limites: [13750, 22381, 50952], cuotas: [0, 442, 1500, 7214] }
     };
+    // Qué hace: Convierte un monto en texto a centavos
+    // Buscar: centavos
     function centavos(valor) {
         if (!['string', 'number'].includes(typeof valor)) throw new Error('Ingrese un monto válido');
         const texto = String(valor).trim();
@@ -29,12 +34,18 @@
         if (!Number.isSafeInteger(resultado) || resultado > MAXIMO) throw new Error('El monto supera 9999999999.99');
         return resultado;
     }
+    // Qué hace: Convierte centavos a texto con dos decimales
+    // Buscar: decimal
     function decimal(valor) {
         return `${Math.floor(valor / 100)}.${String(valor % 100).padStart(2, '0')}`;
     }
+    // Qué hace: Calcula un porcentaje con redondeo mitad hacia arriba
+    // Buscar: porcentaje
     function porcentaje(base, puntosBasicos) {
         return Number((BigInt(base) * BigInt(puntosBasicos) + 5000n) / 10000n);
     }
+    // Qué hace: Calcula la renta según la tabla de la frecuencia
+    // Buscar: calcularRenta, tramo
     function calcularRenta(base, periodo) {
         const tabla = Object.hasOwn(PERIODOS, periodo) ? PERIODOS[periodo] : null;
         if (!tabla) throw new Error('Seleccione la frecuencia de pago');
@@ -49,6 +60,8 @@
             centavos: indice ? porcentaje(base - exceso, tasa) + tabla.cuotas[indice] : 0
         };
     }
+    // Qué hace: Calcula ISSS, AFP y Renta de un salario e ingresos
+    // Buscar: calcular, ISSS, AFP, Renta
     function calcular(datos) {
         const tabla = Object.hasOwn(PERIODOS, datos.periodo_pago) ? PERIODOS[datos.periodo_pago] : null;
         if (!tabla) throw new Error('Seleccione la frecuencia de pago');
@@ -83,6 +96,8 @@
             total: decimal(isss + afp + renta.centavos)
         };
     }
+    // Qué hace: Convierte el nombre o número de mes a número
+    // Buscar: numeroMes
     function numeroMes(valor) {
     const meses = [
         "Enero", "Febrero", "Marzo", "Abril",
@@ -103,6 +118,8 @@
         : null;
 }
 
+// Qué hace: Calcula el salario proporcional a los días remunerados (base 30)
+// Buscar: calcularSalarioProporcional, 30 días
 function calcularSalarioProporcional(salarioMensual, diasRemunerados) {
     const textoDias = String(diasRemunerados);
 
@@ -128,6 +145,8 @@ function calcularSalarioProporcional(salarioMensual, diasRemunerados) {
     };
 }
 
+// Qué hace: Calcula deducciones con el salario proporcional (solo mensual)
+// Buscar: calcularPorDias
 function calcularPorDias(datos) {
     if (datos.periodo_pago !== "mensual") {
         throw new Error(

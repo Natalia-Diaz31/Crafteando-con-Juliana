@@ -1,8 +1,12 @@
+// ARCHIVO: Validación de incapacidades, permisos y ausencias
+// Buscar: novedades, días, HU-18
 
 const TIPOS = ["Incapacidad", "Permiso", "Ausencia"];
 const CONDICIONES = ["Con goce", "Sin goce"];
 const MILISEGUNDOS_DIA = 86400000;
 
+// Qué hace: Convierte una fecha AAAA-MM-DD y rechaza fechas inexistentes
+// Buscar: convertirFecha, fecha
 function convertirFecha(texto) {
     if (
         typeof texto !== "string" ||
@@ -23,6 +27,8 @@ function convertirFecha(texto) {
     return fecha;
 }
 
+// Qué hace: Cuenta los días entre dos fechas, ambas incluidas
+// Buscar: contarDias
 function contarDias(fechaInicio, fechaFin) {
     const inicio = convertirFecha(fechaInicio);
     const fin = convertirFecha(fechaFin);
@@ -36,6 +42,8 @@ function contarDias(fechaInicio, fechaFin) {
     return (fin - inicio) / MILISEGUNDOS_DIA + 1;
 }
 
+// Qué hace: Valida las novedades del mes y calcula los días remunerados
+// Buscar: validarNovedades, sin goce, días remunerados
 function validarNovedades(lista, periodo) {
     const errores = [];
     const normalizadas = [];

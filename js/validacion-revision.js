@@ -1,3 +1,6 @@
+// ARCHIVO: Coordinador de las validaciones de la revisión
+// Buscar: validar revisión, HU-35
+
 import {
     validarObservacionesFormulario
 } from "./observaciones.js";
@@ -37,6 +40,8 @@ const VALIDACIONES_COMPONENTES = [
     }
 ];
 
+// Qué hace: Ejecuta todas las validaciones y devuelve los errores por campo
+// Buscar: validarRevision
 export function validarRevision(
     validacionesAdicionales = []
 ) {

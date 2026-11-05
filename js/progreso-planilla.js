@@ -1,3 +1,8 @@
+// ARCHIVO: Barra de pasos del formulario de planilla
+// Buscar: progreso, pasos
+
+// Qué hace: Prepara la barra de pasos cuando carga la página
+// Buscar: inicio progreso
 document.addEventListener("DOMContentLoaded", () => {
     const pasos = document.querySelectorAll(".steps-bar .step");
 
@@ -19,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const revisarPlanilla = document.getElementById("revisar-planilla");
     const editarDatos = document.getElementById("editar-datos");
 
+    // Qué hace: Marca el paso activo
+    // Buscar: activarPaso
     function activarPaso(numero) {
         pasos.forEach((paso, indice) => {
             paso.classList.toggle("active", indice === numero - 1);
@@ -26,10 +33,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Qué hace: Indica si un campo tiene valor
+    // Buscar: tieneValor
     function tieneValor(campo) {
         return campo && campo.value.trim() !== "";
     }
 
+    // Qué hace: Indica si los datos generales están completos
+    // Buscar: datosGeneralesCompletos
     function datosGeneralesCompletos() {
         return (
             tieneValor(mes) &&
@@ -39,10 +50,14 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    // Qué hace: Indica si los montos están completos
+    // Buscar: montosCompletos
     function montosCompletos() {
         return tieneValor(salario) && tieneValor(ingresos);
     }
 
+    // Qué hace: Actualiza el estado de cada paso
+    // Buscar: actualizarProgreso
     function actualizarProgreso() {
         // Si la revisión está visible, siempre es paso 4
         if (seccionRevision && !seccionRevision.hidden) {
@@ -63,6 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
         activarPaso(1);
     }
 
+    // Qué hace: Desplaza la página hasta una sección
+    // Buscar: irASeccion, scroll
     function irASeccion(elemento, ajuste = 100) {
         if (!elemento) return;
 
@@ -77,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Qué hace: Marca el paso según la parte visible de la página
+    // Buscar: actualizarPasoPorScroll
     function actualizarPasoPorScroll() {
     // Si la revisión está abierta y llegamos a ella, es paso 5
         if (
@@ -206,6 +225,8 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(actualizarProgreso, 50);
     });
 
+    // Qué hace: Actualiza el paso al desplazarse
+    // Buscar: scroll
     window.addEventListener("scroll", actualizarPasoPorScroll, {
         passive: true
     });

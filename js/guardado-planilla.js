@@ -1,3 +1,6 @@
+// ARCHIVO: Guardado de la planilla en la API
+// Buscar: guardar planilla, HU-08, HU-17
+
 import {
     validarObservacionesFormulario
 } from "./observaciones.js";
@@ -32,6 +35,8 @@ let operacionActual = null;
 let guardando = false;
 let guardadoConfirmado = false;
 
+// Qué hace: Reinicia el estado al empezar una planilla nueva
+// Buscar: planilla:nueva
 document.addEventListener("planilla:nueva", () => {
     if (guardando) return;
 
@@ -43,6 +48,8 @@ document.addEventListener("planilla:nueva", () => {
 // HU-17: Estados del botón durante el guardado de planilla
 //
 
+// Qué hace: Valida, arma los datos y guarda la planilla (o finaliza el borrador)
+// Buscar: guardarPlanilla, modo_calculo, operacion_id
 async function guardarPlanilla() {
     if (guardando) return;
 
@@ -140,7 +147,7 @@ async function guardarPlanilla() {
 
         descuentos_totales:
             document.getElementById("descuentos").value,
-        // HU-18, HU-20 y HU-21: formato acordado en docs/contrato-integracion-sprint3.md.
+        // HU-18, HU-20 y HU-21: novedades, detalle de ingresos y ajuste salarial.
         // Los campos de formularios todavía no integrados quedan undefined y no se envían.
         novedades: obtenerNovedades(),
 
@@ -240,6 +247,8 @@ datosPlanilla.operacion_id = operacionActual.id;
 
 
 // Convierte el nombre del mes del formulario al número que espera la API
+// Qué hace: Convierte el nombre del mes en número
+// Buscar: convertirMesANumero
 function convertirMesANumero(mes) {
 
     const meses = {
@@ -263,6 +272,8 @@ function convertirMesANumero(mes) {
 }
 
 
+// Qué hace: Envía la planilla a POST /api/planillas
+// Buscar: enviarPlanilla, fetch
 async function enviarPlanilla(token, datosPlanilla) {
     const respuesta = await fetch(
         `${API_URL}/api/planillas`,
@@ -298,6 +309,8 @@ async function enviarPlanilla(token, datosPlanilla) {
 // HU-17: confirmación con acceso al detalle y a una planilla nueva.
 // «Crear otra planilla» recarga la página: así se reinicia todo el estado,
 // incluido el identificador de operación, sin limpiar campo por campo.
+// Qué hace: Muestra el mensaje de guardado con los enlaces
+// Buscar: mostrarConfirmacion, Ver planilla
 function mostrarConfirmacion(id, empleadoYPeriodo) {
     const enlace = (texto, href, clase) => Object.assign(
         document.createElement("a"),
@@ -321,6 +334,8 @@ function mostrarConfirmacion(id, empleadoYPeriodo) {
 }
 
 // Mostrar mensajes al usuario
+// Qué hace: Muestra un mensaje bajo el botón de guardar
+// Buscar: mostrarMensajeGuardado
 function mostrarMensajeGuardado(mensaje) {
 
     const mensajeGuardar =
@@ -341,6 +356,8 @@ function mostrarMensajeGuardado(mensaje) {
 
 
 // Conectar botón de guardar con la función HU-08
+// Qué hace: Conecta el botón «Guardar planilla»
+// Buscar: btn-guardar-planilla
 document.addEventListener("DOMContentLoaded", () => {
 
     const botonGuardar =

@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas del nombre de los archivos PDF y Excel
+// Buscar: pruebas nombre archivo, HU-30, HU-31
+
 "use strict";
 
 const { test } = require("node:test");

@@ -1,8 +1,12 @@
+// ARCHIVO: Pantalla «Detalle de planilla»: datos, duplicar, PDF y Excel
+// Buscar: detalle planilla, HU-08, HU-27, HU-30, HU-31
 
 //
 // HU-08: MOSTRAR DETALLE DE UNA PLANILLA
 //
 
+// Qué hace: Muestra en pantalla todos los datos de la planilla
+// Buscar: mostrarDetallePlanilla
 window.mostrarDetallePlanilla = function (planilla) {
     const mensaje = document.getElementById("detalle-mensaje");
     const contenido = document.getElementById("contenido-detalle");
@@ -18,10 +22,14 @@ window.mostrarDetallePlanilla = function (planilla) {
         currency: "USD"
     });
 
+    // Qué hace: Escribe un valor en un elemento de la página
+    // Buscar: mostrar
     function mostrar(id, valor) {
         document.getElementById(id).textContent = valor ?? "—";
     }
 
+    // Qué hace: Formatea un importe en dólares
+    // Buscar: dinero, USD
     function dinero(valor) {
         if (valor === null || valor === undefined || valor === "") {
             return "—";
@@ -88,8 +96,7 @@ window.mostrarDetallePlanilla = function (planilla) {
         planilla.deducciones_legales
     );
 
-    // HU-18, HU-20 y HU-21: cada bloque aparece solo cuando la API envía el dato
-    // (formato en docs/contrato-integracion-sprint3.md).
+    // HU-18, HU-20 y HU-21: cada bloque aparece solo cuando la API envía el dato.
     const complementos = document.getElementById("detalle-complementos");
     complementos.replaceChildren();
     complementos.hidden = true;
@@ -161,8 +168,8 @@ window.mostrarDetallePlanilla = function (planilla) {
 };
 
 
-// --- INICIO CÓDIGO DE VÍCTOR: CONEXIÓN CON LA API ---
-
+// Qué hace: Consulta la planilla de la URL y conecta los botones
+// Buscar: inicio detalle, fetch planilla
 document.addEventListener("DOMContentLoaded", async () => {
         if (!esEncargadoNomina()) {
         const contenido = document.querySelector("main");
@@ -268,6 +275,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     botonExcel.disabled = false;
 
     // HU-27: la API comprueba si se puede duplicar; el formulario recupera los datos.
+    // Qué hace: Prepara una nueva planilla con los datos de esta
+    // Buscar: duplicar, botón duplicar
     botonDuplicar.addEventListener("click", async () => {
         const aviso = document.getElementById("duplicacion-detalle-mensaje");
 
@@ -302,6 +311,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // HU-30: el PDF se genera con el detalle ya cargado, sin otra consulta.
+    // Qué hace: Genera y descarga el PDF de la planilla
+    // Buscar: descargar PDF, jsPDF
     botonPdf.addEventListener("click", async () => {
         const aviso = document.getElementById("pdf-mensaje");
 
@@ -329,6 +340,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // HU-31: el Excel se arma con el detalle ya cargado, sin otra consulta.
+    // Qué hace: Genera y descarga el Excel de la planilla
+    // Buscar: descargar Excel, SheetJS
     botonExcel.addEventListener("click", async () => {
         const aviso = document.getElementById("excel-mensaje");
 
@@ -377,11 +390,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // HU-30 y HU-31: planilla_CODIGO_AAAA-MM_ID.extensión
+// Qué hace: Arma el nombre del archivo planilla_CODIGO_AAAA-MM_ID
+// Buscar: nombreExportacion, nombre archivo
 function nombreExportacion(planilla, extension) {
     const [mes, anio] = String(planilla.periodo).split(" ");
     const numeroMes = String(window.ReglasNomina.numeroMes(mes)).padStart(2, "0");
 
     return `planilla_${planilla.codigo}_${anio}-${numeroMes}_${planilla.id}.${extension}`;
 }
-
-// --- FIN CÓDIGO DE VÍCTOR ---

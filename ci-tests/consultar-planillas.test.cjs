@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas del control de solicitudes del historial
+// Buscar: pruebas historial, HU-36
+
 "use strict";
 
 const { test } = require("node:test");
@@ -9,6 +12,8 @@ const vm = require("node:vm");
 const ruta = path.join(__dirname, "../js/consultar-planillas.js");
 const codigo = fs.readFileSync(ruta, "utf8");
 
+// Qué hace: Carga consultar-planillas.js con un fetch simulado
+// Buscar: crearEntorno
 function crearEntorno() {
     const solicitudes = [];
     const marcador = "async function inicializarConsulta() {";
@@ -56,6 +61,8 @@ function crearEntorno() {
     };
 }
 
+// Qué hace: Completa una solicitud simulada
+// Buscar: completar
 function completar(solicitud) {
     solicitud.resolver({
         ok: true,

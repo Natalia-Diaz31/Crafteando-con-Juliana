@@ -1,10 +1,17 @@
+// ARCHIVO: Consultas a Supabase sobre planillas guardadas
+// Buscar: servicio planillas, supabase
+
 "use strict";
 
 // HU-25: Consulta paginada del historial de planillas.
 const TAMANO_PAGINA = 10;
 
+// Qué hace: Crea el servicio con el cliente de Supabase
+// Buscar: crearServicioPlanillas
 function crearServicioPlanillas(supabase) {
 
+    // Qué hace: Consulta una página del historial con su conteo total
+    // Buscar: historial, paginación, range
     async function consultarHistorial({
         empleadoId = null,
         pagina = 1
@@ -50,6 +57,8 @@ function crearServicioPlanillas(supabase) {
     }
 
     // HU-27: Consultar los datos originales para duplicar.
+    // Qué hace: Obtiene la planilla original, sus ingresos y descuentos para duplicarla
+    // Buscar: origen duplicación, HU-27
     async function consultarOrigenDuplicacion(id) {
         const { data: planilla, error } = await supabase
             .from("planillas")
@@ -99,6 +108,8 @@ function crearServicioPlanillas(supabase) {
 
 
     // HU-28: Consultar la última planilla mensual anterior.
+    // Qué hace: Busca la última planilla mensual anterior del mismo empleado
+    // Buscar: planilla anterior, comparación, HU-28
     async function consultarPlanillaAnterior({ empleadoId, anio, mes }) {
         const { data, error } = await supabase
             .from("planillas")

@@ -1,5 +1,10 @@
+// ARCHIVO: Campo de observaciones con límite de 500 caracteres
+// Buscar: observaciones, HU-29
+
 const LIMITE = 500;
 
+// Qué hace: Recorta espacios y revisa el largo de la observación
+// Buscar: normalizarObservacion
 export function normalizarObservacion(valor = "") {
     const texto = valor.trim();
 
@@ -11,6 +16,8 @@ export function normalizarObservacion(valor = "") {
     };
 }
 
+// Qué hace: Valida la observación y actualiza su contador
+// Buscar: validarObservacionesFormulario, contador
 export function validarObservacionesFormulario() {
     const campo = document.getElementById("observaciones");
     const contador = document.getElementById("observaciones-contador");
@@ -27,9 +34,13 @@ export function validarObservacionesFormulario() {
     return !invalido;
 }
 
+// Qué hace: Prepara el campo de observaciones
+// Buscar: inicializarObservaciones
 function inicializarObservaciones() {
     const campo = document.getElementById("observaciones");
 
+    // Qué hace: Valida mientras se escribe
+    // Buscar: input observaciones
     campo.addEventListener("input", validarObservacionesFormulario);
 
     campo.addEventListener("blur", () => {
@@ -38,6 +49,8 @@ function inicializarObservaciones() {
     });
 
     // La recuperación de borradores ya utiliza este evento.
+    // Qué hace: Actualiza el contador al recuperar un borrador
+    // Buscar: planilla:modificada
     document.addEventListener(
         "planilla:modificada",
         validarObservacionesFormulario
@@ -47,6 +60,8 @@ function inicializarObservaciones() {
 }
 
 if (document.readyState === "loading") {
+    // Qué hace: Recorta espacios al salir del campo
+    // Buscar: focusout, blur
     document.addEventListener(
         "DOMContentLoaded",
         inicializarObservaciones,

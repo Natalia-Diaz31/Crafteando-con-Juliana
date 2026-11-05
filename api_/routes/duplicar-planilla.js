@@ -1,3 +1,6 @@
+// ARCHIVO: Ruta que prepara una planilla nueva a partir de una anterior
+// Buscar: duplicar, HU-27
+
 "use strict";
 
 const express = require("express");
@@ -5,6 +8,8 @@ const express = require("express");
 const FORMATO_UUID =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Qué hace: Crea el router de duplicación
+// Buscar: crearRutasDuplicacion
 function crearRutasDuplicacion({
     servicio,
     supabase,
@@ -14,6 +19,8 @@ function crearRutasDuplicacion({
     const router = express.Router();
 
     // HU-27: preparar una nueva planilla a partir de una anterior.
+    // Qué hace: Comprueba si la planilla se puede duplicar y devuelve sus datos reutilizables
+    // Buscar: duplicar planilla, solo mensuales
     router.get("/:id/duplicar", verificarToken, verificarRolNomina, async (req, res) => {
         const id = String(req.params.id ?? "").trim();
 

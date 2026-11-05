@@ -1,3 +1,5 @@
+// ARCHIVO: Validación de horas ordinarias y extras
+// Buscar: horas, HU-13
 
 "use strict";
 
@@ -6,6 +8,8 @@
 
 let validarHorasInterno = null;
 
+// Qué hace: Indica si las horas son válidas
+// Buscar: validarHorasPlanilla
 export function validarHorasPlanilla() {
     if (!validarHorasInterno) {
         throw new Error(
@@ -16,12 +20,16 @@ export function validarHorasPlanilla() {
     return validarHorasInterno();
 }
 
+// Qué hace: Prepara los campos de horas cuando carga la página
+// Buscar: inicio horas
 document.addEventListener("DOMContentLoaded", () => {
     const identificadores = [
         "horas-ordinarias",
         "horas-extras"
     ];
 
+    // Qué hace: Conecta un campo de horas con su mensaje de error
+    // Buscar: prepararCampo
     function prepararCampo(id) {
         const input = document.getElementById(id);
 
@@ -47,6 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const campos = identificadores.map(prepararCampo);
 
+    // Qué hace: Devuelve el error de una cantidad de horas
+    // Buscar: mensajeValidacion
     function mensajeValidacion(valor) {
         const texto = valor.trim();
 
@@ -74,6 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return "";
     }
 
+    // Qué hace: Valida un campo y muestra su error
+    // Buscar: validarCampo
     function validarCampo({ input, error }) {
         const mensaje = mensajeValidacion(input.value);
 
@@ -98,6 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
+    // Qué hace: Valida todos los campos de horas
+    // Buscar: validarTodasLasHoras
     function validarTodasLasHoras() {
         let valido = true;
 

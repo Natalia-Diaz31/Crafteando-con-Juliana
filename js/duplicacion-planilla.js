@@ -1,7 +1,12 @@
+// ARCHIVO: Transforma una planilla anterior al formato del formulario
+// Buscar: preparar duplicación, HU-27
+
 import {
     normalizarIngresos
 } from "./ingresos-detalle.js";
 
+// Qué hace: Convierte la respuesta de duplicación en contenido para el formulario
+// Buscar: prepararDuplicacion
 export function prepararDuplicacion(datos, motor) {
     if (
         !datos?.empleado?.id ||

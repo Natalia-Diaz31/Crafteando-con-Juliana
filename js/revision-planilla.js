@@ -1,3 +1,6 @@
+// ARCHIVO: Revisión de la planilla: resumen, comparación y confirmación
+// Buscar: revisión, resumen, HU-07, HU-28, HU-35
+
 import { obtenerEstadoNovedades } from "./novedades.js";
 import { obtenerIngresos } from "./ingresos-detalle.js";
 import { obtenerAjusteSalario } from "./salario-ajuste.js";
@@ -39,6 +42,8 @@ const CONCEPTOS_COMPARACION = {
     totalPagar: "Total a pagar"
 };
 
+// Qué hace: Prepara la revisión cuando carga la página
+// Buscar: inicio revisión
 document.addEventListener("DOMContentLoaded", () => {
     const formulario = document.getElementById("form-planilla");
     const resumen = document.getElementById("resumen-planilla");
@@ -71,6 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const mensajeComparacion = document.getElementById("comparacion-mensaje");
     let versionComparacion = 0;
 
+    // Qué hace: Quita la tabla de comparación
+    // Buscar: retirarComparacion
     function retirarComparacion() {
         versionComparacion++;
         comparacion.hidden = true;
@@ -79,6 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
         mensajeComparacion.replaceChildren();
     }
 
+    // Qué hace: Consulta la planilla anterior y muestra las diferencias
+    // Buscar: compararConAnterior, comparación
     async function compararConAnterior(consulta, actuales) {
         const version = ++versionComparacion;
 
@@ -145,6 +154,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Qué hace: Oculta el resumen y desmarca la confirmación
+    // Buscar: ocultarResumen
     function ocultarResumen() {
         resumen.hidden = true;
         const casilla = document.getElementById("confirmacion-revisado");
@@ -154,10 +165,14 @@ document.addEventListener("DOMContentLoaded", () => {
         retirarComparacion();
     }
 
+    // Qué hace: Escribe un dato del resumen
+    // Buscar: mostrarDato
     function mostrarDato(id, valor) {
         document.getElementById(id).textContent = valor;
     }
 
+    // Qué hace: Muestra los errores encontrados al revisar
+    // Buscar: mostrarErroresRevision
     function mostrarErroresRevision(errores) {
         erroresRevision.replaceChildren();
 
@@ -185,6 +200,8 @@ document.addEventListener("DOMContentLoaded", () => {
         primerCampo?.focus();
     }
 
+    // Qué hace: Valida todo, calcula totales y muestra el resumen
+    // Buscar: revisar planilla, submit, resumen
     formulario.addEventListener("submit", (evento) => {
         evento.preventDefault();
         ocultarResumen();
@@ -418,6 +435,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Qué hace: Vuelve al formulario para editar los datos
+    // Buscar: editar-datos
     editar.addEventListener("click", () => {
         ocultarResumen();
 
@@ -431,32 +450,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Evita mostrar un resumen desactualizado al cambiar datos.
+    // Qué hace: Oculta el resumen cuando cambian los datos
+    // Buscar: resumen desactualizado
     formulario.addEventListener("input", ocultarResumen);
     formulario.addEventListener("change", ocultarResumen);
     document.addEventListener("empleado:actualizado", ocultarResumen);
     document.addEventListener("planilla:modificada", ocultarResumen);
 
-    // --- INICIO CÓDIGO DE VICTOR (HU-07) ---
-  
   const checkboxConfirmacion = document.getElementById("confirmacion-revisado");
   const botonGuardar = document.getElementById("btn-guardar-planilla");
 
-  // 1. Escuchar cuando marcan o desmarcan la casilla
+  // Escuchar cuando marcan o desmarcan la casilla.
   if (checkboxConfirmacion && botonGuardar) {
+    // Qué hace: Habilita «Guardar» solo con la casilla de confirmación marcada
+    // Buscar: confirmacion-revisado
     checkboxConfirmacion.addEventListener("change", function() {
       // Si está checkeado (true), disabled es false (se habilita).
       botonGuardar.disabled = !this.checked; 
     });
   }
-
-  // 2. Opcional (pero seguro): Reforzar que al presionar "Editar datos", 
-  // el botón se bloquee inmediatamente por si acaso la lógica actual no lo hace a tiempo
-  editar.addEventListener("click", () => {
-    if (botonGuardar) {
-      botonGuardar.disabled = true;
-    }
-  });
-  
-  // --- FIN CÓDIGO DE VICTOR ---
 
 });

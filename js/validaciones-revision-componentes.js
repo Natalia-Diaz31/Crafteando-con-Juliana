@@ -1,3 +1,5 @@
+// ARCHIVO: Validaciones de cada componente para la revisión
+// Buscar: validaciones componentes, HU-35
 
 "use strict";
 
@@ -24,18 +26,26 @@ import {
     esPlanillaPorDias
 } from "./salario-dias.js";
 
+// Qué hace: Valida que haya empleado seleccionado
+// Buscar: validarEmpleadoRevision
 export function validarEmpleadoRevision() {
     return validarEmpleadoSeleccionado();
 }
 
+// Qué hace: Valida los campos obligatorios
+// Buscar: validarObligatoriosRevision
 export function validarObligatoriosRevision() {
     return validarObligatoriosPlanilla();
 }
 
+// Qué hace: Valida las deducciones legales
+// Buscar: validarDeduccionesRevision
 export function validarDeduccionesRevision() {
     return validarDeduccionesLegales();
 }
 
+// Qué hace: Valida las horas
+// Buscar: validarHorasRevision
 export function validarHorasRevision() {
     // HU-19: las planillas por días no requieren validar horas.
     if (esPlanillaPorDias()) {

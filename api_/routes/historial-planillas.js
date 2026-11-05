@@ -1,9 +1,13 @@
+// ARCHIVO: Ruta del historial de planillas con filtro y paginación
+// Buscar: historial, consultar planillas, HU-25
 
 const express = require("express");
 
 const FORMATO_UUID =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Qué hace: Crea el router del historial
+// Buscar: crearRutasPlanillas
 function crearRutasPlanillas({
     servicio,
     verificarToken,
@@ -12,6 +16,8 @@ function crearRutasPlanillas({
 }) {
     const router = express.Router();
 
+    // Qué hace: Devuelve 10 planillas por página, opcionalmente de un empleado
+    // Buscar: listado, paginación, empleado_id
     router.get("/", verificarToken, verificarRolNomina, async (req, res) => {
         const empleadoId = String(req.query.empleado_id ?? "").trim();
         const paginaTexto = String(req.query.pagina ?? "1").trim();

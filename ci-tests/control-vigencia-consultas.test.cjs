@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas del control de vigencia de consultas
+// Buscar: pruebas vigencia, HU-36
 
 const test = require("node:test");
 const assert = require("node:assert/strict");

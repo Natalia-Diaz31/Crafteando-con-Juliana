@@ -1,11 +1,18 @@
+// ARCHIVO: Hojas de ingresos y descuentos manuales del Excel
+// Buscar: Excel, movimientos, HU-31
+
 "use strict";
 
 // HU-31: Preparar ingresos y descuentos manuales para Excel.
+// Qué hace: Prepara las filas de ingresos y descuentos manuales
+// Buscar: prepararMovimientosExcel
 function prepararMovimientosExcel(planilla, separarDescuentos) {
     if (!planilla || typeof separarDescuentos !== "function") {
         throw new TypeError("Datos de exportación inválidos");
     }
 
+    // Qué hace: Convierte un importe a número
+    // Buscar: importe
     const importe = valor => {
         const numero = Number(valor);
         if (valor == null || valor === "" || !Number.isFinite(numero)) {

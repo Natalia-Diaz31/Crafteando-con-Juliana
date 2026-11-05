@@ -1,5 +1,7 @@
 <!DOCTYPE html>
+<!-- ARCHIVO: Pantalla «Crear planilla»: búsqueda, formulario, borradores y resumen | Buscar: crear planilla, formulario, HU-04 a HU-36 -->
 <html lang="es">
+<!-- Qué hace: Título, estilos y protección de sesión y rol | Buscar: head, sesion.js, rol.js -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +16,7 @@
 
 <body>
     <div class="app">
+        <!-- Qué hace: Menú lateral con el logo, las opciones y el rol de la cuenta | Buscar: sidebar, menú -->
         <aside class="sidebar">
             <div class="sidebar-top">
                 <div class="brand">
@@ -25,6 +28,7 @@
                     </div>
                 </div>
 
+                <!-- Qué hace: Opciones de navegación entre pantallas | Buscar: menu, Inicio, Plantillas, Crear planilla, Consultar -->
                 <nav class="menu">
                     <a href="#" class="menu-item">
                         <i class="bi bi-house-door"></i>
@@ -48,6 +52,7 @@
                 </nav>
             </div>
 
+            <!-- Qué hace: Usuario y botón para cerrar sesión | Buscar: cerrar-sesion, sidebar-user -->
             <div class="sidebar-user">
                 <div class="user-info">
                     <div class="user-avatar">N</div>
@@ -65,7 +70,9 @@
             </div>
         </aside>
 
+        <!-- Qué hace: Contenido principal de la pantalla | Buscar: main-content -->
         <main class="main-content">
+            <!-- Qué hace: Encabezado con el título de la pantalla | Buscar: top-header -->
             <header class="top-header">
                 <div>
                     <h1>Crear planilla</h1>
@@ -73,6 +80,7 @@
                 </div>
             </header>
 
+            <!-- Qué hace: Sección de creación de planilla | Buscar: content, crear planilla -->
             <section class="content">
                 <div class="form-card">
 
@@ -154,6 +162,7 @@
                 </div>
 
                 <!-- HU-24 - Búsqueda de empleados con sugerencias y filtros -->
+                <!-- Qué hace: Búsqueda de empleados con filtros y lista | Buscar: buscar empleado, filtros, Ver primeros 10, HU-24 -->
                 <section class="mb-4" aria-labelledby="titulo-busqueda">
                     <h3 id="titulo-busqueda">
                         <i class="bi bi-search"></i>
@@ -235,6 +244,7 @@
                         class="table-responsive"
                         aria-label="Sugerencias de empleados">
 
+                        <!-- Qué hace: Tabla de resultados de la búsqueda | Buscar: resultados-empleados -->
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
@@ -251,6 +261,7 @@
                     </div>
                 </section>
 
+                <!-- Qué hace: Datos del empleado seleccionado | Buscar: empleado seleccionado, cambiar empleado, Ver historial -->
                 <section class="employee-section">
                     <div class="section-title">
                         <i class="bi bi-person"></i>
@@ -306,9 +317,11 @@
                     </a>
 
                 </section>
+                <!-- Qué hace: Formulario de la planilla (bloqueado hasta elegir empleado) | Buscar: form-planilla, datos-pago -->
                 <form id="form-planilla" novalidate>
                     <fieldset id="datos-pago" disabled>
                         <legend class="visually-hidden">Datos de pago</legend>
+                        <!-- Qué hace: Período: mes y año | Buscar: mes, anio, período -->
                         <div class="form-section">
                             <h3>Período de planilla</h3>
                             <div class="period-grid">
@@ -345,6 +358,7 @@
                         <input type="hidden" id="horas-ordinarias" value="0.00">
                         <input type="hidden" id="horas-extras" value="0.00">
 
+                        <!-- Qué hace: Montos: salario, días remunerados y bonos e incentivos | Buscar: salario, ajuste, días, ingresos, HU-19, HU-20, HU-21 -->
                         <div class="form-section">
                             <h3>Montos</h3>
                             <div class="money-field">
@@ -481,6 +495,7 @@
                                 </p>
 
                                 <div class="table-responsive mt-3">
+                                    <!-- Qué hace: Tabla de bonos e incentivos agregados | Buscar: detalle-ingresos -->
                                     <table class="table table-striped align-middle">
                                         <thead>
                                             <tr>
@@ -509,6 +524,7 @@
                                 </span>
 
                             </div>
+                            <!-- Qué hace: Frecuencia de pago, deducciones legales y descuentos manuales | Buscar: periodo-pago, ISSS, AFP, Renta, descuentos, HU-12, HU-14 -->
                             <section class="descuentos-card" aria-labelledby="titulo-legales">
                                 <h3 id="titulo-legales">Deducciones legales</h3>
                                 <label for="periodo-pago" class="form-label">Frecuencia de pago y tabla de renta</label>
@@ -569,6 +585,7 @@
                                 </div>
 
                                 <div class="table-responsive mt-3">
+                                    <!-- Qué hace: Tabla de descuentos manuales | Buscar: detalle-descuentos -->
                                     <table class="table table-striped align-middle">
                                         <thead>
                                             <tr>
@@ -598,6 +615,7 @@
                             </div>
                         </div>
                         <!-- HU-22 - Importación de bonos, incentivos y descuentos desde CSV -->
+                        <!-- Qué hace: Importación de bonos, incentivos y descuentos desde CSV | Buscar: importación, csv, HU-22 -->
                         <div class="form-section" aria-labelledby="titulo-importacion-csv">
                             <h3 id="titulo-importacion-csv">Importar conceptos desde CSV</h3>
 
@@ -694,6 +712,7 @@
                             </div>
                         </div>
                         <!-- HU-18 - Novedades del empleado -->
+                        <!-- Qué hace: Novedades: incapacidades, permisos y ausencias | Buscar: novedades, HU-18 -->
                         <div class="form-section">
                             <h3>Novedades del empleado</h3>
 
@@ -750,6 +769,7 @@
                             </button>
 
                             <div class="table-responsive mt-3">
+                                <!-- Qué hace: Tabla de novedades agregadas | Buscar: detalle-novedades -->
                                 <table class="table table-striped align-middle">
                                     <thead>
                                         <tr>
@@ -772,6 +792,7 @@
                             </p>
                         </div>
 
+                        <!-- Qué hace: Observaciones, total calculado y botón Revisar | Buscar: observaciones, total-calculado, revisar-planilla, HU-29 -->
                         <div class="form-section">
                             <h3>Observaciones</h3>
 
@@ -827,6 +848,7 @@
                 </form>
 
                                 <!-- HU-23 - Guardado y recuperación de borradores -->
+                <!-- Qué hace: Borradores: guardar y continuar planillas incompletas | Buscar: borradores, guardar-borrador, HU-23 -->
                 <section class="form-section" aria-labelledby="titulo-borradores">
                     <h3 id="titulo-borradores">
                         <i class="bi bi-file-earmark-text"></i>
@@ -879,6 +901,7 @@
                     </div>
                 </section>
 
+                <!-- Qué hace: Resumen para revisar la planilla antes de guardar | Buscar: resumen-planilla, revisión, HU-07 -->
                 <section id="resumen-planilla"
                         class="revision-card"
                         aria-labelledby="titulo-resumen"
@@ -894,6 +917,7 @@
                         <i class="bi bi-clipboard-check revision-icon"></i>
                     </div>
 
+                    <!-- Qué hace: Resumen: plantilla, período y empleados incluidos | Buscar: resumen-plantilla, resumen-periodo -->
                     <div class="revision-section">
                         <h3>
                             <i class="bi bi-file-earmark-text"></i>
@@ -918,6 +942,7 @@
                         </div>
                     </div>
 
+                    <!-- Qué hace: Resumen: datos del empleado y contrato | Buscar: resumen-empleado, resumen-contrato -->
                     <div class="revision-section">
                         <h3>
                             <i class="bi bi-person"></i>
@@ -952,6 +977,7 @@
                         </div>
                     </div>
 
+                    <!-- Qué hace: Resumen: horas (oculto, solo planillas antiguas) | Buscar: horas, resumen-horas -->
                     <div class="revision-section" hidden aria-hidden="true">
                         <h3>
                             <i class="bi bi-clock"></i>
@@ -971,6 +997,7 @@
                         </div>
                     </div>
 
+                    <!-- Qué hace: Resumen: montos, total y comparación con la planilla anterior | Buscar: resumen-total, comparación, HU-28 -->
                     <div class="revision-section">
                         <h3>
                             <i class="bi bi-cash-stack"></i>
@@ -1044,6 +1071,7 @@
                         </p>
                     </div>
                     
+                    <!-- Qué hace: Resumen: descuentos autorizados | Buscar: resumen-manuales -->
                     <div class="revision-section">
                         <h3>
                             <i class="bi bi-list-ul"></i>
@@ -1052,6 +1080,7 @@
                         <div id="resumen-manuales" class="table-responsive"></div>
                     </div>
 
+                    <!-- Qué hace: Resumen: deducciones legales | Buscar: resumen-legales -->
                     <div class="revision-section">
                         <h3>
                             <i class="bi bi-bank"></i>
@@ -1063,6 +1092,7 @@
                         </p>
                     </div>
                     
+                    <!-- Qué hace: Resumen: observaciones | Buscar: resumen-observaciones -->
                     <div class="revision-section">
                         <h3>
                             <i class="bi bi-chat-left-text"></i>
@@ -1084,6 +1114,7 @@
                             Editar datos
                         </button>
 
+                        <!-- Qué hace: Confirmación y botón Guardar planilla | Buscar: confirmacion-revisado, btn-guardar-planilla, mensaje-guardado -->
                         <div id="acciones-confirmacion" class="d-flex flex-column align-items-end">
                             <!-- Victor agregará la casilla y el botón de guardado. -->
                             <div class="form-check mb-2">
@@ -1111,6 +1142,7 @@
     </div>
 
 
+    <!-- Qué hace: Scripts de la pantalla (orden importante) | Buscar: scripts, módulos -->
     <script src="js/config.js"></script>
     <script src="js/planilla.js"></script>
     <script src="js/busqueda-validacion.js"></script>

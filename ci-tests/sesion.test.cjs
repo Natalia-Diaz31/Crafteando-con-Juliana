@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas del manejo de 401, 403 y errores del servidor
+// Buscar: pruebas sesión, HU-32
+
 "use strict";
 
 const { test } = require("node:test");
@@ -9,6 +12,8 @@ const vm = require("node:vm");
 const ruta = path.join(__dirname, "../js/sesion.js");
 const codigo = fs.readFileSync(ruta, "utf8");
 
+// Qué hace: Carga sesion.js con sesión y redirección simuladas
+// Buscar: crearEntorno
 function crearEntorno() {
     const sesion = { token: "token-prueba" };
     const redirecciones = [];

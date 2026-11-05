@@ -1,6 +1,8 @@
+<!-- ARCHIVO: Pantalla «Detalle de planilla»: datos guardados, duplicar y exportar | Buscar: detalle planilla, HU-08, HU-27, HU-30, HU-31 -->
 
 <!DOCTYPE html>
 <html lang="es">
+<!-- Qué hace: Título, estilos y protección de sesión y rol | Buscar: head, sesion.js -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +18,7 @@
 </head>
 <body>
     <div class="app">
+        <!-- Qué hace: Menú lateral con el logo, las opciones y el rol de la cuenta | Buscar: sidebar, menú -->
         <aside class="sidebar">
             <div >
                 <div class="brand">
@@ -26,6 +29,7 @@
                     </div>
                 </div>
 
+                <!-- Qué hace: Opciones de navegación entre pantallas | Buscar: menu, Inicio, Plantillas, Crear planilla, Consultar -->
                 <nav class="menu">
 
                     <a href="#" class="menu-item">
@@ -50,6 +54,7 @@
                 </nav>
             </div>
 
+             <!-- Qué hace: Usuario y botón para cerrar sesión | Buscar: cerrar-sesion, sidebar-user -->
              <div class="sidebar-user">
                 <div class="user-info">
                     <div class="user-avatar">N</div>
@@ -67,7 +72,9 @@
             </div>
         </aside>
 
+        <!-- Qué hace: Contenido principal de la pantalla | Buscar: main-content -->
         <main class="main-content">
+            <!-- Qué hace: Encabezado con el título de la pantalla | Buscar: top-header -->
             <header class="top-header">
                 <div>
                     <h1>Detalle de planilla</h1>
@@ -75,6 +82,7 @@
                 </div>
             </header>
 
+            <!-- Qué hace: Botones Volver, Duplicar, PDF y Excel y mensajes | Buscar: volver, duplicar, descargar PDF, descargar Excel -->
             <section class="content">
                 <div class="form-card consulta-card">
                     <a href="consultar-planillas.html"
@@ -142,6 +150,7 @@
                         Cargando detalle...
                     </p>
 
+                    <!-- Qué hace: Datos de la planilla (se muestra al cargar) | Buscar: contenido-detalle, empleado, montos -->
                     <div id="contenido-detalle" hidden>
                         <div class="detalle-bloque">
                             <h3 class="consulta-seccion">
@@ -235,6 +244,7 @@
                         </div>
 
                         <!-- HU-18, HU-20 y HU-21: se muestra solo cuando la API envía esos datos -->
+                        <!-- Qué hace: Bloques de novedades, bonos y ajuste salarial | Buscar: detalle-complementos -->
                         <div id="detalle-complementos" class="detalle-bloque table-responsive"
                              data-clase-titulo="consulta-seccion" hidden></div>
 
@@ -243,6 +253,7 @@
                                 <i class="bi bi-list-ul"></i>
                                 Descuentos autorizados
                             </h3>
+                            <!-- Qué hace: Tabla de descuentos autorizados | Buscar: detalle-descuentos-autorizados -->
                             <div id="detalle-descuentos-autorizados" class="table-responsive"></div>
                         </div>
 
@@ -251,6 +262,7 @@
                                 <i class="bi bi-bank"></i>
                                 Deducciones legales aplicadas
                             </h3>
+                            <!-- Qué hace: Tabla de deducciones legales guardadas | Buscar: historico-deducciones -->
                             <div id="historico-deducciones" class="table-responsive"></div>
                         </div>
 
@@ -270,6 +282,7 @@
         </main>
     </div>
 
+    <!-- Qué hace: Scripts de la pantalla (incluye jsPDF) | Buscar: scripts, detalle-planilla.js, jsPDF -->
     <script src="js/config.js"></script>
     <script type="module" src="js/deducciones-legales.js"></script>
     <script src="js/desglose-planilla.js"></script>

@@ -1,3 +1,5 @@
+// ARCHIVO: Validación de campos obligatorios de la planilla
+// Buscar: obligatorios, mes, año, HU-35
 
 "use strict";
 
@@ -6,6 +8,8 @@
 
 let validarObligatoriosInterno = null;
 
+// Qué hace: Valida los campos obligatorios (interfaz para la revisión)
+// Buscar: validarObligatoriosPlanilla
 export function validarObligatoriosPlanilla() {
     if (!validarObligatoriosInterno) {
         throw new Error(
@@ -16,7 +20,11 @@ export function validarObligatoriosPlanilla() {
     return validarObligatoriosInterno();
 }
 
+// Qué hace: Prepara la validación cuando carga la página
+// Buscar: inicio obligatorios
 document.addEventListener("DOMContentLoaded", () => {
+    // Qué hace: Muestra u oculta el error de un campo
+    // Buscar: marcarCampo
     function marcarCampo(id, mensaje) {
         const campo = document.getElementById(id);
         const error = document.getElementById(`${id}-error`);
@@ -29,6 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
         error.classList.toggle("d-block", mensaje !== "");
     }
 
+    // Qué hace: Revisa que mes, año, salario, ingresos y descuentos tengan valor
+    // Buscar: validarCamposObligatorios
     function validarCamposObligatorios() {
         let valido = true;
 

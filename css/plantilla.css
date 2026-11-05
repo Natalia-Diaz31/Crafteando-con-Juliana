@@ -1,3 +1,6 @@
+/* ARCHIVO: Estilos de la pantalla «Plantillas» y del menú lateral | Buscar: estilos plantilla, sidebar, vista previa */
+
+/* Qué hace: Tamaño de cajas, fuente y fondo de toda la página | Buscar: general, body */
 * {
     box-sizing: border-box;
 }
@@ -9,6 +12,7 @@ body {
     color: #172033;
 }
 
+/* Qué hace: Contenedor de la página y barra lateral | Buscar: layout, sidebar, logo */
 /* Contenedor principal que contiene la barra lateral y el contenido de la página */
 .app {
     min-height: 100vh;
@@ -53,6 +57,7 @@ body {
     font-size: 8px;
     font-weight: bold;
 }
+/* Qué hace: Opciones del menú lateral | Buscar: menú, menu-item, activo */
 /* Organizamos las opciones una debajo de otra */
 .menu {
     display: flex;
@@ -97,6 +102,7 @@ body {
     margin-bottom: 14px;
 }
 
+/* Qué hace: Usuario y botón de cerrar sesión | Buscar: user-avatar, logout-button */
 .user-avatar {
     width: 34px;
     height: 34px;
@@ -144,6 +150,7 @@ body {
     color: white;
 }
 
+/* Qué hace: Contenido principal y encabezado superior | Buscar: main-content, top-header */
 /* Hace que el contenido ocupe el espacio restante */
 .main-content {
     flex: 1;
@@ -171,6 +178,7 @@ body {
     color: #657187;
     font-size: 11px;
 }
+/* Qué hace: Tarjeta de vista previa de la plantilla | Buscar: plantilla-card, vista previa */
 /* Tarjeta que contiene la vista previa */
 .plantilla-card {
     width: calc(100% - 48px);
@@ -228,6 +236,7 @@ body {
     font-weight: 500;
 }
 
+/* Qué hace: Tabla de vista previa con desplazamiento horizontal | Buscar: tabla planilla, columnas */
 /* Permite desplazar horizontalmente la tabla cuando la pantalla es pequeña */
 .tabla-container {
     width: 100%;
@@ -355,6 +364,7 @@ body {
     color: #2864dc;
     font-weight: 600;
 }
+/* Qué hace: Mensaje informativo y botón «Usar plantilla» | Buscar: usar-plantilla, botón */
 /* Sección inferior de la vista previa */
 .plantilla-footer {
     margin-top: 20px;
@@ -393,6 +403,7 @@ body {
 .plantilla-footer button i {
     margin-left: 5px;
 }
+/* Qué hace: Ajustes para pantallas pequeñas | Buscar: responsive, celular, media */
 /* Cuando la pantalla es más pequeña, compactamos la barra lateral */
 @media (max-width: 780px) {
     .sidebar {

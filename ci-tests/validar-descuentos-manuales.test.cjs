@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas de la validación de descuentos manuales en la API
+// Buscar: pruebas descuentos, HU-33
+
 "use strict";
 
 const { test } = require("node:test");

@@ -1,18 +1,29 @@
+# ARCHIVO: Integración continua: revisa la sintaxis y corre las pruebas en cada push
+# Buscar: CI, pipeline, pruebas, GitHub Actions
+
 name: CI - API de planillas
 
+# Qué hace: Se ejecuta en cada push, pull request o a mano
+# Buscar: on, push, pull_request
 on:
   push:
   pull_request:
   workflow_dispatch:
 
+# Qué hace: Solo necesita leer el repositorio
+# Buscar: permisos
 permissions:
   contents: read
 
+# Qué hace: Cancela corridas viejas de la misma rama
+# Buscar: concurrency
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Qué hace: Trabajo que valida la API
+  # Buscar: validar-api, job
   validar-api:
     name: Validar API y ejecutar pruebas
     runs-on: ubuntu-latest
@@ -22,9 +33,13 @@ jobs:
         working-directory: api_
 
     steps:
+      # Qué hace: Descarga el código del commit
+      # Buscar: checkout
       - name: Obtener repositorio
         uses: actions/checkout@v4
 
+      # Qué hace: Instala Node.js 24 con caché de npm
+      # Buscar: setup-node
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
@@ -32,12 +47,18 @@ jobs:
           cache: npm
           cache-dependency-path: api_/package-lock.json
 
+      # Qué hace: Instala las dependencias desde cero
+      # Buscar: npm ci
       - name: Instalar dependencias
         run: npm ci
 
+      # Qué hace: Revisa la sintaxis de la API y de las pruebas
+      # Buscar: node --check, sintaxis
       - name: Validar sintaxis de la API y las pruebas
         run: |
           find . ../ci-tests -type f \( -name '*.js' -o -name '*.cjs' \) -not -path './node_modules/*' -print0 | xargs -0 -r -n1 node --check
 
+      # Qué hace: Corre todas las pruebas de ci-tests
+      # Buscar: node --test, pruebas
       - name: Ejecutar pruebas obligatorias
         run: node --test --test-reporter=spec ../ci-tests/*.test.cjs

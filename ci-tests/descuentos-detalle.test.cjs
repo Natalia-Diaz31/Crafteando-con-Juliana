@@ -1,9 +1,13 @@
+// ARCHIVO: Pruebas del detalle de descuentos manuales
+// Buscar: pruebas descuentos, HU-12, HU-34
 
 "use strict";
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
+// Qué hace: Crea un elemento HTML falso
+// Buscar: crearElemento
 function crearElemento(id = "") {
     const eventos = {};
 

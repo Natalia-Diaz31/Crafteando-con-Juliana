@@ -1,5 +1,10 @@
+// ARCHIVO: Interfaz de resultados, sugerencias y filtros de empleados
+// Buscar: resultados empleados, sugerencias, HU-24
+
 // HU-24 - Interfaz de búsqueda, filtros y selección de empleados.
 
+// Qué hace: Prepara la vista de búsqueda cuando carga la página
+// Buscar: búsqueda vista, inicio
 document.addEventListener("DOMContentLoaded", () => {
     const campoBusqueda =
         document.getElementById("buscar-empleado");
@@ -19,12 +24,16 @@ document.addEventListener("DOMContentLoaded", () => {
     let empleadosMostrados = [];
     let indiceActivo = -1;
 
+    // Qué hace: Crea una celda de texto para la tabla de resultados
+    // Buscar: crearCelda
     function crearCelda(valor) {
         const celda = document.createElement("td");
         celda.textContent = valor || "—";
         return celda;
     }
 
+    // Qué hace: Obtiene el nombre de departamento o sucursal
+    // Buscar: obtenerNombreRelacion
     function obtenerNombreRelacion(relacion) {
         if (!relacion) {
             return "—";
@@ -37,6 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return relacion.nombre || "—";
     }
 
+    // Qué hace: Marca visualmente la fila activa
+    // Buscar: fila activa, teclado
     function actualizarSeleccionVisual() {
         const filas =
             cuerpoResultados.querySelectorAll("tr[data-indice]");
@@ -52,6 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Qué hace: Selecciona el empleado de una fila
+    // Buscar: seleccionarEmpleado
     function seleccionarEmpleado(indice) {
         const empleado = empleadosMostrados[indice];
 
@@ -66,6 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    // Qué hace: Oculta la lista de sugerencias
+    // Buscar: cerrarSugerencias
     function cerrarSugerencias() {
         cuerpoResultados.replaceChildren();
         empleadosMostrados = [];
@@ -73,6 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Victor llama esta función con los empleados recibidos de la API.
+    // Qué hace: Dibuja los empleados encontrados en la tabla
+    // Buscar: mostrarResultadosEmpleados
     window.mostrarResultadosEmpleados = function (empleados) {
         cuerpoResultados.replaceChildren();
 
@@ -181,6 +198,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Qué hace: Carga las opciones de departamentos o sucursales
+    // Buscar: cargarCatalogo, filtros
     async function cargarCatalogo(ruta, propiedad, select) {
         try {
             const respuesta = await fetch(
@@ -234,6 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
         filtroSucursal
     );
 
+    // Qué hace: Limpia los resultados cuando se pide limpiar el empleado
+    // Buscar: empleado:limpiar
     document.addEventListener(
         "empleado:seleccionar",
         cerrarSugerencias

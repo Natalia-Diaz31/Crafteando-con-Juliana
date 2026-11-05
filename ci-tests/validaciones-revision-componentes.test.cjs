@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas de las validaciones de componentes de la revisión
+// Buscar: pruebas revisión, HU-35
 
 "use strict";
 
@@ -9,6 +11,8 @@ const vm = require("node:vm");
 
 const carpetaJS = path.join(__dirname, "../js");
 
+// Qué hace: Lee un archivo del navegador
+// Buscar: leerArchivo
 function leerArchivo(nombre) {
     return fs.readFileSync(
         path.join(carpetaJS, nombre),
@@ -16,6 +20,8 @@ function leerArchivo(nombre) {
     );
 }
 
+// Qué hace: Ejecuta un módulo del navegador en un contexto aislado
+// Buscar: cargarModulo
 function cargarModulo(nombre, contexto) {
     const codigo = leerArchivo(nombre)
         .replace(
@@ -28,6 +34,8 @@ function cargarModulo(nombre, contexto) {
     vm.runInContext(codigo, contexto);
 }
 
+// Qué hace: Prepara un formulario falso
+// Buscar: prepararEntorno
 function prepararEntorno(opciones = {}) {
     const eventos = {};
     const elementos = {};

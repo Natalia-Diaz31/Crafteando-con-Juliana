@@ -1,5 +1,10 @@
+# ARCHIVO: Despliegue continuo de la API: prueba, construye y publica en Vercel
+# Buscar: despliegue, Vercel, producción, CD
+
 name: API - Preparar despliegue Vercel
 
+# Qué hace: Se ejecuta a mano o al subir cambios de la API o las pruebas a main
+# Buscar: on, push, paths
 on:
   workflow_dispatch:
   push:
@@ -10,10 +15,14 @@ on:
       - "ci-tests/**"
       - ".github/workflows/vercel-api.yml"
 
+# Qué hace: Solo necesita leer el repositorio
+# Buscar: permisos
 permissions:
   contents: read
 
 jobs:
+  # Qué hace: Trabajo que prueba y publica la API
+  # Buscar: preparar-api, job
   preparar-api:
     name: Probar y construir API
     if: github.ref == 'refs/heads/main'
@@ -30,9 +39,13 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
+      # Qué hace: Descarga el código del commit
+      # Buscar: checkout
       - name: Obtener codigo de GitHub
         uses: actions/checkout@v4
 
+      # Qué hace: Instala Node.js
+      # Buscar: setup-node
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
@@ -40,25 +53,39 @@ jobs:
           cache: npm
           cache-dependency-path: api_/package-lock.json
 
+      # Qué hace: Instala las dependencias desde cero
+      # Buscar: npm ci
       - name: Instalar dependencias
         run: npm ci
 
+      # Qué hace: Revisa la sintaxis de server.js
+      # Buscar: node --check
       - name: Verificar sintaxis del servidor
         run: node --check server.js
 
+      # Qué hace: Corre todas las pruebas; si fallan, no se publica
+      # Buscar: pruebas, node --test
       - name: Ejecutar pruebas existentes
         run: node --test --test-reporter=spec ../ci-tests/*.test.cjs
 
+      # Qué hace: Instala la herramienta de Vercel
+      # Buscar: vercel cli
       - name: Instalar Vercel CLI
         run: npm install --global vercel@latest
 
+      # Qué hace: Descarga la configuración del proyecto de Vercel
+      # Buscar: vercel pull
       - name: Obtener configuracion de Vercel
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
+      # Qué hace: Construye la API como en producción
+      # Buscar: vercel build
       - name: Comprobar construccion de la API
         run: vercel build --prod --token="$VERCEL_TOKEN"
 
    
+      # Qué hace: Publica la API en producción
+      # Buscar: vercel deploy --prod, publicar
       - name: Publicar API en producción
         id: despliegue
         run: |
@@ -66,6 +93,8 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
      
+      # Qué hace: Comprueba que la API publicada responde en /health
+      # Buscar: health, verificación
       - name: Probar API protegida
         run: |
           vercel curl /health --deployment "${{ steps.despliegue.outputs.url }}" --fail-with-body

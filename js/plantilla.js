@@ -1,3 +1,8 @@
+// ARCHIVO: Pantalla «Plantillas»: vista previa y selección de la plantilla
+// Buscar: plantilla, HU-03
+
+// Qué hace: Consulta la plantilla en la API y muestra su vista previa
+// Buscar: GET plantillas, vista previa
 document.addEventListener("DOMContentLoaded", async () => {
     const radio = document.getElementById("plantilla-basica");
     const boton = document.getElementById("usar-plantilla");
@@ -56,11 +61,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Limpiar el error cuando se selecciona la plantilla
+    // Qué hace: Quita el error al elegir la plantilla
+    // Buscar: radio plantilla
     radio.addEventListener("change", () => {
         mensaje.textContent = "";
     });
 
     // Validar la selección al presionar el botón
+    // Qué hace: Guarda la plantilla elegida y abre la planilla
+    // Buscar: usar-plantilla, plantillaSeleccionada
     boton.addEventListener("click", () => {
         if (!radio.checked) {
             mensaje.textContent = "Seleccione una plantilla para continuar";
@@ -91,6 +100,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // HU-03
+// Qué hace: Lleva a la pantalla de planilla
+// Buscar: plantilla:seleccionada
 document.addEventListener("plantilla:seleccionada", () => {
     // Redirigir a la pantalla de creación de planilla
     window.location.href = "planilla.html";

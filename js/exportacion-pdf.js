@@ -1,3 +1,6 @@
+// ARCHIVO: Genera el documento PDF de la planilla
+// Buscar: PDF, jsPDF, HU-30
+
 // HU-31: el Excel reutiliza estos importes y etiquetas para mostrar los mismos títulos que el PDF.
 export const IMPORTES = new Set([
     "salario_base",
@@ -42,11 +45,15 @@ const ETIQUETAS = {
     total_pagar: "Total a pagar"
 };
 
+// Qué hace: Devuelve la etiqueta visible de un campo
+// Buscar: etiqueta
 export function etiqueta(campo) {
     return ETIQUETAS[campo]
         ?? campo.replaceAll("_", " ");
 }
 
+// Qué hace: Crea el PDF con datos generales y tablas
+// Buscar: generarPDFPlanilla
 export function generarPDFPlanilla(
     generales,
     movimientos,
@@ -97,6 +104,8 @@ export function generarPDFPlanilla(
 
     let y = 38;
 
+    // Qué hace: Agrega una tabla al PDF con encabezados repetidos
+    // Buscar: agregarTabla, autoTable
     function agregarTabla(
         titulo,
         encabezados,

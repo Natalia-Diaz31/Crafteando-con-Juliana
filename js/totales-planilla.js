@@ -1,5 +1,10 @@
+// ARCHIVO: Cálculo compartido de totales de la planilla
+// Buscar: totales, total a pagar, HU-34
+
 const MAXIMO_CENTAVOS = 999999999999;
 
+// Qué hace: Calcula total de ingresos, descuentos y total a pagar en centavos
+// Buscar: calcularTotales
 export function calcularTotales({
     salario,
     ingresosAdicionales,

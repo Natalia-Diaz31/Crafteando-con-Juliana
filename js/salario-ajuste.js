@@ -1,8 +1,15 @@
+// ARCHIVO: Salario registrado del empleado y ajuste con motivo
+// Buscar: ajuste salarial, motivo, HU-21
+
 let salarioOriginal = null;
 let controles = null;
 
+// Qué hace: Devuelve el motor de reglas de nómina
+// Buscar: motor
 const motor = () => globalThis.ReglasNomina;
 
+// Qué hace: Valida el salario y exige motivo si difiere del registrado
+// Buscar: validarAjuste
 export function validarAjuste(datos, obligatorio = true) {
     const sinOriginal =
         datos.original === null ||
@@ -65,6 +72,8 @@ export function validarAjuste(datos, obligatorio = true) {
     };
 }
 
+// Qué hace: Devuelve el salario original y el motivo del ajuste
+// Buscar: obtenerAjusteSalario
 export function obtenerAjusteSalario(obligatorio = true) {
     if (!controles) return null;
 
@@ -75,6 +84,8 @@ export function obtenerAjusteSalario(obligatorio = true) {
     }, obligatorio);
 }
 
+// Qué hace: Valida el ajuste y muestra su error
+// Buscar: validarAjusteFormulario
 export function validarAjusteFormulario() {
     if (!controles) return true;
 
@@ -88,6 +99,8 @@ export function validarAjusteFormulario() {
     }
 }
 
+// Qué hace: Restaura salario y motivo guardados (borrador)
+// Buscar: restaurarAjusteSalario
 export function restaurarAjusteSalario(datos) {
     if (!controles) {
         if (datos.motivo_ajuste) {
@@ -107,6 +120,8 @@ export function restaurarAjusteSalario(datos) {
     );
 }
 
+// Qué hace: Muestra si el salario es el registrado o un ajuste
+// Buscar: actualizarMensaje, salario-origen
 function actualizarMensaje() {
     try {
         const resultado = obtenerAjusteSalario(false);
@@ -129,6 +144,8 @@ function actualizarMensaje() {
     }
 }
 
+// Qué hace: Carga el salario registrado del empleado
+// Buscar: cargarSalarioEmpleado
 function cargarSalarioEmpleado() {
     let empleado = null;
 
@@ -168,7 +185,11 @@ function cargarSalarioEmpleado() {
     );
 }
 
+// Qué hace: Prepara la sección de salario
+// Buscar: iniciarAjuste
 function iniciarAjuste() {
+    // Qué hace: Busca un elemento por id
+    // Buscar: buscar
     const buscar = id => document.getElementById(id);
 
     if (!buscar("salario-motivo")) return;
@@ -193,12 +214,16 @@ function iniciarAjuste() {
         actualizarMensaje
     );
 
+    // Qué hace: Valida el motivo mientras se escribe
+    // Buscar: salario-motivo
     controles.motivo.addEventListener("input", () => {
         document.dispatchEvent(
             new CustomEvent("planilla:modificada")
         );
     });
 
+    // Qué hace: Vuelve al salario registrado
+    // Buscar: restaurar-salario
     controles.restaurar.addEventListener("click", () => {
         controles.salario.value =
             salarioOriginal === null
@@ -220,6 +245,8 @@ function iniciarAjuste() {
         );
     });
 
+    // Qué hace: Carga el salario al cambiar de empleado
+    // Buscar: empleado:actualizado
     document.addEventListener(
         "empleado:actualizado",
         cargarSalarioEmpleado
@@ -228,4 +255,6 @@ function iniciarAjuste() {
     cargarSalarioEmpleado();
 }
 
+// Qué hace: Inicia la sección cuando carga la página
+// Buscar: DOMContentLoaded
 document.addEventListener("DOMContentLoaded", iniciarAjuste);

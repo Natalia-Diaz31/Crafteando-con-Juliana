@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas de las hojas de ingresos y descuentos del Excel
+// Buscar: pruebas Excel, HU-31
+
 "use strict";
 
 const { test } = require("node:test");

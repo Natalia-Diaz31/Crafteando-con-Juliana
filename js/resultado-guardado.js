@@ -1,6 +1,11 @@
+// ARCHIVO: Comprobación de la respuesta de guardado
+// Buscar: resultado guardado, HU-32
+
 const FORMATO_UUID =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Qué hace: Exige ok: true y un id UUID antes de confirmar el guardado
+// Buscar: validarResultadoGuardado
 export function validarResultadoGuardado(resultado) {
     if (
         !resultado ||

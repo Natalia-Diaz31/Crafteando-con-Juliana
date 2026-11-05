@@ -1,3 +1,8 @@
+-- ARCHIVO: Primera versión de la función de guardado de planillas (histórica)
+-- Buscar: guardar_planilla_con_descuentos, guardado, SQL
+
+-- Qué hace: Función que guarda la planilla y sus descuentos en una sola transacción
+-- Buscar: guardar_planilla_con_descuentos
 CREATE OR REPLACE FUNCTION public.guardar_planilla_con_descuentos(
     p_registro jsonb,
     p_descuentos jsonb
@@ -162,6 +167,8 @@ ELSE
 END IF;
 
     -- Guardar la planilla.
+    -- Qué hace: Inserta la fila de la planilla
+    -- Buscar: INSERT planillas
     INSERT INTO public.planillas (
         plantilla_id,
         empleado_id,
@@ -216,6 +223,8 @@ END IF;
         SELECT value
         FROM jsonb_array_elements(p_descuentos)
     LOOP
+        -- Qué hace: Inserta cada descuento de la planilla
+        -- Buscar: INSERT planilla_descuentos
         INSERT INTO public.planilla_descuentos (
             planilla_id,
             concepto,

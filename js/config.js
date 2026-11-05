@@ -1,3 +1,6 @@
+// ARCHIVO: Dirección de la API según el ambiente (local o Vercel)
+// Buscar: API_URL, configuración
+
 // js/config.js
 // En local usamos la API de nuestra máquina (lee api_/.env); en línea, la API de Vercel
 const esLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);

@@ -1,3 +1,6 @@
+/* ARCHIVO: Estilos de la pantalla de inicio de sesión | Buscar: estilos login, index */
+
+/* Qué hace: Tamaño de cajas y configuración general | Buscar: general, body */
 /*Tamaño de los elementos incluyendo padding y borde*/
 * {
     box-sizing: border-box;
@@ -9,6 +12,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Qué hace: Contenedor y tarjeta del inicio de sesión | Buscar: login-page, login-card, logo */
 .login-page {
     min-height: 100vh;
     background: linear-gradient(115deg, #10224e, #071027);
@@ -62,6 +66,7 @@ body {
 }
 
 
+/* Qué hace: Etiquetas y campos del formulario | Buscar: form-label, form-control */
 .form-label {
     font-size: 11px;
     color: #334155;
@@ -88,6 +93,7 @@ body {
     box-shadow: 0 0 0 2px rgba(40, 100, 220, 0.12);
 }
 
+/* Qué hace: Mensajes de error de los campos | Buscar: error-message */
 .error-message {
     min-height: 0;
 
@@ -99,6 +105,7 @@ body {
 }
 
 
+/* Qué hace: Mensaje de seguridad | Buscar: security-message */
 .security-message {
     display: flex;
 
@@ -127,6 +134,7 @@ body {
 }
 
 
+/* Qué hace: Botón «Iniciar sesión» | Buscar: login-button */
 .login-button {
     height: 38px;
 
@@ -146,6 +154,7 @@ body {
 }
 
 
+/* Qué hace: Texto de soporte y pie de página | Buscar: support-text, copyright */
 .support-text {
     text-align: center;
 
@@ -172,6 +181,7 @@ body {
 }
 
 
+/* Qué hace: Ajustes para pantallas pequeñas | Buscar: responsive, media */
 @media (max-width: 576px) {
 
     .login-page {

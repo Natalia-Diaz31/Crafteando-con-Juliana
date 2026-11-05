@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas del servicio de búsqueda de empleados
+// Buscar: pruebas empleados, búsqueda, HU-24
 
 'use strict';
 
@@ -43,6 +45,8 @@ const SUCURSALES = [
     { id: EMPLEADOS[1].sucursal_id, nombre: 'Sucursal Norte' }
 ];
 
+// Qué hace: Crea un Supabase falso con empleados de prueba
+// Buscar: crearSupabaseFalso
 function crearSupabaseFalso(datos = EMPLEADOS) {
     return {
         from(tabla) {
@@ -111,6 +115,8 @@ function crearSupabaseFalso(datos = EMPLEADOS) {
     };
 }
 
+// Qué hace: Crea el servicio con el Supabase falso
+// Buscar: crearServicio
 function crearServicio(datos = EMPLEADOS) {
     return crearServicioEmpleados(crearSupabaseFalso(datos));
 }

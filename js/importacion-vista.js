@@ -1,3 +1,6 @@
+// ARCHIVO: Sección «Importar conceptos desde CSV» del formulario
+// Buscar: importación vista, HU-22
+
 import { leerArchivoCSV } from "./importacion-csv.js";
 
 import {
@@ -20,6 +23,8 @@ const elementos = {
 };
 
 let filasValidadas = [];
+// Qué hace: Muestra un mensaje de estado de la importación
+// Buscar: mostrarMensaje
 function mostrarMensaje(texto, tipo = "normal") {
     elementos.mensaje.textContent = texto;
 
@@ -37,10 +42,14 @@ function mostrarMensaje(texto, tipo = "normal") {
     }
 }
 
+// Qué hace: Borra la lista de errores
+// Buscar: limpiarErrores
 function limpiarErrores() {
     elementos.errores.replaceChildren();
 }
 
+// Qué hace: Muestra los errores por fila y campo
+// Buscar: mostrarErrores
 function mostrarErrores(errores = []) {
     limpiarErrores();
 
@@ -69,6 +78,8 @@ function mostrarErrores(errores = []) {
     });
 }
 
+// Qué hace: Borra la vista previa
+// Buscar: limpiarVistaPrevia
 function limpiarVistaPrevia() {
     filasValidadas = [];
 
@@ -81,6 +92,8 @@ function limpiarVistaPrevia() {
     elementos.totalDescuentos.textContent = "0.00";
 }
 
+// Qué hace: Muestra cuántas filas son válidas y sus totales
+// Buscar: mostrarVistaPrevia
 function mostrarVistaPrevia(resultado) {
     elementos.resultados.replaceChildren();
 
@@ -115,6 +128,8 @@ function mostrarVistaPrevia(resultado) {
 
     elementos.vistaPrevia.hidden = false;
 }
+// Qué hace: Indica si hay empleado, mes y año para importar
+// Buscar: puedeImportar
 function puedeImportar() {
     const empleado = sessionStorage.getItem("empleadoSeleccionado");
     const mes = document.getElementById("mes")?.value;
@@ -123,6 +138,8 @@ function puedeImportar() {
     return Boolean(empleado && mes && anio);
 }
 
+// Qué hace: Habilita o deshabilita los botones de importación
+// Buscar: actualizarDisponibilidad
 function actualizarDisponibilidad() {
     const disponible = puedeImportar();
 
@@ -139,6 +156,8 @@ function actualizarDisponibilidad() {
         );
     }
 }
+// Qué hace: Lee el archivo y lo valida en la API
+// Buscar: revisarArchivo, Revisar archivo
 async function revisarArchivo() {
     limpiarVistaPrevia();
     limpiarErrores();
@@ -195,6 +214,8 @@ async function revisarArchivo() {
         );
     }
 }
+// Qué hace: Pide confirmación y aplica las filas al formulario
+// Buscar: confirmarImportacion, Aplicar
 function confirmarImportacion() {
     if (filasValidadas.length === 0) {
         return;
@@ -225,6 +246,8 @@ function confirmarImportacion() {
     }
 }
 
+// Qué hace: Descarga un CSV de ejemplo
+// Buscar: descargarEjemplo
 function descargarEjemplo() {
     const empleado = JSON.parse(
         sessionStorage.getItem("empleadoSeleccionado") ?? "null"
@@ -265,12 +288,20 @@ function descargarEjemplo() {
 
     URL.revokeObjectURL(url);
 }
+// Qué hace: Conecta el botón del archivo de ejemplo
+// Buscar: descargar-ejemplo-importacion
 elementos.descargarEjemplo.addEventListener("click", descargarEjemplo);
 
+// Qué hace: Conecta el botón «Revisar archivo»
+// Buscar: validar-importacion
 elementos.revisar.addEventListener("click", revisarArchivo);
 
+// Qué hace: Conecta el botón «Aplicar importación»
+// Buscar: aplicar-importacion
 elementos.aplicar.addEventListener("click", confirmarImportacion);
 
+// Qué hace: Reinicia la vista al elegir otro archivo
+// Buscar: archivo-importacion
 elementos.archivo.addEventListener("change", () => {
     limpiarVistaPrevia();
     limpiarErrores();
@@ -287,6 +318,8 @@ document.getElementById("anio")?.addEventListener(
     reiniciarImportacionPorCambioDeContexto
 );
 
+// Qué hace: Reinicia la importación al cambiar empleado, mes o año
+// Buscar: cambio de contexto
 document.addEventListener(
     "empleado:actualizado",
     reiniciarImportacionPorCambioDeContexto
@@ -294,6 +327,8 @@ document.addEventListener(
 
 actualizarDisponibilidad();
 
+// Qué hace: Borra la importación validada para otro empleado o período
+// Buscar: reiniciarImportacionPorCambioDeContexto
 function reiniciarImportacionPorCambioDeContexto() {
     limpiarVistaPrevia();
     limpiarErrores();

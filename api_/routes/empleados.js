@@ -1,9 +1,15 @@
+// ARCHIVO: Rutas de búsqueda y catálogos de empleados
+// Buscar: empleados, búsqueda, HU-24
 
 const express = require("express");
 
+// Qué hace: Crea el router de empleados
+// Buscar: crearRutasEmpleados
 function crearRutasEmpleados({ servicio, verificarToken, verificarRolNomina }) {
     const router = express.Router();
 
+    // Qué hace: Busca empleados por código, DUI o nombre con filtros
+    // Buscar: buscar empleado, sugerencias, filtros
     router.get("/buscar", verificarToken, async (req, res) => {
         try {
             const termino = String(req.query.q || "").trim();
@@ -41,6 +47,8 @@ function crearRutasEmpleados({ servicio, verificarToken, verificarRolNomina }) {
         }
     });
 
+    // Qué hace: Lista los primeros 10 empleados (solo nómina)
+    // Buscar: lista empleados, primeros 10
     router.get("/lista", verificarToken, verificarRolNomina, async (req, res) => {
         try {
             const empleados = await servicio.listar({
@@ -57,6 +65,8 @@ function crearRutasEmpleados({ servicio, verificarToken, verificarRolNomina }) {
         }
     });
 
+    // Qué hace: Devuelve el catálogo de departamentos
+    // Buscar: departamentos, filtro
     router.get("/departamentos", verificarToken, async (req, res) => {
         try {
             const departamentos = await servicio.listarDepartamentos();
@@ -70,6 +80,8 @@ function crearRutasEmpleados({ servicio, verificarToken, verificarRolNomina }) {
         }
     });
 
+    // Qué hace: Devuelve el catálogo de sucursales
+    // Buscar: sucursales, filtro
     router.get("/sucursales", verificarToken, async (req, res) => {
         try {
             const sucursales = await servicio.listarSucursales();

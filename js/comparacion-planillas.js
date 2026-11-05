@@ -1,3 +1,6 @@
+// ARCHIVO: Cálculo de diferencias con la planilla anterior
+// Buscar: comparación, diferencias, HU-28
+
 const CAMPOS = [
     "totalIngresos",
     "deduccionesLegales",
@@ -5,6 +8,8 @@ const CAMPOS = [
     "totalPagar"
 ];
 
+// Qué hace: Compara ingresos, deducciones, descuentos y total en centavos
+// Buscar: compararImportes, aumento, disminución
 export function compararImportes(actuales, anteriores, motor) {
     return CAMPOS.map(campo => {
         const actual = motor.centavos(actuales[campo]);

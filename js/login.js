@@ -1,8 +1,12 @@
+// ARCHIVO: Inicio de sesión contra la API
+// Buscar: login, token, HU-02
 
 //
 // HU-02: INICIO DE SESIÓN CON LA API
 //
 
+// Qué hace: Envía correo y contraseña a la API y guarda token y rol
+// Buscar: login, sessionStorage, plantilla.html
 document.addEventListener("DOMContentLoaded", () => {
 
     const formulario = document.getElementById("form-login");

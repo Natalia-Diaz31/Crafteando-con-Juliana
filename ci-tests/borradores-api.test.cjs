@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas de la conexión del formulario con los borradores
+// Buscar: pruebas borradores, HU-23
+
 "use strict";
 
 const { test } = require("node:test");
@@ -9,6 +12,8 @@ const vm = require("node:vm");
 const ReglasNomina = require("../js/reglas-nomina.js");
 
 // Quitar import y export para ejecutar los módulos fuera del navegador.
+// Qué hace: Lee un módulo del navegador sin import ni export
+// Buscar: leerModulo
 function leerModulo(archivo) {
     return fs.readFileSync(path.join(__dirname, "../js", archivo), "utf8")
         .replace(/^import[\s\S]*?from "[^"]+";$/gm, "")
@@ -25,6 +30,8 @@ const BORRADOR = "bbbbbbbb-0000-4000-8000-000000000001";
 const PLANILLA = "33333333-3333-4333-8333-333333333333";
 
 // respuestas: lo que devuelve la API en cada solicitud, en orden.
+// Qué hace: Carga borradores-api.js con una API simulada
+// Buscar: crearEntorno
 function crearEntorno(respuestas) {
     const solicitudes = [];
 

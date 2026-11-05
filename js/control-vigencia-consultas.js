@@ -1,3 +1,5 @@
+// ARCHIVO: Control para descartar respuestas viejas de consultas
+// Buscar: vigencia, cancelar consulta, HU-36
 
 "use strict";
 
@@ -6,10 +8,14 @@
 // Este módulo no realiza peticiones ni modifica la interfaz.
 // El componente que consulta la API conserva esas responsabilidades.
 
+// Qué hace: Crea el control de consultas vigentes
+// Buscar: crearControlVigenciaConsultas
 export function crearControlVigenciaConsultas() {
     let consultaActual = null;
     let siguienteVersion = 0;
 
+    // Qué hace: Inicia una consulta y cancela la anterior
+    // Buscar: iniciarConsulta, AbortController
     function iniciarConsulta(clave) {
         if (typeof clave !== "string" || !clave.trim()) {
             throw new Error("La consulta necesita una clave válida");
@@ -42,6 +48,8 @@ export function crearControlVigenciaConsultas() {
         return consulta;
     }
 
+    // Qué hace: Indica si una respuesta sigue siendo la vigente
+    // Buscar: estaVigente
     function estaVigente(consulta) {
         return Boolean(
             consulta &&
@@ -51,6 +59,8 @@ export function crearControlVigenciaConsultas() {
         );
     }
 
+    // Qué hace: Libera la consulta al terminar
+    // Buscar: finalizarConsulta
     function finalizarConsulta(consulta) {
         if (!consulta || consulta.finalizada) {
             return false;
@@ -67,6 +77,8 @@ export function crearControlVigenciaConsultas() {
         return vigente;
     }
 
+    // Qué hace: Cancela la consulta en curso
+    // Buscar: cancelarConsultaActual
     function cancelarConsultaActual() {
         if (!consultaActual) {
             return false;

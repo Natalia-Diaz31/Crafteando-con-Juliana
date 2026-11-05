@@ -1,3 +1,6 @@
+// ARCHIVO: Control de acceso por rol en el navegador
+// Buscar: rol, permisos, HU-09
+
 //
 // HU-09: ROL DE LA CUENTA AUTENTICADA
 //
@@ -8,12 +11,16 @@ const ROL_ENCARGADO_NOMINA = "Encargado de nómina";
 const CLAVE_ROL = "rol";
 
 // Rol guardado al iniciar sesión (null si la cuenta no tiene rol)
+// Qué hace: Lee el rol guardado al iniciar sesión
+// Buscar: obtenerRol
 function obtenerRol() {
     return sessionStorage.getItem(CLAVE_ROL);
 }
 
 // Para el menú y las páginas protegidas: ¿la cuenta puede crear y consultar planillas?
 // Solo sirve para mostrar u ocultar opciones; la API vuelve a comprobar el rol.
+// Qué hace: Indica si la cuenta es encargado de nómina
+// Buscar: esEncargadoNomina
 function esEncargadoNomina() {
     return obtenerRol() === ROL_ENCARGADO_NOMINA;
 }
@@ -23,6 +30,8 @@ function esEncargadoNomina() {
 if (document.currentScript?.hasAttribute("data-requiere-rol")) {
     // Se registra en fase de captura sobre window para ejecutarse antes
     // que los scripts de la página y detener sus DOMContentLoaded.
+    // Qué hace: Bloquea la página si exige un rol que la cuenta no tiene
+    // Buscar: data-requiere-rol, bloqueo
     window.addEventListener("DOMContentLoaded", (evento) => {
         if (esEncargadoNomina()) return;
 
@@ -54,6 +63,8 @@ if (document.currentScript?.hasAttribute("data-requiere-rol")) {
 
 // Oculta las opciones de crear y consultar planillas
 // cuando la cuenta autenticada no tiene el rol requerido.
+// Qué hace: Muestra el rol y oculta opciones no permitidas
+// Buscar: sidebar-rol, menú
 document.addEventListener("DOMContentLoaded", () => {
     const crearPlanilla = document.getElementById("menu-crear-planilla");
     const consultarPlanillas = document.getElementById("menu-consultar-planillas");

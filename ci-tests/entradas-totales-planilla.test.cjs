@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas de la preparación de montos para totales
+// Buscar: pruebas entradas totales, HU-34
 
 "use strict";
 
@@ -30,6 +32,8 @@ vm.runInContext(
 
 const prepararEntradasTotales = contexto.funcionProbada;
 
+// Qué hace: Crea datos de entrada de prueba
+// Buscar: crearDatos
 function crearDatos(cambios = {}) {
     return {
         salarioAplicable: "840.00",

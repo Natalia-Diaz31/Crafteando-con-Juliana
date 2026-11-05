@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas del módulo de validación de montos
+// Buscar: pruebas montos, HU-35
+
 "use strict";
 
 const { test } = require("node:test");

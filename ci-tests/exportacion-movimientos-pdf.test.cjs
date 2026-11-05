@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas de las tablas de movimientos del PDF
+// Buscar: pruebas PDF, HU-30
 
 "use strict";
 
@@ -8,6 +10,8 @@ const prepararMovimientosPDF =
     require("../js/exportacion-movimientos-pdf.js");
 
 // Simula la separación existente de descuentos legales y manuales.
+// Qué hace: Simula la separación de descuentos autorizados
+// Buscar: separarDescuentos
 function separarDescuentos(descuentos, deduccionesLegales) {
     const pendientes = (deduccionesLegales?.detalle || [])
         .filter(item => Number(item.importe) > 0)
@@ -29,6 +33,8 @@ function separarDescuentos(descuentos, deduccionesLegales) {
     });
 }
 
+// Qué hace: Crea una planilla de prueba
+// Buscar: crearPlanilla
 function crearPlanilla() {
     return {
         ingresos_adicionales: 150,

@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas de la comparación con la planilla anterior
+// Buscar: pruebas comparación, HU-28
 
 "use strict";
 
@@ -31,6 +33,8 @@ const PLANILLA_ANTERIOR = {
     total_pagar: "850.00"
 };
 
+// Qué hace: Levanta la ruta de comparación con servicios simulados
+// Buscar: prepararServidor
 async function prepararServidor({
     planilla = PLANILLA_ANTERIOR,
     error = null,

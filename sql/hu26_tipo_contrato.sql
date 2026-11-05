@@ -1,16 +1,25 @@
+-- ARCHIVO: Tipo de contrato en empleados y planillas
+-- Buscar: tipo_contrato, contrato, HU-26
+
 -- HU-26: Tipo de contrato de empleados
 -- No modifica los cálculos de nómina.
 
 BEGIN;
 
 -- 1. Agregar columnas
+-- Qué hace: Agrega la columna tipo_contrato a empleados
+-- Buscar: ALTER empleados
 ALTER TABLE public.empleados
 ADD COLUMN IF NOT EXISTS tipo_contrato TEXT;
 
+-- Qué hace: Agrega la copia histórica de tipo_contrato a planillas
+-- Buscar: ALTER planillas
 ALTER TABLE public.planillas
 ADD COLUMN IF NOT EXISTS tipo_contrato TEXT;
 
 -- 2. Restringir valores permitidos
+-- Qué hace: Restringe los valores permitidos de tipo_contrato
+-- Buscar: CHECK, restricción contrato
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -50,6 +59,8 @@ END $$;
 
 -- 3. Completar empleados ficticios
 -- No sobrescribir contratos existentes
+-- Qué hace: Asigna el contrato a los empleados ficticios
+-- Buscar: UPDATE empleados, datos de prueba
 UPDATE public.empleados
 SET tipo_contrato = CASE codigo
     WHEN 'EMP001' THEN 'Indefinido'

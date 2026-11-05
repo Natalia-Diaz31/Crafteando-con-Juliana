@@ -1,11 +1,18 @@
+// ARCHIVO: Datos generales de la planilla para PDF y Excel
+// Buscar: exportación, datos generales, HU-30
+
 "use strict";
 
 // HU-30: Preparar datos generales e históricos para exportación.
+// Qué hace: Prepara identificación, empleado y salarios para exportar
+// Buscar: prepararDatosGeneralesExportacion
 function prepararDatosGeneralesExportacion(planilla) {
     if (!planilla || typeof planilla !== "object" || Array.isArray(planilla)) {
         throw new TypeError("Detalle de planilla inválido");
     }
 
+    // Qué hace: Devuelve el valor o «No registrado»
+    // Buscar: dato, No registrado
     const dato = valor =>
         valor == null || (typeof valor === "string" && !valor.trim())
             ? "No registrado"

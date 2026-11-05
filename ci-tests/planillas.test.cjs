@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas del servicio de planillas (historial, duplicación, comparación)
+// Buscar: pruebas servicio planillas, HU-25, HU-27, HU-28
+
 "use strict";
 
 const { test } = require("node:test");
@@ -13,6 +16,8 @@ const ORIGEN = {
 };
 
 // Simulador compartido para HU-25 y HU-27.
+// Qué hace: Crea un Supabase falso que registra las llamadas
+// Buscar: simularSupabase
 function simularSupabase({
     filas = [],
     total = filas.length,

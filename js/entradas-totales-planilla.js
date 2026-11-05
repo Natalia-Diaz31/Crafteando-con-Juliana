@@ -1,3 +1,6 @@
+// ARCHIVO: Prepara los montos que usa el cálculo de totales
+// Buscar: entradas totales, HU-34
+
 "use strict";
 
 // HU-34: preparar las entradas para el cálculo compartido de totales.
@@ -22,6 +25,8 @@
  *   deduccionesLegales: number
  * }}
  */
+// Qué hace: Convierte salario, ingresos y deducciones a centavos para calcular totales
+// Buscar: prepararEntradasTotales
 export function prepararEntradasTotales(
     {
         salarioAplicable,

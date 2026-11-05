@@ -1,3 +1,8 @@
+// ARCHIVO: Protección de páginas con sesión y manejo de errores de la API
+// Buscar: sesión, token, HU-02, HU-32
+
+// Qué hace: Manda al inicio de sesión si no hay token
+// Buscar: sin sesión, index.html
 (() => {
     const token = sessionStorage.getItem("token");
 
@@ -8,6 +13,8 @@
 
 // HU-32: distinguir sesión expirada, acceso denegado y fallo del servidor
 // antes de leer la respuesta. Lanza el mensaje para que cada pantalla lo muestre.
+// Qué hace: Revisa 401, 403 y 5xx antes de leer una respuesta
+// Buscar: verificarAccesoApi, sesión expirada
 window.verificarAccesoApi = function (respuesta) {
     if (respuesta.status === 401) {
         sessionStorage.removeItem("token");
@@ -24,6 +31,8 @@ window.verificarAccesoApi = function (respuesta) {
     }
 };
 
+// Qué hace: Conecta el botón «Cerrar sesión»
+// Buscar: cerrar-sesion, logout
 document.addEventListener("DOMContentLoaded", () => {
     const botonCerrarSesion = document.getElementById("cerrar-sesion");
 

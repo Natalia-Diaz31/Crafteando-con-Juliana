@@ -1,15 +1,24 @@
+// ARCHIVO: Detalle de bonos e incentivos del formulario
+// Buscar: ingresos, bonos, incentivos, HU-20
+
 let ingresos = [];
 let indiceEdicion = null;
 let controles = null;
 
+// Qué hace: Devuelve el motor de reglas de nómina
+// Buscar: motor, ReglasNomina
 const motor = () => globalThis.ReglasNomina;
 
+// Qué hace: Avisa que la planilla cambió
+// Buscar: notificarCambio, planilla:modificada
 function notificarCambio() {
     document.dispatchEvent(
         new CustomEvent("planilla:modificada")
     );
 }
 
+// Qué hace: Valida y normaliza una lista de ingresos
+// Buscar: normalizarIngresos
 export function normalizarIngresos(lista) {
     if (!Array.isArray(lista)) {
         throw new Error("La lista de ingresos es inválida");
@@ -64,12 +73,16 @@ export function normalizarIngresos(lista) {
     return { detalle, total };
 }
 
+// Qué hace: Devuelve los ingresos y su total
+// Buscar: obtenerIngresos
 export function obtenerIngresos() {
     if (!controles) return null;
 
     return normalizarIngresos(ingresos);
 }
 
+// Qué hace: Reemplaza todos los ingresos (CSV, borrador, duplicación)
+// Buscar: reemplazarIngresos
 export function reemplazarIngresos(lista) {
     if (!controles) {
         throw new Error(
@@ -93,6 +106,8 @@ export function reemplazarIngresos(lista) {
     notificarCambio();
 }
 
+// Qué hace: Indica si quedó un ingreso escrito sin agregar
+// Buscar: validarIngresosPendientes
 export function validarIngresosPendientes() {
     if (!controles) return true;
 
@@ -109,6 +124,8 @@ export function validarIngresosPendientes() {
     return !hayPendiente;
 }
 
+// Qué hace: Limpia los campos de captura
+// Buscar: limpiarEdicion
 function limpiarEdicion() {
     indiceEdicion = null;
 
@@ -119,6 +136,8 @@ function limpiarEdicion() {
     controles.error.textContent = "";
 }
 
+// Qué hace: Dibuja la tabla de ingresos y actualiza el total
+// Buscar: mostrarIngresos, tabla
 function mostrarIngresos() {
     controles.detalle.replaceChildren();
 
@@ -167,7 +186,11 @@ function mostrarIngresos() {
     });
 }
 
+// Qué hace: Prepara la sección de ingresos
+// Buscar: iniciarIngresos
 function iniciarIngresos() {
+    // Qué hace: Busca un elemento por id
+    // Buscar: buscar
     const buscar = id => document.getElementById(id);
 
     // Natalia incorpora este formulario.
@@ -202,6 +225,8 @@ function iniciarIngresos() {
     controles.total.readOnly = true;
     controles.total.value = "0.00";
 
+    // Qué hace: Agrega o actualiza un ingreso
+    // Buscar: agregar ingreso
     controles.agregar.addEventListener("click", () => {
         const nueva = {
             tipo: controles.tipo.value,
@@ -225,4 +250,6 @@ function iniciarIngresos() {
     });
 }
 
+// Qué hace: Inicia la sección cuando carga la página
+// Buscar: DOMContentLoaded
 document.addEventListener("DOMContentLoaded", iniciarIngresos);

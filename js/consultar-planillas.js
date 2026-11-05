@@ -1,7 +1,12 @@
+// ARCHIVO: Pantalla «Consultar planillas»: historial, filtro y paginación
+// Buscar: historial, consultar planillas, HU-25
+
 //
 // HU-08: MOSTRAR PLANILLAS GUARDADAS
 //
-window.mostrarPlanillasGuardadas = function (planillas, empleadoFiltrado = false) {
+// Qué hace: Dibuja la tabla de planillas guardadas
+// Buscar: mostrarPlanillasGuardadas, tabla historial
+function mostrarPlanillasGuardadas(planillas, empleadoFiltrado = false) {
     const cuerpo = document.getElementById("lista-planillas");
     const mensaje = document.getElementById("consulta-mensaje");
 
@@ -58,9 +63,11 @@ window.mostrarPlanillasGuardadas = function (planillas, empleadoFiltrado = false
         fila.appendChild(celdaAccion);
         cuerpo.appendChild(fila);
     });
-};
+}
 
-window.mostrarEmpleadoFiltrado = function (empleado) {
+// Qué hace: Muestra el empleado por el que se filtra
+// Buscar: mostrarEmpleadoFiltrado, filtro empleado
+function mostrarEmpleadoFiltrado(empleado) {
     const contenedor = document.getElementById("filtro-empleado-activo");
     const textoEmpleado = document.getElementById("empleado-filtrado");
 
@@ -76,9 +83,11 @@ window.mostrarEmpleadoFiltrado = function (empleado) {
 
     textoEmpleado.textContent = empleado;
     contenedor.hidden = false;
-};
+}
 
-window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
+// Qué hace: Dibuja los botones de página anterior y siguiente
+// Buscar: mostrarPaginacionPlanillas, paginación
+function mostrarPaginacionPlanillas(paginaActual, totalPaginas) {
     const paginacion = document.getElementById("paginacion-planillas");
     const estado = document.getElementById("estado-paginacion");
     const anterior = document.getElementById("pagina-anterior");
@@ -103,7 +112,7 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
     siguiente.disabled = paginaActual >= totalPaginas;
 
     paginacion.hidden = false;
-};
+}
 
 // Este código se ejecuta automáticamente al cargar consultar-planillas.html
 
@@ -111,6 +120,8 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
     // HU-36: evitar solicitudes idénticas simultáneas.
     const solicitudesActivas = new Map();
 
+    // Qué hace: Consulta la API sin repetir solicitudes idénticas
+    // Buscar: consultarPlanillas, solicitudes activas, HU-36
     function consultarPlanillas(url, token, signal) {
         // Normalizar la URL para identificar los mismos parámetros.
         const urlNormalizada = new URL(url, window.location.href);
@@ -155,6 +166,8 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
         return solicitud;
     }
 
+    // Qué hace: Lee la URL, consulta el historial y muestra el resultado
+    // Buscar: inicializarConsulta
     async function inicializarConsulta() {
         const pagina = document.querySelector("main");
 
@@ -222,6 +235,8 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
         return;
     }
 
+    // Qué hace: Cambia de página o quita el filtro actualizando la URL
+    // Buscar: navegar, pagina, empleado_id
     function navegar(paginaDestino, quitarFiltro = false) {
         const destino = new URL(window.location.href);
 
@@ -285,6 +300,8 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
     const control = crearControlVigenciaConsultas();
     const consulta = control.iniciarConsulta(url.href);
 
+    // Qué hace: Cancela la consulta al salir de la página
+    // Buscar: pagehide, cancelar
     window.addEventListener(
         "pagehide",
         () => control.cancelarConsultaActual(),
@@ -321,19 +338,19 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
             );
         }
 
-        window.mostrarPlanillasGuardadas(
+        mostrarPlanillasGuardadas(
             resultado.planillas,
             Boolean(empleadoId)
         );
 
-        window.mostrarEmpleadoFiltrado(
+        mostrarEmpleadoFiltrado(
             empleadoId
                 ? resultado.planillas[0]?.nombre_completo ||
                     empleadoId
                 : null
         );
 
-        window.mostrarPaginacionPlanillas(
+        mostrarPaginacionPlanillas(
             paginacion.pagina,
             paginacion.totalPaginas
         );
@@ -359,6 +376,8 @@ window.mostrarPaginacionPlanillas = function (paginaActual, totalPaginas) {
     }
 
     if (document.readyState === "loading") {
+        // Qué hace: Inicia la consulta cuando la página termina de cargar
+        // Buscar: DOMContentLoaded, inicio
         document.addEventListener(
             "DOMContentLoaded",
             inicializarConsulta,

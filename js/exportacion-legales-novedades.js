@@ -1,3 +1,5 @@
+// ARCHIVO: Hojas de deducciones legales y novedades del Excel
+// Buscar: Excel, deducciones, novedades, HU-31
 
 "use strict";
 
@@ -5,6 +7,8 @@
 // Utiliza los datos guardados; no recalcula importes ni modifica la planilla.
 
 // Crear una celda de texto explícita, incluso si comienza con =, +, - o @.
+// Qué hace: Crea una celda de texto
+// Buscar: celdaTexto
 function celdaTexto(valor) {
     return {
         t: "s",
@@ -13,6 +17,8 @@ function celdaTexto(valor) {
 }
 
 // Crear una celda numérica con dos decimales.
+// Qué hace: Crea una celda numérica con dos decimales
+// Buscar: celdaImporte
 function celdaImporte(valor) {
     if (valor === null || valor === undefined || valor === "") {
         return celdaTexto("No registrado");
@@ -32,11 +38,15 @@ function celdaImporte(valor) {
 }
 
 // Conservar las fechas como texto para evitar conversiones inesperadas.
+// Qué hace: Crea una celda de fecha como texto
+// Buscar: celdaFecha
 function celdaFecha(valor) {
     return celdaTexto(valor);
 }
 
 // Los días son cantidades numéricas, no importes monetarios.
+// Qué hace: Crea una celda numérica de días
+// Buscar: celdaDias
 function celdaDias(valor) {
     if (valor === null || valor === undefined || valor === "") {
         return celdaTexto("No registrado");
@@ -55,18 +65,24 @@ function celdaDias(valor) {
     };
 }
 
+// Qué hace: Prepara las filas de deducciones legales y novedades
+// Buscar: prepararLegalesNovedadesExcel
 function prepararLegalesNovedadesExcel(planilla) {
     if (!planilla || typeof planilla !== "object" ||
         Array.isArray(planilla)) {
         throw new TypeError("Datos de exportación inválidos");
     }
 
+    // Qué hace: Devuelve el valor o «No registrado»
+    // Buscar: dato
     const dato = valor =>
         valor === null || valor === undefined ||
         (typeof valor === "string" && !valor.trim())
             ? "No registrado"
             : valor;
 
+    // Qué hace: Describe la tasa o tramo aplicado de una deducción
+    // Buscar: reglaLegal, tramo
     const reglaLegal = item => {
         const partes = [];
 
@@ -164,6 +180,8 @@ function prepararLegalesNovedadesExcel(planilla) {
     ];
 }
 
+// Qué hace: Agrega las hojas de deducciones y novedades al libro
+// Buscar: agregarLegalesNovedadesAlLibro
 function agregarLegalesNovedadesAlLibro(libro, planilla, XLSX) {
     if (!libro || !XLSX?.utils) {
         throw new TypeError("Libro Excel inválido");

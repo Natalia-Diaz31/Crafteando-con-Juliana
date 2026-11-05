@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas de las reglas de novedades
+// Buscar: pruebas novedades, HU-18
+
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
@@ -12,6 +15,8 @@ const PERIODO = {
     frecuencia: "mensual"
 };
 
+// Qué hace: Crea una novedad de prueba
+// Buscar: novedad
 function novedad(
     fechaInicio,
     fechaFin,

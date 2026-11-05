@@ -1,3 +1,6 @@
+// ARCHIVO: Captura y recuperación del contenido de un borrador
+// Buscar: capturar borrador, recuperar borrador, HU-23
+
 import {
     validarObservacionesFormulario
 } from "./observaciones.js";
@@ -40,6 +43,8 @@ const CAMPOS = {
     observaciones: "observaciones" // HU-29
 };
 
+// Qué hace: Lee de la sesión el empleado o la plantilla seleccionados
+// Buscar: leerSeleccion, sessionStorage
 function leerSeleccion(clave) {
     try {
         return JSON.parse(sessionStorage.getItem(clave));
@@ -48,10 +53,14 @@ function leerSeleccion(clave) {
     }
 }
 
+// Qué hace: Valida el formato de los datos presentes en el borrador
+// Buscar: validarDatosBorrador
 function validarDatosBorrador(datos) {
     const motor = globalThis.ReglasNomina;
     const errores = {};
 
+    // Qué hace: Revisa un campo y guarda su error si no es válido
+    // Buscar: comprobar
     function comprobar(campo, accion) {
         try {
             accion();
@@ -185,6 +194,8 @@ function validarDatosBorrador(datos) {
     };
 }
 
+// Qué hace: Junta todos los datos del formulario para guardarlos como borrador
+// Buscar: capturarBorrador
 export function capturarBorrador() {
         if (!validarObservacionesFormulario()) {
         return {
@@ -252,6 +263,8 @@ export function capturarBorrador() {
     };
 }
 
+// Qué hace: Vuelve a seleccionar el empleado guardado en el borrador
+// Buscar: recuperarEmpleado
 function recuperarEmpleado(empleado) {
     return new Promise((resolver, rechazar) => {
         document.dispatchEvent(
@@ -266,6 +279,8 @@ function recuperarEmpleado(empleado) {
     });
 }
 
+// Qué hace: Llena el formulario con el contenido de un borrador
+// Buscar: recuperarBorrador, restaurar
 export async function recuperarBorrador(contenido) {
     if (contenido?.version_formato !== 1) {
         throw new Error("Versión de borrador no admitida");

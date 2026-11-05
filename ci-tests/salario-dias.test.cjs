@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas del cálculo por días en el formulario
+// Buscar: pruebas salario por días, HU-19
+
 "use strict";
 
 const { test } = require("node:test");
@@ -13,6 +16,8 @@ const codigo = fs.readFileSync(ruta, "utf8")
     .replace('import { obtenerEstadoNovedades } from "./novedades.js";', "")
     .replace("export function esPlanillaPorDias", "function esPlanillaPorDias");
 
+// Qué hace: Crea un campo de formulario falso
+// Buscar: crearCampo
 function crearCampo(valor) {
     const eventos = {};
 
@@ -28,6 +33,8 @@ function crearCampo(valor) {
     };
 }
 
+// Qué hace: Carga salario-dias.js con campos falsos
+// Buscar: crearEntorno
 function crearEntorno({ salario = "1100.00", frecuencia = "mensual", dias = 30, conProporcional = true } = {}) {
     const campos = {
         "salario": crearCampo(salario),

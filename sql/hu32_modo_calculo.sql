@@ -1,8 +1,15 @@
+-- ARCHIVO: Modo de cálculo (días u horas) y versión vigente de la función de guardado
+-- Buscar: modo_calculo, guardar_planilla_con_descuentos, HU-32
+
 -- HU-32: Persistencia del modo de cálculo.
 
+-- Qué hace: Agrega la columna modo_calculo a planillas
+-- Buscar: ALTER planillas, modo_calculo
 ALTER TABLE public.planillas
 ADD COLUMN IF NOT EXISTS modo_calculo TEXT;
 
+-- Qué hace: Restringe modo_calculo a «dias» u «horas»
+-- Buscar: CHECK modo_calculo
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -20,6 +27,8 @@ BEGIN
     END IF;
 END $$;
 
+-- Qué hace: Función que guarda la planilla y sus descuentos en una sola transacción (versión vigente en el repositorio)
+-- Buscar: guardar_planilla_con_descuentos, versión vigente
 CREATE OR REPLACE FUNCTION public.guardar_planilla_con_descuentos(p_registro jsonb, p_descuentos jsonb)
  RETURNS TABLE(id uuid, fecha_guardado timestamp with time zone, total_pagar numeric)
  LANGUAGE plpgsql
@@ -206,6 +215,8 @@ BEGIN
         END IF;
     END IF;
 
+    -- Qué hace: Inserta la fila de la planilla
+    -- Buscar: INSERT planillas
     INSERT INTO public.planillas (
         plantilla_id,
         empleado_id,
@@ -263,6 +274,8 @@ BEGIN
         SELECT value
         FROM jsonb_array_elements(p_descuentos)
     LOOP
+        -- Qué hace: Inserta cada descuento de la planilla
+        -- Buscar: INSERT planilla_descuentos
         INSERT INTO public.planilla_descuentos (
             planilla_id,
             concepto,

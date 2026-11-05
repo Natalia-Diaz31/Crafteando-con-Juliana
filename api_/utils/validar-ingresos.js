@@ -1,3 +1,6 @@
+// ARCHIVO: Validación del salario y de los bonos e incentivos
+// Buscar: salario, ingresos, bonos, validación
+
 "use strict";
 
 const ReglasNomina = require("./reglas-nomina.js");
@@ -5,6 +8,8 @@ const ReglasNomina = require("./reglas-nomina.js");
 const MAXIMO_CENTAVOS =
     ReglasNomina.centavos("9999999999.99");
 
+// Qué hace: Convierte un valor recibido en texto sin espacios
+// Buscar: obtenerTexto
 function obtenerTexto(valor) {
     if (typeof valor === "string") {
         return valor.trim();
@@ -17,9 +22,13 @@ function obtenerTexto(valor) {
     return "";
 }
 
+// Qué hace: Valida el salario y el detalle de ingresos y devuelve los montos en centavos
+// Buscar: validarSalarioEIngresos, bonos, incentivos
 function validarSalarioEIngresos(datos) {
     const errores = {};
 
+    // Qué hace: Lee un monto obligatorio y lo convierte a centavos
+    // Buscar: leerMonto
     function leerMonto(campo) {
         const texto = obtenerTexto(datos[campo]);
 
@@ -138,4 +147,4 @@ function validarSalarioEIngresos(datos) {
     };
 }
 
-module.exports = { validarSalarioEIngresos };
+module.exports = { validarSalarioEIngresos, obtenerTexto };

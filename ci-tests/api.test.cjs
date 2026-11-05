@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas de la API completa (server.js real con Supabase simulado)
+// Buscar: pruebas api, server.js, endpoints
+
 'use strict';
 // Ejecuta el server.js real con Express y JWT reales. Solo Supabase y dotenv
 // se sustituyen para no leer .env ni acceder a bases de datos externas.
@@ -79,6 +82,8 @@ const PLANILLA_GUARDADA = {
 };
 const TOKEN = jwt.sign({ id: EMPLEADO.id, correo: 'demo@planillas.com' }, SECRET, { expiresIn: '1h' });
 
+// Qué hace: Arma la API con un Supabase falso que guarda en memoria
+// Buscar: prepararAPI, Supabase simulado
 function prepararAPI(opciones = {}) {
   const registros = [];
   const borradores = [];
@@ -282,6 +287,8 @@ function prepararAPI(opciones = {}) {
         }
       };
 
+      // Qué hace: Devuelve el resultado de la consulta simulada a una tabla
+      // Buscar: resolver, tabla simulada
       function resolver(unico = false) {
         if (tabla === 'planilla_borradores') {
           const coincide = borrador =>
@@ -353,6 +360,26 @@ function prepararAPI(opciones = {}) {
                   : EMPLEADO.salario_base_mensual
               }
               : null,
+            error: null
+          };
+        }
+
+        // GET /api/plantillas busca la plantilla por nombre y luego sus campos.
+        if (tabla === 'plantillas' && filtro?.campo === 'nombre') {
+          return {
+            data: !opciones.sinPlantilla && filtro.valor === PLANTILLA.nombre
+              ? { ...PLANTILLA, descripcion: 'Plantilla de prueba CI' }
+              : null,
+            error: null
+          };
+        }
+
+        if (tabla === 'campos_plantilla') {
+          return {
+            data: [
+              { nombre: 'Período', orden: 1 },
+              { nombre: 'Total a pagar', orden: 2 }
+            ],
             error: null
           };
         }
@@ -466,6 +493,8 @@ function prepararAPI(opciones = {}) {
 
   };
   let app;
+  // Qué hace: Express de prueba que no abre el puerto real
+  // Buscar: expressPruebas
   function expressPruebas() {
     app = express();
     // server.js registra sus rutas; el puerto se abre después en el test.
@@ -493,6 +522,8 @@ function prepararAPI(opciones = {}) {
   return { app, registros, borradores };
 }
 
+// Qué hace: Levanta la API en un puerto libre para una prueba
+// Buscar: conAPI
 async function conAPI(t, opciones = {}) {
   const estado = prepararAPI(opciones);
   // Evita usar el app.listen sustituido y abre un puerto local libre.
@@ -503,6 +534,8 @@ async function conAPI(t, opciones = {}) {
     servidor.closeAllConnections();
   }));
 
+  // Qué hace: Hace una solicitud HTTP a la API de prueba
+  // Buscar: pedir, fetch
   async function pedir(ruta, body, token = TOKEN, metodo) {
     const headers = {};
 
@@ -2200,6 +2233,8 @@ test('HU-27: rechaza una planilla cuya plantilla ya no existe', async t => {
 
 const RUTA_HU27 = `/api/planillas/${PLANILLA_GUARDADA.id}/duplicar`;
 
+// Qué hace: Datos de origen para las pruebas de duplicación
+// Buscar: origenHU27, duplicar
 function origenHU27(cambios = {}) {
   return {
     ...PLANILLA_GUARDADA,
@@ -2402,4 +2437,96 @@ test('HU-27: rechaza una plantilla incompatible', async t => {
 
   // La duplicación no debe guardar una nueva planilla.
   assert.equal(api.registros.length, 0);
+});
+// Caracterización previa a la división de server.js: rutas sin cobertura
+// y orden de registro que la refactorización debe conservar.
+test('Caracterización: /api/plantillas exige sesión', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/plantillas', undefined, null);
+  assert.equal(r.status, 401);
+  assert.deepEqual(r.body, { ok: false, mensaje: 'Debe iniciar sesión' });
+});
+
+test('Caracterización: /api/plantillas devuelve la plantilla y sus campos', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/plantillas');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, {
+    ok: true,
+    plantilla: {
+      id: PLANTILLA.id,
+      nombre: PLANTILLA.nombre,
+      descripcion: 'Plantilla de prueba CI',
+      campos: [
+        { nombre: 'Período', orden: 1 },
+        { nombre: 'Total a pagar', orden: 2 }
+      ]
+    }
+  });
+});
+
+test('Caracterización: /api/plantillas responde 404 si no existe', async t => {
+  const api = await conAPI(t, { sinPlantilla: true });
+  const r = await api.pedir('/api/plantillas');
+  assert.equal(r.status, 404);
+  assert.deepEqual(r.body, { ok: false, mensaje: 'No se encontró la plantilla' });
+});
+
+test('Caracterización: /api/empleados/:id devuelve los datos básicos', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir(`/api/empleados/${EMPLEADO.id}`);
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, {
+    ok: true,
+    empleado: {
+      codigo: EMPLEADO.codigo,
+      nombre_completo: EMPLEADO.nombre_completo,
+      dui: EMPLEADO.dui,
+      cargo: EMPLEADO.cargo,
+      salario_base_mensual: EMPLEADO.salario_base_mensual,
+      tipo_contrato: EMPLEADO.tipo_contrato
+    }
+  });
+});
+
+test('Caracterización: /api/empleados/:id rechaza un identificador inválido', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/empleados/123');
+  assert.equal(r.status, 400);
+  assert.deepEqual(r.body, { ok: false, mensaje: 'Identificador de empleado inválido' });
+});
+
+test('Caracterización: /api/empleados/:id inexistente devuelve 404', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/empleados/66666666-6666-4666-8666-666666666666');
+  assert.equal(r.status, 404);
+  assert.deepEqual(r.body, { ok: false, mensaje: 'Empleado no encontrado' });
+});
+
+test('Caracterización: /api/empleados/:id exige sesión', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir(`/api/empleados/${EMPLEADO.id}`, undefined, null);
+  assert.equal(r.status, 401);
+  assert.deepEqual(r.body, { ok: false, mensaje: 'Debe iniciar sesión' });
+});
+
+test('Caracterización: /api/empleados/buscar no lo captura /api/empleados/:id', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/empleados/buscar?q=a');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { ok: true, empleados: [] });
+});
+
+test('Caracterización: /api/planillas/comparacion-anterior no lo captura el detalle', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/planillas/comparacion-anterior?empleado_id=x&anio=2026&mes=10');
+  assert.equal(r.status, 400);
+  assert.deepEqual(r.body, { ok: false, mensaje: 'Identificador de empleado inválido' });
+});
+
+test('Caracterización: una ruta inexistente devuelve 404', async t => {
+  const api = await conAPI(t);
+  const r = await api.pedir('/api/no-existe', undefined, null);
+  assert.equal(r.status, 404);
+  assert.deepEqual(r.body, { ok: false, mensaje: 'Ruta no encontrada' });
 });

@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas de las hojas de deducciones y novedades del Excel
+// Buscar: pruebas Excel, HU-31
 
 "use strict";
 

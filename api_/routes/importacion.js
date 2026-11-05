@@ -1,3 +1,5 @@
+// ARCHIVO: Ruta que valida las filas de un CSV sin guardar nada
+// Buscar: importación, csv, HU-22
 
 const express = require("express");
 
@@ -5,6 +7,8 @@ const TIPOS = ["bono", "incentivo", "descuento"];
 const RESERVADOS = ["isss", "afp", "renta"];
 const MAXIMO_CENTAVOS = 999999999999;
 
+// Qué hace: Crea el router de importación
+// Buscar: crearRutasImportacion
 function crearRutasImportacion({
     supabase,
     verificarToken,
@@ -12,6 +16,8 @@ function crearRutasImportacion({
 }) {
     const router = express.Router();
 
+    // Qué hace: Comprueba empleado, período, conceptos e importes de cada fila
+    // Buscar: validar-importacion, filas, errores
     router.post(
         "/validar-importacion",
         verificarToken,

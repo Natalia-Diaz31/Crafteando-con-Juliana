@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas de la aplicación de un CSV en el formulario
+// Buscar: pruebas importación, HU-22
+
 "use strict";
 
 const { test } = require("node:test");
@@ -18,9 +21,13 @@ const filas = [
 ];
 
 // Convierte los datos creados dentro de vm en objetos comunes.
+// Qué hace: Copia datos creados dentro de vm
+// Buscar: copiar
 const copiar = valor => JSON.parse(JSON.stringify(valor));
 
 // falla: nombre de la función del formulario que rechaza los datos.
+// Qué hace: Carga importacion-aplicar.js con funciones del formulario simuladas
+// Buscar: crearEntorno
 function crearEntorno({ falla = null, integrado = true } = {}) {
     const cambios = {};
 

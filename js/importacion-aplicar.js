@@ -1,3 +1,6 @@
+// ARCHIVO: Validación en la API y aplicación de las filas de un CSV
+// Buscar: aplicar importación, HU-22
+
 // HU-22: aplica las filas que la API ya validó, sustituyendo juntos los bonos e incentivos
 // y los descuentos manuales. Si algo es inválido, no cambia nada del formulario (ADR 0010).
 // Formato de cada fila: { tipo: "bono" | "incentivo" | "descuento", concepto, importe }.
@@ -14,6 +17,8 @@ const TIPOS_INGRESO = { bono: "Bono", incentivo: "Incentivo" };
 // Envía las filas leídas por leerArchivoCSV() a la API, que las compara con el empleado
 // y el período del formulario. No modifica la planilla; devuelve
 // { valido, cantidad, filas, total_ingresos, total_descuentos, errores }.
+// Qué hace: Envía las filas a la API para validarlas sin guardar
+// Buscar: validarImportacion, validar-importacion
 export async function validarImportacion(filas) {
     const empleado = JSON.parse(sessionStorage.getItem("empleadoSeleccionado") ?? "null");
 
@@ -34,6 +39,8 @@ export async function validarImportacion(filas) {
     return respuesta.json();
 }
 
+// Qué hace: Reemplaza bonos, incentivos y descuentos con las filas importadas (todo o nada)
+// Buscar: aplicarImportacion
 export function aplicarImportacion(filas) {
     if (obtenerIngresos() === null) {
         throw new Error("El formulario de bonos e incentivos todavía no está integrado");

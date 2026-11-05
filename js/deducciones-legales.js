@@ -1,3 +1,5 @@
+// ARCHIVO: Cálculo y tabla de ISSS, AFP y Renta en el formulario
+// Buscar: deducciones legales, ISSS, AFP, Renta, HU-14
 
 "use strict";
 
@@ -7,6 +9,8 @@
 let validarDeduccionesInterno = null;
 let obtenerDeduccionesInterno = null;
 
+// Qué hace: Indica si las deducciones legales están calculadas sin errores
+// Buscar: validarDeduccionesLegales
 export function validarDeduccionesLegales() {
     if (!validarDeduccionesInterno) {
         throw new Error(
@@ -17,6 +21,8 @@ export function validarDeduccionesLegales() {
     return validarDeduccionesInterno();
 }
 
+// Qué hace: Devuelve el último cálculo de deducciones legales
+// Buscar: obtenerDeduccionesLegales
 export function obtenerDeduccionesLegales() {
     if (!obtenerDeduccionesInterno) {
         return null;
@@ -27,6 +33,8 @@ export function obtenerDeduccionesLegales() {
 
 // HU-14: presentación compartida del cálculo actual
 // y del registro histórico.
+// Qué hace: Dibuja la tabla de deducciones con base, tasa y tramo
+// Buscar: pintarDeduccionesLegales
 function pintarDeduccionesLegales(contenedor, calculo) {
     contenedor.replaceChildren();
 
@@ -106,6 +114,8 @@ function pintarDeduccionesLegales(contenedor, calculo) {
 // Se mantiene disponible para detalle-planilla.js.
 window.pintarDeduccionesLegales = pintarDeduccionesLegales;
 
+// Qué hace: Conecta el cálculo con los campos de la planilla
+// Buscar: inicio deducciones
 document.addEventListener("DOMContentLoaded", () => {
     const contenedor =
         document.getElementById("detalle-deducciones-legales");
@@ -126,6 +136,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let actual = null;
 
+    // Qué hace: Recalcula las deducciones con el salario e ingresos actuales
+    // Buscar: calcular deducciones
     function calcular() {
         actual = null;
 

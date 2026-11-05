@@ -1,12 +1,19 @@
+// ARCHIVO: Pantalla «Crear planilla»: empleado seleccionado y validación de montos
+// Buscar: planilla, empleado, montos, HU-05, HU-06
+
 //
 // HU-05: MOSTRAR DATOS DEL EMPLEADO SELECCIONADO
 //
 
+// Qué hace: Prepara la selección de empleado cuando carga la página
+// Buscar: inicio planilla
 document.addEventListener("DOMContentLoaded", () => {
 
     const mensaje = document.getElementById("mensaje-empleado");
     const botonCambiarEmpleado = document.getElementById("cambiar-empleado");
 
+    // Qué hace: Muestra los datos del empleado elegido
+    // Buscar: mostrarEmpleadoEnPantalla
     function mostrarEmpleadoEnPantalla(empleado) {
         const codigo = document.getElementById("empleado-codigo");
         const nombre = document.getElementById("empleado-nombre");
@@ -40,6 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Qué hace: Guarda el empleado elegido en la sesión
+    // Buscar: guardarEmpleadoSeleccionado, sessionStorage
     function guardarEmpleadoSeleccionado(empleado) {
         if (!empleado ||
             !empleado.codigo ||
@@ -58,6 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Consultar en la API los datos registrados del empleado elegido
+    // Qué hace: Consulta en la API los datos del empleado
+    // Buscar: consultarEmpleado, GET empleados/:id
     async function consultarEmpleado(id) {
         const token = sessionStorage.getItem("token");
 
@@ -88,6 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let ultimaConsulta = 0;
     
 
+    // Qué hace: Quita el empleado seleccionado
+    // Buscar: empleado:limpiar
     document.addEventListener("empleado:limpiar", () => {
     ultimaConsulta++;
 
@@ -99,6 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 });
 
+// Qué hace: Vuelve a cargar el empleado de un borrador o duplicación
+// Buscar: empleado:recuperar
 document.addEventListener("empleado:recuperar", async evento => {
     const {
         empleado,
@@ -141,6 +156,8 @@ document.addEventListener("empleado:recuperar", async evento => {
     }
 });
 
+    // Qué hace: Carga el empleado elegido en la búsqueda
+    // Buscar: empleado:seleccionar
     document.addEventListener("empleado:seleccionar", async (evento) => {
         const consulta = ++ultimaConsulta;
 
@@ -170,6 +187,8 @@ document.addEventListener("empleado:recuperar", async evento => {
     });
 
     if (botonCambiarEmpleado) {
+        // Qué hace: Permite cambiar de empleado
+        // Buscar: cambiar-empleado
         botonCambiarEmpleado.addEventListener("click", () => {
             const buscador = document.getElementById("buscar-empleado");
 
@@ -210,6 +229,8 @@ document.addEventListener("empleado:recuperar", async evento => {
 // HU-06: VALIDACIÓN DE MONTOS MONETARIOS
 //
 
+// Qué hace: Prepara la validación de montos
+// Buscar: inicio montos
 document.addEventListener("DOMContentLoaded", () => {
 
     // Campos monetarios del formulario
@@ -220,6 +241,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     // Validar un monto individual
+    // Qué hace: Valida un monto con hasta dos decimales
+    // Buscar: validarMonto
     function validarMonto(valor) {
 
         const texto = valor.trim();
@@ -261,6 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Mostrar o quitar los mensajes de error
+    // Qué hace: Muestra u oculta el error de un monto
+    // Buscar: mostrarValidacion
     function mostrarValidacion(input) {
 
         const mensaje = validarMonto(input.value);
@@ -310,6 +335,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         // Validar mientras el usuario escribe
+        // Qué hace: Valida mientras el usuario escribe
+        // Buscar: input monto
         input.addEventListener("input", () => {
             mostrarValidacion(input);
         });
@@ -323,6 +350,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Esta función se reutilizará en HU-07
     // antes de permitir abrir el resumen.
+    // Qué hace: Valida todos los montos antes de abrir el resumen
+    // Buscar: validarMontosPlanilla
     window.validarMontosPlanilla = function () {
 
         let todosValidos = true;

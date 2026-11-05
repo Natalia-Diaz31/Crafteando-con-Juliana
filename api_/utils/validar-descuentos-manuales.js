@@ -1,8 +1,13 @@
+// ARCHIVO: Validación de los descuentos que escribe el encargado
+// Buscar: descuentos manuales, validación
+
 "use strict";
 
 const { centavos, decimal } = require("./reglas-nomina");
 const MAXIMO_CENTAVOS = 999999999999;
 
+// Qué hace: Revisa concepto e importe de cada descuento y suma el total en centavos
+// Buscar: validarDescuentosManuales, ISSS, AFP, Renta
 function validarDescuentosManuales(lista) {
     const errores = {};
     const detalleDescuentos = [];

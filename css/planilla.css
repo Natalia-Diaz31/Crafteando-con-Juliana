@@ -1,3 +1,6 @@
+/* ARCHIVO: Estilos de las pantallas internas (planilla, consulta y detalle) | Buscar: estilos planilla, sidebar, formulario, resumen */
+
+/* Qué hace: Tamaño de cajas, fuente y fondo de toda la página | Buscar: general, body */
 /* Hace que el padding y el borde formen parte del tamaño de los elementos */
 * {
     box-sizing: border-box;
@@ -12,6 +15,7 @@ body {
 }
 
 
+/* Qué hace: Contenedor de la página y barra lateral | Buscar: layout, sidebar, logo */
 /* Contenedor principal */
 .app {
     min-height: 100vh;
@@ -65,6 +69,7 @@ body {
 }
 
 
+/* Qué hace: Opciones del menú lateral | Buscar: menú, menu-item, activo */
 /* Organiza las opciones del menú una debajo de otra */
 .menu {
     display: flex;
@@ -100,6 +105,7 @@ body {
     color: white;
 }
 
+/* Qué hace: Usuario y botón de cerrar sesión | Buscar: sidebar-user, logout-button */
 .sidebar-user {
     padding-top: 18px;
     border-top: 1px solid rgba(255, 255, 255, 0.10);
@@ -161,6 +167,7 @@ body {
 
 
 
+/* Qué hace: Contenido principal y encabezado superior | Buscar: main-content, top-header */
 /* Contenido principal */
 .main-content {
     flex: 1;
@@ -193,6 +200,7 @@ body {
 }
 
 
+/* Qué hace: Tarjeta del formulario y su encabezado | Buscar: tarjeta, form-card */
 /* Espacio donde se encuentra el formulario */
 .content {
     padding: 25px;
@@ -237,6 +245,7 @@ body {
     font-size: 11px;
 }
 
+/* Qué hace: Bloque del empleado seleccionado | Buscar: employee-section, empleado */
 /* Sección donde aparecerá el empleado seleccionado */
 .employee-section {
     margin-top: 20px;
@@ -300,6 +309,7 @@ body {
     font-weight: 600;
 }
 
+/* Qué hace: Secciones, etiquetas y campos del formulario | Buscar: form-section, inputs, montos, USD */
 /* Cada sección del formulario */
 .form-section {
     padding-top: 18px;
@@ -368,6 +378,7 @@ body {
     font-size: 8px;
 }
 
+/* Qué hace: Ajustes para pantallas pequeñas | Buscar: responsive, celular, media */
 /* Para pantallas pequeñas */
 @media (max-width: 780px) {
     /* Oculta la barra lateral */
@@ -427,6 +438,7 @@ body {
     }
 }
 
+/* Qué hace: Ajustes adicionales para pantallas angostas | Buscar: responsive, media */
 @media (max-width: 520px) {
 
     .employee-data {
@@ -442,6 +454,7 @@ body {
     }
 }
 
+/* Qué hace: Resumen oculto y estilos de la búsqueda de empleados | Buscar: resumen oculto, búsqueda, resultados */
 /* Mantiene oculto el resumen hasta que JavaScript lo habilite. */
 #resumen-planilla[hidden] {
     display: none !important;
@@ -479,6 +492,7 @@ body {
     color: #7b8798;
 }
 
+/* Qué hace: Resumen de revisión: tarjetas, grillas y total | Buscar: revisión, resumen, revision-card, total */
 /* =========================
    REVISIÓN DE PLANILLA
    ========================= */
@@ -638,6 +652,7 @@ body {
     font-weight: 600;
 }
 
+/* Qué hace: Ajustes del resumen en pantallas pequeñas | Buscar: responsive revisión */
 @media (max-width: 750px) {
     .revision-grid-4,
     .revision-grid-3 {
@@ -666,6 +681,7 @@ body {
     font-size: 11px;
     font-weight: 600;
 }
+/* Qué hace: Detalle de descuentos manuales | Buscar: descuentos, HU-12 */
 /* HU-12 - Detalle de descuentos */
 .descuentos-card {
     margin: 20px 0;
@@ -689,6 +705,7 @@ body {
     font-size: 10px;
 }
 
+/* Qué hace: Barra de pasos del formulario | Buscar: pasos, progreso, step */
 /* Barra visual del proceso de creación de planilla */
 .steps-bar {
     display: flex;
@@ -769,6 +786,7 @@ body {
     background-color: #2864dc;
 }
 
+/* Qué hace: Barra de pasos en pantallas pequeñas | Buscar: responsive pasos */
 /* Responsive */
 @media (max-width: 780px) {
     .steps-bar {
@@ -785,18 +803,6 @@ body {
 }
 
 /* HU-14 - Deducciones legales */
-
-.deduccion-legal {
-    padding: 13px 0;
-    border-bottom: 1px solid #e7ebf2;
-}
-
-.deduccion-legal h4 {
-    margin: 0 0 10px;
-    color: #2864dc;
-    font-size: 11px;
-    font-weight: 600;
-}
 
 .deducciones-legales-error {
     margin: 12px 0 0;

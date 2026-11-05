@@ -1,3 +1,6 @@
+// ARCHIVO: Pruebas del motor de reglas de nómina (ISSS, AFP, Renta)
+// Buscar: pruebas nómina, reglas, HU-14
+
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');

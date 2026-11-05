@@ -1,10 +1,17 @@
+// ARCHIVO: Sección de incapacidades, permisos y ausencias
+// Buscar: novedades, HU-18
+
 import { validarNovedades } from "./novedades-reglas.js";
 
 let novedades = [];
 let indiceEdicion = null;
 
+// Qué hace: Busca un elemento por id
+// Buscar: campo
 const campo = id => document.getElementById(id);
 
+// Qué hace: Lee mes, año y frecuencia de la planilla
+// Buscar: obtenerPeriodo
 function obtenerPeriodo() {
     return {
         mes: globalThis.ReglasNomina.numeroMes(campo("mes").value),
@@ -13,24 +20,34 @@ function obtenerPeriodo() {
     };
 }
 
+// Qué hace: Avisa que la planilla cambió
+// Buscar: notificarCambio
 function notificarCambio() {
     document.dispatchEvent(
         new CustomEvent("planilla:modificada")
     );
 }
 
+// Qué hace: Muestra el error de novedades
+// Buscar: mostrarError
 function mostrarError(texto) {
     campo("novedades-error").textContent = texto;
 }
 
+// Qué hace: Devuelve las novedades agregadas
+// Buscar: obtenerNovedades
 export function obtenerNovedades() {
     return structuredClone(novedades);
 }
 
+// Qué hace: Devuelve novedades y días remunerados
+// Buscar: obtenerEstadoNovedades, días remunerados
 export function obtenerEstadoNovedades() {
     return validarNovedades(novedades, obtenerPeriodo());
 }
 
+// Qué hace: Limpia los campos de captura
+// Buscar: limpiarFormulario
 function limpiarFormulario() {
     indiceEdicion = null;
 
@@ -46,6 +63,8 @@ function limpiarFormulario() {
     campo("agregar-novedad").textContent = "Agregar novedad";
 }
 
+// Qué hace: Valida las novedades antes de revisar o guardar
+// Buscar: validarNovedadesFormulario
 export function validarNovedadesFormulario() {
     const resultado = obtenerEstadoNovedades();
 
@@ -67,6 +86,8 @@ export function validarNovedadesFormulario() {
     return resultado.valido && !hayPendiente;
 }
 
+// Qué hace: Reemplaza las novedades (borrador)
+// Buscar: reemplazarNovedades
 export function reemplazarNovedades(lista) {
     const resultado = validarNovedades(lista, obtenerPeriodo());
 
@@ -80,6 +101,8 @@ export function reemplazarNovedades(lista) {
     notificarCambio();
 }
 
+// Qué hace: Dibuja la tabla de novedades y los días remunerados
+// Buscar: mostrarNovedades, tabla
 function mostrarNovedades() {
     const cuerpo = campo("detalle-novedades");
     cuerpo.replaceChildren();
@@ -155,6 +178,8 @@ function mostrarNovedades() {
 
 }
 
+// Qué hace: Prepara la sección de novedades
+// Buscar: iniciarNovedades
 function iniciarNovedades() {
     const agregar = campo("agregar-novedad");
 
@@ -170,6 +195,8 @@ function iniciarNovedades() {
         agregar.after(error);
     }
 
+    // Qué hace: Agrega una novedad
+    // Buscar: agregar novedad
     agregar.addEventListener("click", () => {
         const nueva = {
             tipo: campo("novedad-tipo").value,
@@ -205,6 +232,8 @@ function iniciarNovedades() {
         notificarCambio();
     });
 
+    // Qué hace: Borra las novedades al cambiar de empleado
+    // Buscar: empleado:actualizado
     document.addEventListener("empleado:actualizado", () => {
         novedades = [];
         limpiarFormulario();
@@ -215,4 +244,6 @@ function iniciarNovedades() {
     mostrarNovedades();
 }
 
+// Qué hace: Inicia la sección cuando carga la página
+// Buscar: DOMContentLoaded
 document.addEventListener("DOMContentLoaded", iniciarNovedades);

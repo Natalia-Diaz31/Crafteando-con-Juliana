@@ -1,3 +1,5 @@
+// ARCHIVO: Ruta que compara la planilla actual con la mensual anterior
+// Buscar: comparación, HU-28
 
 "use strict";
 
@@ -6,6 +8,8 @@ const express = require("express");
 const FORMATO_UUID =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Qué hace: Convierte un importe guardado a número o null
+// Buscar: convertirImporte, importe
 function convertirImporte(valor) {
     if (valor === null || valor === undefined || valor === "") {
         return null;
@@ -26,6 +30,8 @@ function convertirImporte(valor) {
     return (centavos / 100).toFixed(2);
 }
 
+// Qué hace: Lee el total de deducciones legales guardado
+// Buscar: obtenerTotalDeducciones, deducciones
 function obtenerTotalDeducciones(valor) {
     if (valor === null || valor === undefined) {
         return null;
@@ -38,6 +44,8 @@ function obtenerTotalDeducciones(valor) {
     return convertirImporte(valor);
 }
 
+// Qué hace: Crea el router de comparación
+// Buscar: crearRutasComparacion
 function crearRutasComparacion({
     servicio,
     verificarToken,
@@ -47,6 +55,8 @@ function crearRutasComparacion({
     const router = express.Router();
 
     // HU-28: consultar los importes históricos de la planilla anterior.
+    // Qué hace: Devuelve los importes de la planilla mensual anterior del empleado
+    // Buscar: comparacion-anterior, planilla anterior
     router.get(
         "/comparacion-anterior",
         verificarToken,

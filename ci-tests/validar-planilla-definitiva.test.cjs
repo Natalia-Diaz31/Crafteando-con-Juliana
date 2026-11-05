@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas de la validación definitiva de planillas en la API
+// Buscar: pruebas validación, HU-33
 
 "use strict";
 
@@ -13,6 +15,8 @@ const ReglasNomina = require("../api_/utils/reglas-nomina");
 const EMPLEADO_ID = "11111111-1111-4111-8111-111111111111";
 const PLANTILLA_ID = "22222222-2222-4222-8222-222222222222";
 
+// Qué hace: Crea una planilla de prueba
+// Buscar: crearPlanilla
 function crearPlanilla(cambios = {}) {
     return {
         novedades: [],

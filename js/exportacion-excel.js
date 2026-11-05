@@ -1,12 +1,19 @@
+// ARCHIVO: Crea el libro de Excel con la hoja «Resumen»
+// Buscar: Excel, libro, HU-31
+
 // Mismos títulos e importes que el PDF.
 import { IMPORTES, etiqueta } from "./exportacion-pdf.js";
 
+// Qué hace: Crea el libro y su hoja de resumen
+// Buscar: crearLibroPlanilla
 export function crearLibroPlanilla(
     generales,
     XLSX
 ) {
     const libro = XLSX.utils.book_new();
 
+    // Qué hace: Crea una celda de texto
+    // Buscar: texto, celda
     const texto = valor => ({
         t: "s",
         v: String(valor ?? "No registrado")
