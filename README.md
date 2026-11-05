@@ -4,6 +4,10 @@ Proyecto de desarrollo de un sistema web de gestión de planillas para Banco, en
 # Enlace de demostración
 Acceder al sistema de planillas (https://sistemadeplanillas.vercel.app/)
 
-# Claves de acceso (demostración)
+# Claves de acceso (demostración encargado de nómina)
 Correo: demo@planillas.com
 Contraseña: Planilla123!
+
+# Claves de acceso (cuenta sin permisos)
+Correo: prueba.sinrol@planillas.com
+Contraseña: cuenta_sinpermiso123!
