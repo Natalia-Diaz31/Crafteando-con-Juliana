@@ -59,7 +59,7 @@ jobs:
         run: vercel build --prod --token="$VERCEL_TOKEN"
 
    
-      - name: Publicar API de prueba sin cambiar dominio
+      - name: Publicar API en producción
         id: despliegue
         run: |
           url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
