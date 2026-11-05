@@ -153,8 +153,9 @@ async function guardarPlanilla() {
         observaciones: document.getElementById("observaciones").value,
 
         // HU-19: la API recalcula días y salario proporcional a partir de las novedades.
+        // Quincenal y semanal se calculan por horas; la API exige el modo en ambos casos.
+        modo_calculo: esPlanillaPorDias() ? "dias" : "horas",
         ...(esPlanillaPorDias() && {
-            modo_calculo: "dias",
             salario_base_mensual: document.getElementById("salario").value
         })
     };
